@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m3x_settings_loading">正在加载设置…</string>
+    <string name="m3x_settings_read_failed">无法加载设置</string>
+    <string name="m3x_settings_write_failed">更改尚未保存</string>
+    <string name="m3x_settings_retry">重试</string>
+    <string name="m3x_settings_cancel">取消</string>
+    <string name="m3x_settings_save">保存</string>
+    <string name="m3x_settings_restore_default">恢复默认值</string>
+    <string name="m3x_settings_from">起始值</string>
+    <string name="m3x_settings_to">结束值</string>
+    <string name="m3x_settings_selected_count">已选择 %1$d 项</string>
+    <string name="m3x_settings_invalid_number">请输入有效数字</string>
+    <string name="m3x_settings_unavailable">此设置当前不可用</string>
+    <string name="m3x_settings_value">数值</string>
+    <string name="m3x_settings_custom_editor_missing">请为 %1$s 注册自定义编辑器。</string>
+    <string name="m3x_settings_too_short">至少输入 %1$d 个字符</string>
+    <string name="m3x_settings_too_long">最多输入 %1$d 个字符</string>
+    <string name="m3x_settings_not_finite">请输入有限数值</string>
+    <string name="m3x_settings_invalid_bounds">数值范围无效</string>
+    <string name="m3x_settings_out_of_bounds">请输入 %1$s 到 %2$s 之间的数值</string>
+    <string name="m3x_settings_invalid_step">请按 %1$s 的步长输入</string>
+    <string name="m3x_settings_range_order">起始值不能大于结束值</string>
+</resources>

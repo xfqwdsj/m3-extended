@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m3x_settings_loading">Loading settings…</string>
+    <string name="m3x_settings_read_failed">Unable to load settings</string>
+    <string name="m3x_settings_write_failed">Changes were not saved</string>
+    <string name="m3x_settings_retry">Retry</string>
+    <string name="m3x_settings_cancel">Cancel</string>
+    <string name="m3x_settings_save">Save</string>
+    <string name="m3x_settings_restore_default">Restore default</string>
+    <string name="m3x_settings_from">From</string>
+    <string name="m3x_settings_to">To</string>
+    <string name="m3x_settings_selected_count">%1$d selected</string>
+    <string name="m3x_settings_invalid_number">Enter a valid number</string>
+    <string name="m3x_settings_unavailable">This setting is no longer available</string>
+    <string name="m3x_settings_value">Value</string>
+    <string name="m3x_settings_custom_editor_missing">Register a custom editor for %1$s.</string>
+    <string name="m3x_settings_too_short">Enter at least %1$d characters</string>
+    <string name="m3x_settings_too_long">Enter at most %1$d characters</string>
+    <string name="m3x_settings_not_finite">Enter a finite number</string>
+    <string name="m3x_settings_invalid_bounds">Invalid bounds</string>
+    <string name="m3x_settings_out_of_bounds">Enter a value from %1$s to %2$s</string>
+    <string name="m3x_settings_invalid_step">Use increments of %1$s</string>
+    <string name="m3x_settings_range_order">Start must not exceed end</string>
+</resources>

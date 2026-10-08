@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="m3x_dialog_pane_title">对话框</string>
+    <string name="m3x_dialog_dismiss">关闭对话框</string>
+    <string name="m3x_menu_dismiss">关闭菜单</string>
+    <string name="m3x_bottom_sheet_close">关闭底部动作条</string>
+    <string name="m3x_bottom_sheet_pane_title">底部动作条</string>
+    <string name="m3x_bottom_sheet_drag_handle_description">拖动手柄</string>
+    <string name="m3x_bottom_sheet_collapse_description">收起底部动作条</string>
+    <string name="m3x_bottom_sheet_dismiss_description">关闭底部动作条</string>
+    <string name="m3x_bottom_sheet_expand_description">展开底部动作条</string>
+    <string name="m3x_tooltip_long_press_label">显示提示</string>
+    <string name="m3x_tooltip_pane_description">提示</string>
+    <string name="m3x_tooltip_dismiss">关闭提示</string>
+    <string name="m3x_snackbar_dismiss">关闭</string>
+    <string name="m3x_snackbar_pane_title">提示条</string>
+</resources>

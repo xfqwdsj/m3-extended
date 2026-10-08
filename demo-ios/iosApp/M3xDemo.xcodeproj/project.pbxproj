@@ -1,0 +1,66 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A20000000000000000000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000001 /* AppDelegate.swift */; };
+		A20000000000000000000002 /* M3xDemo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A30000000000000000000005 /* M3xDemo.framework */; };
+		A20000000000000000000003 /* M3xDemoFrameworkFingerprint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000006 /* M3xDemoFrameworkFingerprint.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A30000000000000000000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A30000000000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A30000000000000000000004 /* M3xDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = M3xDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A30000000000000000000005 /* M3xDemo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = "../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/M3xDemo.framework"; sourceTree = SOURCE_ROOT; };
+		A30000000000000000000006 /* M3xDemoFrameworkFingerprint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "$(DERIVED_FILE_DIR)/M3xDemoFrameworkFingerprint.swift"; sourceTree = "<absolute>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A40000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000002 /* M3xDemo.framework in Frameworks */, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A50000000000000000000001 = {isa = PBXGroup; children = (A50000000000000000000002 /* M3xDemo */, A50000000000000000000003 /* Products */, ); sourceTree = "<group>"; };
+		A50000000000000000000002 /* M3xDemo */ = {isa = PBXGroup; children = (A30000000000000000000001 /* AppDelegate.swift */, A30000000000000000000003 /* Info.plist */, ); path = M3xDemo; sourceTree = "<group>"; };
+		A50000000000000000000003 /* Products */ = {isa = PBXGroup; children = (A30000000000000000000004 /* M3xDemo.app */, ); name = Products; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000000000000000000001 /* M3xDemo */ = {isa = PBXNativeTarget; buildConfigurationList = A60000000000000000000001 /* Build configuration list for PBXNativeTarget "M3xDemo" */; buildPhases = (A70000000000000000000001 /* Build Kotlin framework */, A40000000000000000000001 /* Frameworks */, A70000000000000000000002 /* Sources */, A70000000000000000000003 /* Resources */, ); buildRules = (); dependencies = (); name = M3xDemo; productName = M3xDemo; productReference = A30000000000000000000004 /* M3xDemo.app */; productType = "com.apple.product-type.application"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A80000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 2700; TargetAttributes = {A10000000000000000000001 = {CreatedOnToolsVersion = 27.0; }; }; }; buildConfigurationList = A60000000000000000000002 /* Build configuration list for PBXProject "M3xDemo" */; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base, zh-Hans, ); mainGroup = A50000000000000000000001; productRefGroup = A50000000000000000000003 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (A10000000000000000000001 /* M3xDemo */, ); };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A70000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A70000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A20000000000000000000001 /* AppDelegate.swift in Sources */, A20000000000000000000003 /* M3xDemoFrameworkFingerprint.swift in Sources */, ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A70000000000000000000001 /* Build Kotlin framework */ = {isa = PBXShellScriptBuildPhase; alwaysOutOfDate = 1; buildActionMask = 2147483647; files = (); inputFileListPaths = (); inputPaths = (); name = "Build Kotlin framework"; outputFileListPaths = (); outputPaths = ("$(SRCROOT)/../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/M3xDemo.framework/M3xDemo", "$(SRCROOT)/../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/M3xDemo.framework/Headers/M3xDemo.h", "$(SRCROOT)/../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)/M3xDemo.framework/Modules/module.modulemap", "$(DERIVED_FILE_DIR)/M3xDemoFrameworkFingerprint.swift", ); runOnlyForDeploymentPostprocessing = 0; shellPath = /bin/sh; shellScript = "set -eu\ncd \"$SRCROOT/../..\"\n./gradlew :demo-ios:embedAndSignAppleFrameworkForXcode\nframework=\"$SRCROOT/../build/xcode-frameworks/$CONFIGURATION/$SDK_NAME/M3xDemo.framework/M3xDemo\"\nfingerprint=\"$DERIVED_FILE_DIR/M3xDemoFrameworkFingerprint.swift\"\nvalue=$(shasum -a 256 \"$framework\" | awk '{print $1}')\ntemporary=\"$fingerprint.tmp\"\nprintf 'enum M3xDemoFrameworkFingerprint { static let value = \\\"%s\\\" }\\n' \"$value\" > \"$temporary\"\nif ! cmp -s \"$temporary\" \"$fingerprint\"; then mv \"$temporary\" \"$fingerprint\"; else rm \"$temporary\"; fi\n"; };
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A90000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; "EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = M3xDemo/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; PRODUCT_BUNDLE_IDENTIFIER = top.ltfan.m3x.demo; PRODUCT_MODULE_NAME = M3xDemoApp; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; ENABLE_USER_SCRIPT_SANDBOXING = NO; FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"; }; name = Debug; };
+		A90000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; "EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = M3xDemo/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; PRODUCT_BUNDLE_IDENTIFIER = top.ltfan.m3x.demo; PRODUCT_MODULE_NAME = M3xDemoApp; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; ENABLE_USER_SCRIPT_SANDBOXING = NO; FRAMEWORK_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"; }; name = Release; };
+		A90000000000000000000003 /* Project Debug */ = {isa = XCBuildConfiguration; buildSettings = {IPHONEOS_DEPLOYMENT_TARGET = 15.0; SDKROOT = iphoneos; }; name = Debug; };
+		A90000000000000000000004 /* Project Release */ = {isa = XCBuildConfiguration; buildSettings = {IPHONEOS_DEPLOYMENT_TARGET = 15.0; SDKROOT = iphoneos; }; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A60000000000000000000001 /* Build configuration list for PBXNativeTarget "M3xDemo" */ = {isa = XCConfigurationList; buildConfigurations = (A90000000000000000000001 /* Debug */, A90000000000000000000002 /* Release */, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A60000000000000000000002 /* Build configuration list for PBXProject "M3xDemo" */ = {isa = XCConfigurationList; buildConfigurations = (A90000000000000000000003 /* Project Debug */, A90000000000000000000004 /* Project Release */, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+	};
+	rootObject = A80000000000000000000001 /* Project object */;
+}
