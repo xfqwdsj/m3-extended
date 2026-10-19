@@ -1,5 +1,6 @@
 package top.ltfan.m3x.settingspage.datastore
 
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.StateFlow
 import top.ltfan.m3x.datastore.MutableStore
@@ -8,6 +9,7 @@ import top.ltfan.m3x.settingspage.SettingsPersistence
 import top.ltfan.m3x.settingspage.SettingsPersistenceStatus
 
 /** Maps DataStore readiness without launching a collector or changing its lifetime. */
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 public fun StateFlow<StoreStatus>.asSettingsStatus(): StateFlow<SettingsPersistenceStatus> =
     object : StateFlow<SettingsPersistenceStatus> {
         override val value: SettingsPersistenceStatus
