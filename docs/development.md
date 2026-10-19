@@ -73,9 +73,13 @@ For web dependency changes, prepare the toolchain and regenerate the repository 
 ./gradlew kotlinUpgradeYarnLock
 ```
 
-Review `kotlin-js-store/yarn.lock`. The [test workflow](../.github/workflows/test.yml) runs setup
-before `allTests --continue`; demo packaging belongs to the release and Pages workflows. A JVM
-result does not establish JS, Wasm, Android, or Apple behavior. Rendering checks should exercise the affected source/stack/frame path;
+Review `kotlin-js-store/yarn.lock`. The [test workflow](../.github/workflows/test.yml) runs JVM,
+Android host, JVM-only module, and JS/Wasm browser tests on Linux, with Node setup before web tests
+and Xvfb for desktop UI tests. Its macOS job runs `macosArm64Test` and `iosSimulatorArm64Test`.
+Android host tests run on the JVM; iOS tests run in the simulator. Demo packaging belongs to the
+release and Pages workflows. The release workflow reuses both test jobs before publishing libraries
+or uploading demo artifacts. A JVM result does not establish JS, Wasm, Android, or Apple behavior.
+Rendering checks should exercise the affected source/stack/frame path;
 contract pages link existing regression tests by responsibility.
 
 ## Run the existing launchers
