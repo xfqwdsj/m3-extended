@@ -3,19 +3,1761 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>M3X Demo · 示例</title>
-    <style>html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden
-    }
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#182C40">
+    <meta name="description" content="M3 Extended design system demo for Compose Multiplatform.">
+    <title>M3X Demo</title>
+    <style>
+        @layer base, components, motion;
 
-    body {
-        background: #244b68
-    }</style>
+        @layer base {
+            :root {
+                color-scheme: light;
+                --font-scale: 1;
+                --bg-1: #182C40;
+                --bg-2: #17352C;
+                --bg-3: #3D2536;
+                --page-background: linear-gradient(to bottom right, var(--bg-1), var(--bg-2), var(--bg-3));
+                --surface-container: #211F26;
+                --on-background: #E6E0E9;
+                --on-surface-variant: #CAC4D0;
+                --primary: #D0BCFF;
+                --on-primary: #381E72;
+                --outline-variant: #49454F;
+                --error: #FFB4AB;
+                --panel-surface: var(--surface-container);
+                --panel-border: var(--outline-variant);
+                --track: var(--outline-variant);
+                --motion-duration: 180ms;
+                --motion-ease: cubic-bezier(.2, 0, 0, 1);
+                --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            }
+
+            :root[data-theme="dark"] {
+                color-scheme: dark;
+            }
+
+            :root[data-theme="light"] {
+                color-scheme: light;
+            }
+
+            html {
+                font-size: calc(100% * var(--font-scale));
+            }
+
+            html,
+            body {
+                height: 100%;
+            }
+
+            body {
+                margin: 0;
+                overflow: hidden;
+                background-color: var(--bg-1);
+                background-image: var(--page-background);
+                color: var(--on-background);
+                font-family: var(--font-sans), sans-serif;
+                -webkit-font-smoothing: antialiased;
+                text-rendering: optimizeLegibility;
+            }
+
+            .m3x-loader {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483647;
+                box-sizing: border-box;
+                display: grid;
+                place-items: safe center;
+                padding: clamp(16px, 4vw, 48px);
+                overflow: auto;
+                overscroll-behavior: contain;
+                background-color: var(--bg-1);
+                background-image: var(--page-background);
+                color: var(--on-background);
+                font-family: var(--font-sans), sans-serif;
+                font-size: 1rem;
+                line-height: 1.5;
+                transition: opacity 240ms var(--motion-ease);
+            }
+
+            .m3x-loader[data-leaving="true"] {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .m3x-loader *,
+            .m3x-loader *::before,
+            .m3x-loader *::after {
+                box-sizing: border-box;
+            }
+
+            @supports (background: color-mix(in srgb, white 50%, transparent)) {
+                :root {
+                    --track: color-mix(in srgb, var(--on-background) 14%, transparent);
+                }
+
+                :root[data-transparency="full"] {
+                    --panel-surface: color-mix(in srgb, var(--surface-container) 88%, transparent);
+                    --panel-border: color-mix(in srgb, var(--outline-variant) 76%, transparent);
+                }
+            }
+
+            :root[data-contrast="high"] {
+                --panel-border: var(--on-background);
+            }
+
+            @supports (background: color-mix(in srgb, white 50%, transparent)) {
+                :root[data-contrast="high"] {
+                    --track: color-mix(in srgb, var(--on-background) 30%, transparent);
+                }
+            }
+        }
+
+        @layer components {
+            .loader-panel {
+                width: min(100%, 34rem);
+                min-width: 0;
+                padding: clamp(22px, 5vw, 36px);
+                border: 1px solid var(--panel-border);
+                border-radius: clamp(22px, 4vw, 28px);
+                background-color: var(--panel-surface);
+                display: flex;
+                flex-direction: column;
+                gap: clamp(20px, 4vw, 28px);
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+
+            .brand-copy {
+                min-width: 0;
+            }
+
+            .brand-eyebrow {
+                margin: 0 0 2px;
+                color: var(--on-surface-variant);
+                font-size: .68rem;
+                font-weight: 600;
+                letter-spacing: .08em;
+            }
+
+            .brand-title {
+                margin: 0;
+                font-size: clamp(1.4rem, 3vw, 1.75rem);
+                font-weight: 650;
+                letter-spacing: -.025em;
+                line-height: 1.2;
+                text-wrap: balance;
+            }
+
+            .progress {
+                display: grid;
+                gap: 12px;
+            }
+
+            .progress-head {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 8px 16px;
+            }
+
+            .progress-copy {
+                min-width: 0;
+            }
+
+            .phase {
+                margin: 0;
+                font-size: .94rem;
+                font-weight: 600;
+                letter-spacing: -.01em;
+                line-height: 1.35;
+                text-wrap: balance;
+            }
+
+            .phase-detail {
+                margin: 4px 0 0;
+                color: var(--on-surface-variant);
+                font-size: .8rem;
+                line-height: 1.4;
+                text-wrap: pretty;
+            }
+
+            .percent {
+                flex: none;
+                margin: 0 0 0 auto;
+                font-size: clamp(2rem, 5.6vw, 2.6rem);
+                font-weight: 650;
+                font-variant-numeric: tabular-nums;
+                letter-spacing: -.04em;
+                line-height: 1;
+            }
+
+            .percent-unit {
+                margin-left: 2px;
+                color: var(--on-surface-variant);
+                font-size: .42em;
+                font-weight: 600;
+                letter-spacing: 0;
+            }
+
+            .progress-track,
+            .resource-track {
+                overflow: hidden;
+                border-radius: 999px;
+                background-color: var(--track);
+            }
+
+            .progress-track {
+                height: 6px;
+            }
+
+            .progress-fill,
+            .resource-fill {
+                display: block;
+                width: 100%;
+                height: 100%;
+                border-radius: inherit;
+                background-color: var(--primary);
+                transform: scaleX(0);
+                transform-origin: left center;
+                transition: transform var(--motion-duration) linear;
+            }
+
+            .progress-meta {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 4px 14px;
+                color: var(--on-surface-variant);
+                font-size: .74rem;
+                font-variant-numeric: tabular-nums;
+                line-height: 1.4;
+            }
+
+            .resources {
+                display: grid;
+                gap: 10px;
+                min-height: 0;
+            }
+
+            .resources-head {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 4px 12px;
+            }
+
+            .resources-title {
+                margin: 0;
+                color: var(--on-surface-variant);
+                font-size: .7rem;
+                font-weight: 650;
+                letter-spacing: .11em;
+                text-transform: uppercase;
+            }
+
+            .resources-count {
+                margin-left: auto;
+                color: var(--on-surface-variant);
+                font-size: .72rem;
+                font-variant-numeric: tabular-nums;
+            }
+
+            .resource-list {
+                display: grid;
+                gap: 0;
+                max-height: min(38dvh, 320px);
+                margin: 0;
+                padding: 0;
+                overflow: auto;
+                list-style: none;
+                scrollbar-color: var(--outline-variant) transparent;
+                scrollbar-width: thin;
+            }
+
+            .resource {
+                display: grid;
+                gap: 6px;
+                padding: 10px 0;
+                border-top: 1px solid var(--panel-border);
+                animation: row-in 180ms var(--motion-ease) both;
+            }
+
+            .resource:first-child {
+                padding-top: 0;
+                border-top: 0;
+            }
+
+            .resource:last-child {
+                padding-bottom: 0;
+            }
+
+            .resource-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 2px 14px;
+            }
+
+            .resource-name {
+                display: flex;
+                align-items: center;
+                min-width: 0;
+                gap: 8px;
+                font-size: .82rem;
+                font-weight: 550;
+            }
+
+            .resource-name-text {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .resource-dot {
+                flex: none;
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background-color: var(--outline-variant);
+            }
+
+            .resource-size {
+                flex: none;
+                margin-left: auto;
+                color: var(--on-surface-variant);
+                font-size: .72rem;
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+
+            .resource-track {
+                height: 3px;
+            }
+
+            .resource-file {
+                overflow: hidden;
+                color: var(--on-surface-variant);
+                font-family: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
+                "Liberation Mono", monospace;
+                font-size: .62rem;
+                letter-spacing: -.01em;
+                line-height: 1.4;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .resource-file:empty {
+                display: none;
+            }
+
+            .resource[data-state="loading"] .resource-dot,
+            .resource[data-state="queued"] .resource-dot {
+                background-color: var(--primary);
+            }
+
+            .resource[data-state="loading"] .resource-dot {
+                animation: pulse 1.3s ease-in-out infinite;
+            }
+
+            .resource[data-state="done"] .resource-dot {
+                background-color: var(--primary);
+            }
+
+            .resource[data-state="failed"] .resource-dot {
+                background-color: var(--error);
+            }
+
+            .resource[data-state="failed"] .resource-name,
+            .resource[data-state="failed"] .resource-size {
+                color: var(--error);
+            }
+
+            .error {
+                display: none;
+                gap: 10px;
+                padding: 14px;
+                border: 1px solid var(--error);
+                border-radius: 16px;
+                background-color: var(--surface-container);
+            }
+
+            .m3x-loader[data-state="error"] .error {
+                display: grid;
+            }
+
+            .error-title {
+                margin: 0;
+                color: var(--error);
+                font-size: .85rem;
+                font-weight: 650;
+            }
+
+            .error-detail {
+                margin: 0;
+                color: var(--on-surface-variant);
+                font-size: .76rem;
+                line-height: 1.45;
+            }
+
+            .retry {
+                justify-self: start;
+                margin-top: 2px;
+                padding: 9px 18px;
+                border: 0;
+                border-radius: 999px;
+                background-color: var(--primary);
+                color: var(--on-primary);
+                font: inherit;
+                font-size: .8rem;
+                font-weight: 650;
+                cursor: pointer;
+                transition: opacity var(--motion-duration) var(--motion-ease);
+            }
+
+            .retry:hover {
+                opacity: .88;
+            }
+
+            .retry:focus-visible {
+                outline: 2px solid var(--primary);
+                outline-offset: 3px;
+            }
+
+            .loader-footer {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 4px 16px;
+                color: var(--on-surface-variant);
+                font-size: .68rem;
+                line-height: 1.45;
+            }
+
+            .loader-footer-credit {
+                font-weight: 600;
+                letter-spacing: .01em;
+            }
+        }
+
+        @layer motion {
+            @keyframes pulse {
+                50% {
+                    opacity: .32;
+                }
+            }
+
+            @keyframes row-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(4px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                :root:not([data-reduce-motion="false"]) {
+                    --motion-duration: 0ms;
+                }
+
+                :root:not([data-reduce-motion="false"]) .resource-dot {
+                    animation: none;
+                }
+
+                :root:not([data-reduce-motion="false"]) .resource {
+                    animation: none;
+                }
+
+                :root:not([data-reduce-motion="false"]) .m3x-loader {
+                    transition: none;
+                }
+            }
+
+            :root[data-reduce-motion="true"] {
+                --motion-duration: 0ms;
+            }
+
+            :root[data-reduce-motion="true"] .resource-dot {
+                animation: none;
+            }
+
+            :root[data-reduce-motion="true"] .resource {
+                animation: none;
+            }
+
+            :root[data-reduce-motion="true"] .m3x-loader {
+                transition: none;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .progress-head {
+                align-items: flex-start;
+            }
+
+            .percent {
+                font-size: 1.9rem;
+            }
+        }
+
+        @media (max-height: 620px) {
+            .m3x-loader {
+                place-items: start center;
+            }
+
+            .loader-panel {
+                margin-block: auto;
+            }
+        }
+    </style>
+    <script>
+        (() => {
+            const STORAGE_KEY = "m3x-demo-appearance";
+            const root = document.documentElement;
+
+            const material = {
+                light: {
+                    background: "#FEF7FF",
+                    surfaceContainer: "#F3EDF7",
+                    onBackground: "#1D1B20",
+                    onSurfaceVariant: "#49454F",
+                    primary: "#6750A4",
+                    onPrimary: "#FFFFFF",
+                    outlineVariant: "#CAC4D0",
+                    error: "#BA1A1A"
+                },
+                dark: {
+                    background: "#141218",
+                    surfaceContainer: "#211F26",
+                    onBackground: "#E6E0E9",
+                    onSurfaceVariant: "#CAC4D0",
+                    primary: "#D0BCFF",
+                    onPrimary: "#381E72",
+                    outlineVariant: "#49454F",
+                    error: "#FFB4AB"
+                }
+            };
+
+            const colorful = {
+                light: {
+                    background: "#F7FBF9",
+                    surfaceContainer: "#EAF1EC",
+                    onBackground: "#16201D",
+                    onSurfaceVariant: "#3F4944",
+                    primary: "#006A60",
+                    onPrimary: "#FFFFFF",
+                    outlineVariant: "#CAC4D0",
+                    error: "#BA1A1A"
+                },
+                dark: {
+                    background: "#101713",
+                    surfaceContainer: "#1C241F",
+                    onBackground: "#DEE6DF",
+                    onSurfaceVariant: "#BEC9C1",
+                    primary: "#76DBC9",
+                    onPrimary: "#003730",
+                    outlineVariant: "#49454F",
+                    error: "#FFB4AB"
+                }
+            };
+
+            const artwork = {
+                light: ["#D8ECFF", "#D7F3DF", "#FFE4EB"],
+                dark: ["#182C40", "#17352C", "#3D2536"]
+            };
+
+            const media = {
+                dark: window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null,
+                reduceMotion: window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null,
+                reduceTransparency: window.matchMedia ? matchMedia("(prefers-reduced-transparency: reduce)") : null,
+                contrast: window.matchMedia ? matchMedia("(prefers-contrast: more)") : null
+            };
+
+            let pageColors = artwork.light;
+            let resizeFrame = 0;
+
+            /** Matches Compose's linear gradient from the top-left to the bottom-right corner. */
+            function updatePageBackground() {
+                const width = window.innerWidth || root.clientWidth || 1;
+                const height = window.innerHeight || root.clientHeight || 1;
+                const angle = 90 + Math.atan2(height, width) * 180 / Math.PI;
+                root.style.setProperty(
+                    "--page-background",
+                    `linear-gradient(${angle}deg, ${pageColors.join(", ")})`
+                );
+            }
+
+            function schedulePageBackgroundUpdate() {
+                if (resizeFrame) return;
+                resizeFrame = window.requestAnimationFrame(() => {
+                    resizeFrame = 0;
+                    updatePageBackground();
+                });
+            }
+
+            function readPreferences() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : null;
+                    return parsed && typeof parsed === "object" ? parsed : {};
+                } catch {
+                    return {};
+                }
+            }
+
+            function applyTheme() {
+                const preferences = /** @type {{ [key: string]: any }} */ (readPreferences());
+                const appearance = /** @type {{ [key: string]: any }} */ (preferences.appearance || {});
+                const accessibility = /** @type {{ [key: string]: any }} */ (preferences.accessibility || {});
+                const theme = appearance.theme || "System";
+                const dark = theme === "Dark" || (theme !== "Light" && !!media.dark?.matches);
+                const scheme = (appearance.uiPalette === "Colorful" ? colorful : material)[dark ? "dark" : "light"];
+                const themeBackground =
+                    appearance.background === "Theme" ||
+                    appearance.background === "Light" ||
+                    appearance.background === "Dark" ||
+                    appearance.background === "Text";
+                const colors = themeBackground
+                    ? [scheme.background, scheme.surfaceContainer]
+                    : artwork[dark ? "dark" : "light"];
+
+                const set = (name, value) => root.style.setProperty(name, value);
+                root.dataset.theme = dark ? "dark" : "light";
+                set("--bg-1", colors[0]);
+                set("--bg-2", colors[1]);
+                set("--bg-3", colors[2] || colors[1]);
+                pageColors = colors;
+                updatePageBackground();
+                set("--surface-container", scheme.surfaceContainer);
+                set("--on-background", scheme.onBackground);
+                set("--on-surface-variant", scheme.onSurfaceVariant);
+                set("--primary", scheme.primary);
+                set("--on-primary", scheme.onPrimary);
+                set("--outline-variant", scheme.outlineVariant);
+                set("--error", scheme.error);
+
+                const fontScale = Number(appearance.fontScale);
+                set("--font-scale", String(Number.isFinite(fontScale) ? Math.min(2, Math.max(0.8, fontScale)) : 1));
+
+                const motionPreference = accessibility.reduceMotion || "System";
+                const reduceMotion =
+                    motionPreference === "Enabled" ||
+                    (motionPreference !== "Disabled" && !!media.reduceMotion?.matches);
+                root.dataset.reduceMotion =
+                    motionPreference === "Enabled" ? "true" :
+                        motionPreference === "Disabled" ? "false" :
+                            reduceMotion ? "true" : "system";
+
+                const transparencyPreference = accessibility.reduceTransparency || "System";
+                const reduceTransparency =
+                    transparencyPreference === "Enabled" ||
+                    (transparencyPreference !== "Disabled" &&
+                        (!!media.reduceTransparency?.matches || !!media.contrast?.matches));
+                root.dataset.transparency = reduceTransparency ? "opaque" : "full";
+
+                const contrastPreference = accessibility.increaseContrast || "System";
+                const highContrast =
+                    contrastPreference === "Enabled" ||
+                    (contrastPreference !== "Disabled" && !!media.contrast?.matches);
+                root.dataset.contrast = highContrast ? "high" : "normal";
+
+                let meta = document.querySelector('meta[name="theme-color"]');
+                if (!meta) {
+                    meta = document.createElement("meta");
+                    meta.name = "theme-color";
+                    document.head.append(meta);
+                }
+                meta.content = colors[0];
+            }
+
+            const primaryLanguage =
+                (navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language) || "en";
+            window["__m3xLocale"] = /^zh(?:[-_]|$)/i.test(primaryLanguage) ? "zh" : "en";
+            root.lang = window["__m3xLocale"] === "zh" ? "zh-CN" : "en";
+
+            applyTheme();
+
+            for (const query of Object.values(media)) {
+                if (query) query.addEventListener("change", applyTheme);
+            }
+
+            window.addEventListener("resize", schedulePageBackgroundUpdate, {passive: true});
+            window.visualViewport?.addEventListener("resize", schedulePageBackgroundUpdate, {
+                passive: true
+            });
+
+            window.addEventListener("storage", (event) => {
+                if (event.key === STORAGE_KEY) applyTheme();
+            });
+        })();
+    </script>
 </head>
 <body>
-<script src="demo-web.js"></script>
+<div class="m3x-loader" id="m3x-loader">
+    <main class="loader-panel">
+        <header class="brand">
+            <div class="brand-copy">
+                <p class="brand-eyebrow">M3 Extended</p>
+                <h1 class="brand-title">M3X Demo</h1>
+            </div>
+        </header>
+
+        <section class="progress" aria-labelledby="loading-phase">
+            <div class="progress-head">
+                <div class="progress-copy">
+                    <p class="phase" id="loading-phase" role="status" aria-live="polite"
+                       data-i18n="phase_preparing">Preparing</p>
+                    <p class="phase-detail" id="loading-detail"
+                       data-i18n="detail_preparing">Reading local preferences…</p>
+                </div>
+                <p class="percent" aria-hidden="true">
+                    <span id="loading-percent">0</span><span class="percent-unit">%</span>
+                </p>
+            </div>
+            <div class="progress-track" id="loading-track" role="progressbar"
+                 aria-labelledby="loading-phase" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <span class="progress-fill" id="loading-fill"></span>
+            </div>
+            <div class="progress-meta">
+                <span id="loading-bytes" data-i18n="bytes_unknown">Fetching resource information…</span>
+                <span id="loading-eta"></span>
+            </div>
+        </section>
+
+        <section class="resources" aria-labelledby="resources-title">
+            <div class="resources-head">
+                <h2 class="resources-title" id="resources-title" data-i18n="resources_title">Downloads</h2>
+                <span class="resources-count" id="resources-count"
+                      data-i18n="items_zero">0 / 0 items</span>
+            </div>
+            <ol class="resource-list" id="resource-list"></ol>
+        </section>
+
+        <div class="error" id="loading-error" role="alert">
+            <p class="error-title" id="loading-error-title"
+               data-i18n="error_title">Unable to load the demo</p>
+            <p class="error-detail" id="loading-error-detail"></p>
+            <button class="retry" id="loading-retry" type="button"
+                    data-i18n="error_retry">Reload
+            </button>
+        </div>
+
+        <footer class="loader-footer">
+            <span class="loader-footer-credit">Compose Multiplatform</span>
+            <span id="loading-hint"
+                  data-i18n="hint_initial">Runtime resources are downloaded on first load and then cached by the browser.</span>
+        </footer>
+    </main>
+</div>
+
+<template id="resource-template">
+    <li class="resource" data-state="queued">
+        <div class="resource-row">
+            <span class="resource-name"><span class="resource-dot" aria-hidden="true"></span><span
+                    class="resource-name-text"></span></span>
+            <span class="resource-size"></span>
+        </div>
+        <div class="resource-track" aria-hidden="true"><i class="resource-fill"></i></div>
+        <span class="resource-file"></span>
+    </li>
+</template>
+
+<script>
+    (() => {
+        const locale = window["__m3xLocale"] === "zh" ? "zh" : "en";
+        const messages = {
+            en: {
+                document_title: "M3X Demo",
+                meta_description: "M3 Extended design system demo for Compose Multiplatform.",
+                phase_preparing: "Preparing",
+                detail_preparing: "Reading local preferences…",
+                phase_downloading: "Downloading runtime",
+                detail_connecting: "Establishing download connections…",
+                detail_no_streaming: "Streaming progress is unavailable in this browser; loading directly…",
+                detail_script: "Downloading the app script…",
+                detail_wasm: "Downloading the Compose runtime and Skiko renderer…",
+                detail_booting: "Starting the Compose runtime…",
+                phase_starting: "Starting interface",
+                detail_starting: "Initializing the Compose renderer…",
+                phase_ready: "Ready",
+                detail_ready: "Opening the demo",
+                phase_failed: "Load failed",
+                detail_failed: "The demo could not start.",
+                bytes_unknown: "Fetching resource information…",
+                bytes_downloading: "Downloading runtime resources…",
+                bytes_progress: "Downloaded {loaded} / {total}",
+                bytes_ready: "Runtime resources are ready",
+                bytes_interrupted: "Download interrupted",
+                eta_soon: "Almost done",
+                eta_seconds: "About {seconds}s left",
+                eta_minutes: "About {minutes} min left",
+                resources_title: "Downloads",
+                items_zero: "0 / 0 items",
+                items: "{done} / {total} items",
+                items_failed: "{done} / {total} items · {failed} failed",
+                status_waiting: "Waiting",
+                status_connecting: "Connecting…",
+                status_done: "Loaded",
+                status_failed: "Failed",
+                status_skipped: "Skipped",
+                hint_initial: "Runtime resources are downloaded on first load and then cached by the browser.",
+                hint_total: "{size} will be downloaded and cached by the browser.",
+                hint_error: "Check your network connection or deployment files, then try again.",
+                resource_app_script: "App script",
+                resource_app_wasm: "App WebAssembly",
+                resource_skiko: "Skiko renderer",
+                resource_wasm: "WebAssembly module",
+                resource_strings: "UI strings · {module}",
+                resource_strings_locale: "UI strings · {module} · {locale}",
+                resource_strings_fallback: "UI strings",
+                resource_graphics: "Graphics runtime",
+                resource_script: "Runtime script",
+                resource_image: "UI image",
+                resource_font: "UI font",
+                resource_ui: "UI resource",
+                resource_runtime: "Runtime resource",
+                error_title: "Unable to load the demo",
+                error_retry: "Reload",
+                error_offline: "The network connection is offline. Check your connection and try again.",
+                error_not_found: "Runtime resources were not found. Verify the deployment files and try again.",
+                error_wasm: "A runtime resource is incomplete or corrupted. Verify the deployment files and try again.",
+                error_timeout: "Loading timed out. Check your network and try again.",
+                error_cancelled: "Loading was cancelled. Try again.",
+                error_generic: "Check your network connection and the browser console, then try again."
+            },
+            zh: {
+                document_title: "M3X Demo · 示例",
+                meta_description: "面向 Compose Multiplatform 的 M3 Extended 设计系统演示。",
+                phase_preparing: "正在准备加载",
+                detail_preparing: "正在读取本地偏好设置…",
+                phase_downloading: "正在下载运行资源",
+                detail_connecting: "正在建立下载连接…",
+                detail_no_streaming: "当前浏览器不支持流式进度，正在直接加载…",
+                detail_script: "正在下载应用脚本…",
+                detail_wasm: "正在下载 Compose 运行时与 Skiko 渲染器…",
+                detail_booting: "正在启动 Compose 运行时…",
+                phase_starting: "正在启动界面",
+                detail_starting: "正在初始化 Compose 渲染器…",
+                phase_ready: "准备完成",
+                detail_ready: "即将进入演示",
+                phase_failed: "加载失败",
+                detail_failed: "演示未能启动。",
+                bytes_unknown: "正在获取资源信息…",
+                bytes_downloading: "正在下载运行资源…",
+                bytes_progress: "已下载 {loaded} / {total}",
+                bytes_ready: "运行资源已就绪",
+                bytes_interrupted: "下载已中断",
+                eta_soon: "即将完成",
+                eta_seconds: "剩余约 {seconds} 秒",
+                eta_minutes: "剩余约 {minutes} 分钟",
+                resources_title: "下载资源",
+                items_zero: "0 / 0 项",
+                items: "{done} / {total} 项",
+                items_failed: "{done} / {total} 项 · {failed} 项失败",
+                status_waiting: "等待中",
+                status_connecting: "连接中…",
+                status_done: "已加载",
+                status_failed: "下载失败",
+                status_skipped: "已跳过",
+                hint_initial: "首次加载会下载运行资源，之后会使用浏览器缓存。",
+                hint_total: "本次需下载 {size}，完成后会缓存到浏览器。",
+                hint_error: "请检查网络连接或部署文件后重试。",
+                resource_app_script: "应用脚本",
+                resource_app_wasm: "应用 WebAssembly",
+                resource_skiko: "Skiko 渲染引擎",
+                resource_wasm: "WebAssembly 模块",
+                resource_strings: "界面文案 · {module}",
+                resource_strings_locale: "界面文案 · {module} · {locale}",
+                resource_strings_fallback: "界面文案资源",
+                resource_graphics: "图形运行时",
+                resource_script: "运行脚本",
+                resource_image: "界面图像",
+                resource_font: "界面字体",
+                resource_ui: "界面资源",
+                resource_runtime: "运行资源",
+                error_title: "无法加载演示",
+                error_retry: "重新加载",
+                error_offline: "网络连接已断开，请检查网络后重试。",
+                error_not_found: "未找到运行资源，请确认部署文件完整后重试。",
+                error_wasm: "运行资源不完整或已损坏，请检查部署文件后重试。",
+                error_timeout: "加载超时，请检查网络后重试。",
+                error_cancelled: "加载已取消，请重试。",
+                error_generic: "请检查网络连接与浏览器控制台，然后重试。"
+            }
+        };
+
+        const format = (template, params) => {
+            if (!params) return template;
+            return template.replace(/\{(\w+)}/g, (match, key) => {
+                return Object.prototype.hasOwnProperty.call(params, key) ? String(params[key]) : match;
+            });
+        };
+
+        const translate = (key, params) => {
+            const table = messages[locale] || messages.en;
+            return format(table[key] || messages.en[key] || key, params);
+        };
+
+        window["__m3xT"] = translate;
+        document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+        document.title = translate("document_title");
+
+        const description = document.querySelector('meta[name="description"]');
+        if (description) description.content = translate("meta_description");
+
+        for (const node of document.querySelectorAll("[data-i18n]")) {
+            const key = node.getAttribute("data-i18n");
+            if (key) node.textContent = translate(key);
+        }
+    })();
+</script>
+
+<noscript>
+    <style>.m3x-loader {
+        display: none;
+    }</style>
+    <div style="position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center">
+        M3X Demo requires JavaScript to load.
+    </div>
+</noscript>
+
+<script type="module">
+    const SCRIPT_NAME = "demo-web.js";
+    const SCRIPT_URL = new URL(SCRIPT_NAME, document.baseURI).href;
+    const LOADER_MIN_MS = 450;
+    const APP_READY_TIMEOUT_MS = 60000;
+    const UNSTARTED_RESOURCE_MS = 5000;
+    const HASHED_WASM = /\b[0-9a-f]{8,32}\.wasm\b/gi;
+    const t = window["__m3xT"] || ((key) => key);
+    const locale = window["__m3xLocale"] === "zh" ? "zh" : "en";
+
+    const loader = document.getElementById("m3x-loader");
+    const list = document.getElementById("resource-list");
+    const resourceTemplate = /** @type {HTMLTemplateElement} */ (
+        document.getElementById("resource-template")
+    );
+    const ui = {
+        phase: document.getElementById("loading-phase"),
+        detail: document.getElementById("loading-detail"),
+        percent: document.getElementById("loading-percent"),
+        track: document.getElementById("loading-track"),
+        fill: document.getElementById("loading-fill"),
+        bytes: document.getElementById("loading-bytes"),
+        eta: document.getElementById("loading-eta"),
+        count: document.getElementById("resources-count"),
+        hint: document.getElementById("loading-hint"),
+        errorDetail: document.getElementById("loading-error-detail"),
+        retry: document.getElementById("loading-retry")
+    };
+
+    const resources = new Map();
+    const state = {
+        startedAt: performance.now(),
+        finished: false,
+        failed: false,
+        appReady: false,
+        scriptLoaded: false,
+        percent: 0,
+        phaseText: "",
+        detailText: "",
+        renderPending: false,
+        samples: [],
+        downloadsWaiter: null,
+        totalHint: 0
+    };
+
+    // ComposeViewport replaces the contents of <body>. Keeping the loader directly under
+    // <html> lets it stay above the canvas while the runtime starts.
+    document.documentElement.append(loader);
+    document.body.setAttribute("aria-busy", "true");
+    loader.setAttribute("aria-busy", "true");
+
+    ui.retry.addEventListener("click", () => window.location.reload());
+
+    const numberFormat = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-US", {
+        maximumFractionDigits: 1
+    });
+
+    function delay(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function nextPaint() {
+        return new Promise((resolve) => {
+            let settled = false;
+            const done = () => {
+                if (settled) return;
+                settled = true;
+                resolve();
+            };
+            requestAnimationFrame(() => requestAnimationFrame(done));
+            window.setTimeout(done, 350);
+        });
+    }
+
+    function formatBytes(bytes) {
+        if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+        const units = ["B", "KB", "MB", "GB"];
+        let value = bytes;
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+            value /= 1024;
+            unit += 1;
+        }
+        const digits = unit === 0 || value >= 100 ? 0 : 1;
+        return `${numberFormat.format(Number(value.toFixed(digits)))} ${units[unit]}`;
+    }
+
+    function formatDuration(seconds) {
+        if (!Number.isFinite(seconds) || seconds <= 0) return "";
+        if (seconds < 1) return t("eta_soon");
+        if (seconds < 60) return t("eta_seconds", {seconds: Math.ceil(seconds)});
+        return t("eta_minutes", {minutes: Math.ceil(seconds / 60)});
+    }
+
+    function prefersReducedMotion() {
+        const mode = document.documentElement.dataset.reduceMotion;
+        if (mode === "true") return true;
+        if (mode === "false") return false;
+        return !!window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    function setPhase(phase, detail) {
+        if (state.phaseText !== phase) {
+            state.phaseText = phase;
+            ui.phase.textContent = phase;
+        }
+        if (detail !== undefined && state.detailText !== detail) {
+            state.detailText = detail;
+            ui.detail.textContent = detail;
+        }
+    }
+
+    function setPercent(value) {
+        const integer = Math.max(0, Math.min(100, Math.round(value)));
+        if (state.percent !== integer) {
+            state.percent = integer;
+            ui.percent.textContent = String(integer);
+            ui.track.setAttribute("aria-valuenow", String(integer));
+            ui.track.setAttribute("aria-valuetext", `${integer}%`);
+        }
+        ui.fill.style.transform = `scaleX(${Math.max(0, Math.min(1, value / 100))})`;
+    }
+
+    function shortName(name) {
+        if (/^[0-9a-f]{16,32}\.wasm$/i.test(name)) {
+            return `${name.slice(0, 8)}….wasm`;
+        }
+        return name;
+    }
+
+    function resourceLabelForUrl(url) {
+        const path = url.pathname;
+        if (path.endsWith(".cvr")) {
+            const match = path.match(/top\.ltfan\.m3x\.([^.]+)\.generated\.resources\/([^/]+)\//);
+            if (match) {
+                const moduleName = match[1].replace(/\./g, " · ");
+                return match[2] === "values"
+                    ? t("resource_strings", {module: moduleName})
+                    : t("resource_strings_locale", {module: moduleName, locale: match[2]});
+            }
+            return t("resource_strings_fallback");
+        }
+        if (path.endsWith(".wasm")) return t("resource_wasm");
+        if (path.endsWith(".mjs")) return t("resource_graphics");
+        if (path.endsWith(".js")) return t("resource_script");
+        if (/\.(png|jpe?g|webp|gif|svg)$/i.test(path)) return t("resource_image");
+        if (/\.(ttf|otf|woff2?)$/i.test(path)) return t("resource_font");
+        if (path.includes("/composeResources/")) return t("resource_ui");
+        return t("resource_runtime");
+    }
+
+    function addResource({key, label, file, primary}) {
+        if (resources.has(key)) return resources.get(key);
+
+        const entry = {
+            key,
+            primary,
+            loaded: 0,
+            total: 0,
+            headersReady: false,
+            started: false,
+            terminal: false,
+            includeInTotal: true,
+            stateValue: "queued",
+            el: null,
+            sizeEl: null,
+            fillEl: null
+        };
+
+        const resourceRoot = resourceTemplate.content.firstElementChild;
+        if (!resourceRoot) throw new Error("Resource template is missing");
+        const item = /** @type {HTMLLIElement} */ (resourceRoot.cloneNode(true));
+        entry.el = item;
+        entry.sizeEl = item.querySelector(".resource-size");
+        entry.fillEl = item.querySelector(".resource-fill");
+        item.querySelector(".resource-name-text").textContent = label;
+        const fileEl = item.querySelector(".resource-file");
+        fileEl.textContent = file || "";
+        fileEl.title = file || "";
+
+        resources.set(key, entry);
+        list.append(item);
+        updateResource(entry);
+        scheduleRender();
+        return entry;
+    }
+
+    function updateResource(entry) {
+        const progress =
+            entry.total > 0
+                ? Math.min(1, entry.loaded / entry.total)
+                : entry.stateValue === "done"
+                    ? 1
+                    : 0;
+        entry.el.dataset.state = entry.stateValue;
+        entry.fillEl.style.transform = `scaleX(${progress})`;
+
+        let size = t("status_waiting");
+        if (entry.stateValue === "loading") {
+            size = entry.loaded > 0
+                ? entry.total > 0
+                    ? `${formatBytes(entry.loaded)} / ${formatBytes(entry.total)}`
+                    : formatBytes(entry.loaded)
+                : t("status_connecting");
+        } else if (entry.stateValue === "done") {
+            size = entry.total > 0 ? formatBytes(entry.total) : t("status_done");
+        } else if (entry.stateValue === "failed") {
+            size = t("status_failed");
+        } else if (entry.stateValue === "skipped") {
+            size = t("status_skipped");
+        }
+        entry.sizeEl.textContent = size;
+    }
+
+    function beginEntry(entry, response) {
+        if (entry.terminal && entry.stateValue === "done") return false;
+        if (entry.stateValue === "loading") return false;
+
+        entry.loaded = 0;
+        entry.terminal = false;
+        entry.includeInTotal = true;
+        entry.started = true;
+        entry.headersReady = true;
+        entry.total = response ? responseTotal(response) : 0;
+        entry.stateValue = "loading";
+        updateResource(entry);
+        scheduleRender();
+        return true;
+    }
+
+    function completeEntry(entry) {
+        if (entry.terminal) return;
+        entry.terminal = true;
+        entry.stateValue = "done";
+        if (entry.total <= 0) entry.total = entry.loaded;
+        updateResource(entry);
+        scheduleRender();
+        checkDownloads();
+    }
+
+    function failEntry(entry, error) {
+        if (entry.terminal && entry.stateValue !== "loading") return;
+        entry.terminal = true;
+        entry.headersReady = true;
+        entry.stateValue = "failed";
+        updateResource(entry);
+        scheduleRender();
+        checkDownloads();
+        console.warn("[M3X] Resource failed:", entry.key, error);
+    }
+
+    function hasPendingPrimary() {
+        for (const entry of resources.values()) {
+            if (entry.primary && !entry.terminal) return true;
+        }
+        return false;
+    }
+
+    function checkDownloads() {
+        if (!state.downloadsWaiter || hasPendingPrimary()) return;
+        const resolve = state.downloadsWaiter;
+        state.downloadsWaiter = null;
+        resolve();
+    }
+
+    function waitForDownloads() {
+        if (!hasPendingPrimary()) return Promise.resolve();
+        return new Promise((resolve) => {
+            state.downloadsWaiter = resolve;
+        });
+    }
+
+    function responseTotal(response) {
+        const encoding = response.headers.get("content-encoding");
+        if (encoding && encoding.toLowerCase() !== "identity") return 0;
+        const length = Number(response.headers.get("content-length"));
+        return Number.isFinite(length) && length > 0 ? length : 0;
+    }
+
+    function scheduleRender() {
+        if (state.renderPending) return;
+        state.renderPending = true;
+        requestAnimationFrame(render);
+    }
+
+    function updateEta(loaded, total) {
+        const now = performance.now();
+        state.samples.push({at: now, loaded});
+        while (state.samples.length > 1 && state.samples[0].at < now - 4000) {
+            state.samples.shift();
+        }
+        if (state.samples.length < 2 || total <= loaded) {
+            ui.eta.textContent = "";
+            return;
+        }
+        const first = state.samples[0];
+        const last = state.samples[state.samples.length - 1];
+        const seconds = (last.at - first.at) / 1000;
+        if (seconds < 0.4) {
+            ui.eta.textContent = "";
+            return;
+        }
+        const rate = (last.loaded - first.loaded) / seconds;
+        if (!Number.isFinite(rate) || rate < 1024) {
+            ui.eta.textContent = "";
+            return;
+        }
+        ui.eta.textContent = formatDuration((total - loaded) / rate);
+    }
+
+    function render() {
+        state.renderPending = false;
+        if (state.failed || state.finished) return;
+
+        const entries = [...resources.values()];
+        const primary = entries.filter((entry) => entry.primary);
+        const headersReady = primary.length > 0 && primary.every((entry) => entry.headersReady);
+        let total = 0;
+        let loaded = 0;
+        for (const entry of entries) {
+            if (!entry.includeInTotal || entry.total <= 0) continue;
+            total += entry.total;
+            loaded += Math.min(entry.loaded, entry.total);
+        }
+
+        let completed = 0;
+        let failed = 0;
+        for (const entry of entries) {
+            updateResource(entry);
+            if (entry.stateValue === "done") completed += 1;
+            else if (entry.stateValue === "failed") failed += 1;
+        }
+        ui.count.textContent = failed > 0
+            ? t("items_failed", {done: completed, total: entries.length, failed})
+            : t("items", {done: completed, total: entries.length});
+
+        if (!headersReady) {
+            setPercent(0);
+            ui.bytes.textContent = t("bytes_unknown");
+            ui.eta.textContent = "";
+            setPhase(t("phase_downloading"), t("detail_connecting"));
+            return;
+        }
+
+        if (total > 0) {
+            const percentage = Math.min(100, (loaded / total) * 100);
+            setPercent(percentage);
+            ui.bytes.textContent = t("bytes_progress", {
+                loaded: formatBytes(loaded),
+                total: formatBytes(total)
+            });
+            updateEta(loaded, total);
+            if (state.totalHint !== total) {
+                state.totalHint = total;
+                ui.hint.textContent = t("hint_total", {size: formatBytes(total)});
+            }
+        } else {
+            setPercent(0);
+            ui.bytes.textContent = t("bytes_downloading");
+            ui.eta.textContent = "";
+        }
+
+        if (state.appReady) {
+            setPhase(t("phase_ready"), t("detail_ready"));
+        } else if (primary.length > 0 && primary.every((entry) => entry.terminal)) {
+            setPhase(t("phase_starting"), t("detail_starting"));
+        } else {
+            const scriptPending = entries.some((entry) => entry.key === SCRIPT_URL && !entry.terminal);
+            setPhase(t("phase_downloading"), scriptPending ? t("detail_script") : t("detail_wasm"));
+        }
+    }
+
+    function installFetchTracker() {
+        if (!window.fetch || !window.ReadableStream || !window.Response) return false;
+        const nativeFetch = window.fetch.bind(window);
+        window.__m3xNativeFetch = nativeFetch;
+
+        window.fetch = (input, init) => {
+            const request = typeof Request !== "undefined" && input instanceof Request ? input : null;
+            let url;
+            try {
+                url = new URL(request ? request.url : String(input), document.baseURI);
+            } catch (error) {
+                return nativeFetch(input, init);
+            }
+            const method = String((request && request.method) || (init && init.method) || "GET").toUpperCase();
+            if (method !== "GET" || url.origin !== window.location.origin || !shouldTrack(url)) {
+                return nativeFetch(input, init);
+            }
+
+            return nativeFetch(input, init).then((response) => {
+                const entry = resources.get(url.href);
+                if (!response.ok) {
+                    if (entry) failEntry(entry, new Error(`HTTP ${response.status}`));
+                    return response;
+                }
+                if (!response.body) {
+                    if (entry) {
+                        beginEntry(entry, response);
+                        completeEntry(entry);
+                    }
+                    return response;
+                }
+                if (entry && entry.stateValue === "loading") {
+                    return response;
+                }
+
+                const target = entry || addResource({
+                    key: url.href,
+                    label: resourceLabelForUrl(url),
+                    file: shortName(url.pathname.split("/").pop() || url.href),
+                    primary: url.pathname.endsWith(".wasm")
+                });
+                if (!beginEntry(target, response)) return response;
+
+                const headers = new Headers(response.headers);
+                headers.delete("content-encoding");
+                headers.delete("content-length");
+                const reader = response.body.getReader();
+                const tracked = new ReadableStream({
+                    async pull(controller) {
+                        try {
+                            const {done, value} = await reader.read();
+                            if (done) {
+                                completeEntry(target);
+                                controller.close();
+                                return;
+                            }
+                            target.loaded += value.byteLength;
+                            scheduleRender();
+                            controller.enqueue(value);
+                        } catch (error) {
+                            failEntry(target, error);
+                            controller.error(error);
+                        }
+                    },
+                    cancel(reason) {
+                        failEntry(target, reason);
+                        return reader.cancel(reason);
+                    }
+                });
+
+                return new Response(tracked, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers
+                });
+            }).catch((error) => {
+                const entry = resources.get(url.href);
+                if (entry) failEntry(entry, error);
+                throw error;
+            });
+        };
+        return true;
+    }
+
+    function shouldTrack(url) {
+        const path = url.pathname.toLowerCase();
+        if (path.includes("/composeresources/")) return true;
+        return /\.(wasm|cvr|mjs|js|json|fnt|ttf|otf|woff2?|png|jpe?g|webp|gif|svg|xml|bin)$/.test(path);
+    }
+
+    async function downloadScript(entry) {
+        const nativeFetch = window["__m3xNativeFetch"] || window.fetch.bind(window);
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 180000);
+        try {
+            const response = await nativeFetch(SCRIPT_URL, {
+                cache: "default",
+                credentials: "same-origin",
+                priority: "high",
+                signal: controller.signal
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            entry.started = true;
+            entry.headersReady = true;
+            entry.total = responseTotal(response);
+            entry.stateValue = "loading";
+            updateResource(entry);
+            scheduleRender();
+
+            if (!response.body) {
+                const code = await response.text();
+                entry.loaded = code.length;
+                if (!entry.total) entry.total = entry.loaded;
+                completeEntry(entry);
+                return code;
+            }
+
+            const reader = response.body.getReader();
+            const chunks = [];
+            for (; ;) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                entry.loaded += value.byteLength;
+                scheduleRender();
+            }
+            if (entry.total <= 0) entry.total = entry.loaded;
+            completeEntry(entry);
+
+            const code = await new Blob(chunks, {type: "text/javascript"}).text();
+            if (!code) throw new Error("Application script is empty");
+            return code;
+        } finally {
+            window.clearTimeout(timeout);
+        }
+    }
+
+    function discoverWasm(code) {
+        const names = [...new Set(code.match(HASHED_WASM) || [])];
+        if (names.length === 0) return [];
+
+        const moduleFiles = new Map();
+        const modulePattern = /(\d+)\([^)]*\)\{[a-zA-Z_$][\w$]*\.exports=[a-zA-Z_$][\w$]*\.p\+"([^"]+\.wasm)"/g;
+        for (const match of code.matchAll(modulePattern)) {
+            moduleFiles.set(match[1], match[2]);
+        }
+
+        const appModule = code.match(
+            /WebAssembly\.instantiateStreaming\(fetch\(new URL\([a-zA-Z_$][\w$]*\((\d+)\)/
+        );
+        const appName = appModule ? moduleFiles.get(appModule[1]) : (names.length > 1 ? names[0] : null);
+
+        return names.map((name) => ({
+            name,
+            url: new URL(name, SCRIPT_URL).href,
+            label: name === appName ? t("resource_app_wasm") : t("resource_skiko"),
+            file: shortName(name)
+        }));
+    }
+
+    function runFromBlob(code) {
+        const blobUrl = URL.createObjectURL(new Blob([code], {type: "text/javascript"}));
+        return new Promise((resolve, reject) => {
+            const previousCurrentScript = Object.getOwnPropertyDescriptor(document, "currentScript");
+            let restored = false;
+            const restoreCurrentScript = () => {
+                if (restored) return;
+                restored = true;
+                try {
+                    if (previousCurrentScript) {
+                        Object.defineProperty(document, "currentScript", previousCurrentScript);
+                    } else {
+                        delete document.currentScript;
+                    }
+                } catch (error) {
+                    // The property was not shadowed.
+                }
+            };
+
+            try {
+                Object.defineProperty(document, "currentScript", {
+                    configurable: true,
+                    get: () => ({tagName: "SCRIPT", src: SCRIPT_URL})
+                });
+            } catch (error) {
+                URL.revokeObjectURL(blobUrl);
+                reject(error);
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = blobUrl;
+            script.onload = () => {
+                restoreCurrentScript();
+                URL.revokeObjectURL(blobUrl);
+                resolve();
+            };
+            script.onerror = () => {
+                restoreCurrentScript();
+                URL.revokeObjectURL(blobUrl);
+                reject(new Error("Application script failed to execute"));
+            };
+            document.head.append(script);
+            window.setTimeout(restoreCurrentScript, 0);
+        });
+    }
+
+    function runDirect() {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = SCRIPT_URL;
+            script.onload = () => {
+                script.remove();
+                resolve();
+            };
+            script.onerror = () => {
+                script.remove();
+                reject(new Error("Application script failed to load"));
+            };
+            document.head.append(script);
+        });
+    }
+
+    async function runBundle(code) {
+        if (!code) {
+            await runDirect();
+            return;
+        }
+        try {
+            await runFromBlob(code);
+        } catch (error) {
+            console.warn("[M3X] Blob execution failed; falling back to a direct script.", error);
+            await runDirect();
+        }
+    }
+
+    function findComposeRoot() {
+        for (const host of document.body.children) {
+            if (host.shadowRoot && host.shadowRoot.querySelector("canvas")) return host.shadowRoot;
+        }
+        for (const host of document.querySelectorAll("div")) {
+            if (host.shadowRoot && host.shadowRoot.querySelector("canvas")) return host.shadowRoot;
+        }
+        return null;
+    }
+
+    async function waitForAppReady() {
+        const started = performance.now();
+        let canvasSeenAt = 0;
+        for (; ;) {
+            if (state.failed) throw new Error("Loading cancelled");
+            const shadowRoot = findComposeRoot();
+            if (shadowRoot) {
+                const now = performance.now();
+                if (!canvasSeenAt) canvasSeenAt = now;
+                const accessibilityRoot = shadowRoot.querySelector("#cmp_a11y_root");
+                const text = accessibilityRoot ? accessibilityRoot.textContent.trim() : "";
+                if (text.length > 0) {
+                    state.appReady = true;
+                    scheduleRender();
+                    return;
+                }
+                // A canvas-only host still counts as ready after a grace period.
+                if (now - canvasSeenAt > 8000) {
+                    state.appReady = true;
+                    scheduleRender();
+                    return;
+                }
+            }
+            if (performance.now() - started > APP_READY_TIMEOUT_MS) {
+                throw new Error("Application initialization timed out");
+            }
+            await delay(100);
+        }
+    }
+
+    function humanizeError(error) {
+        if (!navigator.onLine) return t("error_offline");
+        const message = String((error && error.message) || error || "");
+        if (message.includes("404")) return t("error_not_found");
+        if (/webassembly|wasm/i.test(message)) return t("error_wasm");
+        if ((error && error.name === "AbortError") || /timeout|aborted/i.test(message)) {
+            return t("error_timeout");
+        }
+        if (/cancel/i.test(message)) return t("error_cancelled");
+        return t("error_generic");
+    }
+
+    function fail(error) {
+        if (state.finished || state.failed) return;
+        state.failed = true;
+        loader.dataset.state = "error";
+        ui.percent.parentElement.hidden = true;
+        ui.track.setAttribute("aria-valuenow", "0");
+        ui.track.setAttribute("aria-valuetext", t("phase_failed"));
+        ui.bytes.textContent = t("bytes_interrupted");
+        ui.eta.textContent = "";
+        ui.errorDetail.textContent = humanizeError(error);
+        ui.hint.textContent = t("hint_error");
+        setPhase(t("phase_failed"), t("detail_failed"));
+        document.body.removeAttribute("aria-busy");
+        loader.removeAttribute("aria-busy");
+        console.error("[M3X] Loading failed:", error);
+    }
+
+    async function finish() {
+        if (state.finished || state.failed) return;
+        state.finished = true;
+        state.appReady = true;
+        setPhase(t("phase_ready"), t("detail_ready"));
+        setPercent(100);
+        ui.bytes.textContent = t("bytes_ready");
+        ui.eta.textContent = "";
+        ui.track.setAttribute("aria-valuetext", "100%");
+        document.body.removeAttribute("aria-busy");
+        loader.removeAttribute("aria-busy");
+        await nextPaint();
+
+        const elapsed = performance.now() - state.startedAt;
+        if (elapsed < LOADER_MIN_MS) await delay(LOADER_MIN_MS - elapsed);
+        if (prefersReducedMotion()) {
+            loader.remove();
+            return;
+        }
+        loader.dataset.leaving = "true";
+        await delay(260);
+        loader.remove();
+    }
+
+    function handleEarlyRuntimeFailure(error) {
+        if (state.finished || state.failed || state.appReady || !state.scriptLoaded) return;
+        fail(error instanceof Error ? error : new Error(String(error || "Runtime resource failed to load")));
+    }
+
+    window.addEventListener("error", (event) => {
+        const message = String(event.message || (event.error && event.error.message) || "");
+        if (/webassembly|wasm|aborted|compile/i.test(message)) {
+            handleEarlyRuntimeFailure(event.error || new Error(message));
+        }
+    });
+    window.addEventListener("unhandledrejection", (event) => {
+        const reason = event.reason;
+        const message = String((reason && reason.message) || reason || "");
+        if (/webassembly|wasm|aborted|compile/i.test(message)) {
+            handleEarlyRuntimeFailure(reason || new Error(message));
+        }
+    });
+
+    async function boot() {
+        setPhase(t("phase_preparing"), t("detail_preparing"));
+
+        const supportsStreaming =
+            "fetch" in window &&
+            "ReadableStream" in window &&
+            "Response" in window &&
+            "Blob" in window;
+        const tracked = supportsStreaming && installFetchTracker();
+
+        if (!tracked) {
+            setPhase(t("phase_downloading"), t("detail_no_streaming"));
+            try {
+                await runDirect();
+                state.scriptLoaded = true;
+                await waitForAppReady();
+                await finish();
+            } catch (error) {
+                fail(error);
+            }
+            return;
+        }
+
+        const scriptEntry = addResource({
+            key: SCRIPT_URL,
+            label: t("resource_app_script"),
+            file: SCRIPT_NAME,
+            primary: true
+        });
+
+        let code;
+        try {
+            code = await downloadScript(scriptEntry);
+        } catch (downloadError) {
+            failEntry(scriptEntry, downloadError);
+            console.warn("[M3X] Script download failed; trying a direct script load.", downloadError);
+            try {
+                scriptEntry.terminal = false;
+                scriptEntry.loaded = 0;
+                scriptEntry.total = 0;
+                scriptEntry.includeInTotal = true;
+                scriptEntry.headersReady = true;
+                scriptEntry.started = true;
+                scriptEntry.stateValue = "loading";
+                updateResource(scriptEntry);
+                await runDirect();
+                completeEntry(scriptEntry);
+                state.scriptLoaded = true;
+                await waitForAppReady();
+                await finish();
+            } catch (fallbackError) {
+                failEntry(scriptEntry, fallbackError);
+                fail(downloadError);
+            }
+            return;
+        }
+
+        const wasmResources = discoverWasm(code);
+        for (const resource of wasmResources) {
+            addResource({
+                key: resource.url,
+                label: resource.label,
+                file: resource.file,
+                primary: true
+            });
+        }
+
+        setPhase(t("phase_downloading"), t("detail_booting"));
+        try {
+            await runBundle(code);
+            state.scriptLoaded = true;
+        } catch (error) {
+            fail(error);
+            return;
+        }
+
+        window.setTimeout(() => {
+            let changed = false;
+            for (const entry of resources.values()) {
+                if (entry.primary && !entry.started && !entry.terminal) {
+                    entry.headersReady = true;
+                    entry.terminal = true;
+                    entry.includeInTotal = false;
+                    entry.stateValue = "skipped";
+                    updateResource(entry);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                scheduleRender();
+                checkDownloads();
+            }
+        }, UNSTARTED_RESOURCE_MS);
+
+        try {
+            await waitForAppReady();
+            await waitForDownloads();
+            await finish();
+        } catch (error) {
+            fail(error);
+        }
+    }
+
+    boot().catch(fail);
+</script>
 </body>
 </html>
