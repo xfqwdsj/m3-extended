@@ -43,7 +43,7 @@ jobs:
         run: chmod +x gradlew
       - name: Set up Android SDK
         if: runner.os == 'Linux'
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
       - name: Set up node
         if: runner.os == 'Linux'
         run: |
