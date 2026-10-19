@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
+import org.gradle.process.CommandLineArgumentProvider
 
 plugins {
     kotlin("jvm")
@@ -23,10 +24,18 @@ dependencies {
     testImplementation(libs.kotlin.compiler.embeddable)
 }
 
+abstract class SettingsProcessorTestClasspathArguments : CommandLineArgumentProvider {
+    @get:Classpath abstract val runtimeClasspath: ConfigurableFileCollection
+
+    override fun asArguments(): Iterable<String> =
+        listOf("-Dsettings.processor.test.classpath=${runtimeClasspath.asPath}")
+}
+
 tasks.test {
-    systemProperty(
-        "settings.processor.test.classpath",
-        sourceSets.test.get().runtimeClasspath.asPath,
+    jvmArgumentProviders.add(
+        objects.newInstance<SettingsProcessorTestClasspathArguments>().apply {
+            runtimeClasspath.from(sourceSets.test.get().runtimeClasspath)
+        },
     )
 }
 
