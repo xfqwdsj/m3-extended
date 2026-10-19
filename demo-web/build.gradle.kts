@@ -26,10 +26,12 @@ kotlin {
         binaries.executable()
     }
     sourceSets {
-        commonMain.dependencies {
-            implementation(project(":demo"))
-            implementation(libs.compose.ui)
-            implementation(libs.compose.runtime)
+        commonMain {
+            dependencies {
+                implementation(project(":demo"))
+                implementation(libs.compose.ui)
+                implementation(libs.compose.runtime)
+            }
         }
     }
 }

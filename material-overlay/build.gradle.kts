@@ -87,9 +87,16 @@ kotlin {
                 implementation(project(":compose-test-support"))
             }
         }
-        val nonBrowserTest = create("nonBrowserTest") { dependsOn(commonTest.get()) }
-        getByName("jvmTest").dependsOn(nonBrowserTest)
-        getByName("nativeTest").dependsOn(nonBrowserTest)
+        val nonBrowserTest =
+            create("nonBrowserTest") {
+                dependsOn(commonTest.get())
+            }
+        jvmTest {
+            dependsOn(nonBrowserTest)
+        }
+        nativeTest {
+            dependsOn(nonBrowserTest)
+        }
     }
 
     compilerOptions {
@@ -176,4 +183,6 @@ signing {
 
 group = "top.ltfan.m3x"
 
-compose.resources { packageOfResClass = "top.ltfan.m3x.material.overlay.generated.resources" }
+compose.resources {
+    packageOfResClass = "top.ltfan.m3x.material.overlay.generated.resources"
+}

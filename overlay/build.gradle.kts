@@ -83,9 +83,16 @@ kotlin {
                 implementation(project(":compose-test-support"))
             }
         }
-        val nonBrowserTest = create("nonBrowserTest") { dependsOn(commonTest.get()) }
-        getByName("jvmTest").dependsOn(nonBrowserTest)
-        getByName("nativeTest").dependsOn(nonBrowserTest)
+        val nonBrowserTest =
+            create("nonBrowserTest") {
+                dependsOn(commonTest.get())
+            }
+        jvmTest {
+            dependsOn(nonBrowserTest)
+        }
+        nativeTest {
+            dependsOn(nonBrowserTest)
+        }
     }
 
     compilerOptions {

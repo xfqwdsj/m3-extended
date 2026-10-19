@@ -14,10 +14,12 @@ kotlin {
     }
 
     sourceSets {
-        iosMain.dependencies {
-            implementation(project(":demo"))
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.ui)
+        iosMain {
+            dependencies {
+                implementation(project(":demo"))
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.ui)
+            }
         }
     }
 }

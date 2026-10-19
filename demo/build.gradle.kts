@@ -100,8 +100,12 @@ kotlin {
                 dependsOn(commonTest.get())
             }
 
-        getByName("jvmTest").dependsOn(nonBrowserTest)
-        getByName("nativeTest").dependsOn(nonBrowserTest)
+        jvmTest {
+            dependsOn(nonBrowserTest)
+        }
+        nativeTest {
+            dependsOn(nonBrowserTest)
+        }
     }
 
     compilerOptions {

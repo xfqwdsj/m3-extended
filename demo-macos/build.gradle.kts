@@ -15,11 +15,13 @@ kotlin {
     }
 
     sourceSets {
-        commonMain.dependencies {
-            implementation(project(":demo"))
-            implementation(project(":ui"))
-            implementation(libs.compose.ui)
-            implementation(libs.compose.runtime)
+        commonMain {
+            dependencies {
+                implementation(project(":demo"))
+                implementation(project(":ui"))
+                implementation(libs.compose.ui)
+                implementation(libs.compose.runtime)
+            }
         }
     }
 }

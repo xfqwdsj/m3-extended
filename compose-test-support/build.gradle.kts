@@ -35,9 +35,11 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        commonMain.dependencies {
-            api(libs.compose.ui.test)
-            api(libs.coroutines.test)
+        commonMain {
+            dependencies {
+                api(libs.compose.ui.test)
+                api(libs.coroutines.test)
+            }
         }
 
         val nonJsMain =

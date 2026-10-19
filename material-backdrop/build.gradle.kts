@@ -77,10 +77,19 @@ kotlin {
             }
         }
 
-        val skikoMain = create("skikoMain") { dependsOn(commonMain.get()) }
-        jvmMain { dependsOn(skikoMain) }
-        appleMain { dependsOn(skikoMain) }
-        webMain { dependsOn(skikoMain) }
+        val skikoMain =
+            create("skikoMain") {
+                dependsOn(commonMain.get())
+            }
+        jvmMain {
+            dependsOn(skikoMain)
+        }
+        appleMain {
+            dependsOn(skikoMain)
+        }
+        webMain {
+            dependsOn(skikoMain)
+        }
 
         commonTest {
             dependencies {
@@ -89,9 +98,16 @@ kotlin {
                 implementation(project(":compose-test-support"))
             }
         }
-        val nonBrowserTest = create("nonBrowserTest") { dependsOn(commonTest.get()) }
-        getByName("jvmTest").dependsOn(nonBrowserTest)
-        getByName("nativeTest").dependsOn(nonBrowserTest)
+        val nonBrowserTest =
+            create("nonBrowserTest") {
+                dependsOn(commonTest.get())
+            }
+        jvmTest {
+            dependsOn(nonBrowserTest)
+        }
+        nativeTest {
+            dependsOn(nonBrowserTest)
+        }
     }
 
     compilerOptions {
