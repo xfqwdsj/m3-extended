@@ -180,10 +180,16 @@ See [backdrop integration](docs/backdrops.md) for source boundaries, fallback, a
 ## Demo application
 
 Run the desktop application with `./gradlew :demo-desktop:run`. Build the Android launcher
-with `./gradlew :demo-android:assembleDebug` (Android API 24 or later). Web launchers
-are `:demo-web:jsBrowserDevelopmentRun` and `:demo-web:wasmJsBrowserDevelopmentRun`.
+with `./gradlew :demo-android:assembleDebug` (Android API 24 or later); `:demo-android:assembleOptimized`
+produces the R8- and resource-shrunk APK with debug signing. Package the desktop launchers with
+`./gradlew :demo-desktop:packageReleaseArtifacts` and the native macOS launcher with
+`./gradlew :demo-macos:packageReleaseArtifacts`. Web launchers
+are `:demo-web:jsBrowserDevelopmentRun` and `:demo-web:wasmJsBrowserDevelopmentRun`;
+`:demo-web:pagesDistribution` builds the Wasm site deployed to GitHub Pages.
 Run the experimental macOS Native application with `./gradlew :demo-macos:runDebugExecutableMacosArm64`.
 Open `demo-ios/iosApp/M3xDemo.xcodeproj` and run the shared `M3xDemo` scheme on a simulator or device supported by its deployment target. The target uses Kotlin's direct framework integration and supports iPad multiple windows. Device builds require a Development Team; simulator builds do not need signing.
+See [demo packaging](docs/development.md#package-demo-applications) for CI artifact names, outputs,
+and packaging JDK requirements.
 
 The demo includes component and overlay catalogs, a Backdrop Lab, and settings examples.
 [Architecture](docs/architecture.md#demo-and-platform-applications) explains their state boundaries;
