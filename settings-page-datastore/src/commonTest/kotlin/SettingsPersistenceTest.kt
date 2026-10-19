@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -27,6 +28,7 @@ class SettingsPersistenceTest {
         assertEquals(0, source.subscriptionCount.value)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun collectionRetainsSourceConflationFailureIdentityAndCancellationOwnership() = runTest {
         val source = MutableStateFlow<StoreStatus>(StoreStatus.Ready)
