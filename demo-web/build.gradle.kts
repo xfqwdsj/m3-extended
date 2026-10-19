@@ -34,6 +34,15 @@ kotlin {
     }
 }
 
+val pagesDistribution =
+    tasks.register<Sync>("pagesDistribution") {
+        group = "distribution"
+        description = "Assembles the static Wasm demo site for GitHub Pages."
+        dependsOn("wasmJsBrowserDistribution")
+        from(layout.buildDirectory.dir("dist/wasmJs/productionExecutable"))
+        into(layout.buildDirectory.dir("pages"))
+    }
+
 spotless {
     kotlin {
         target("src/*/kotlin/**/*.kt")

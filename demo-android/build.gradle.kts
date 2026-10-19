@@ -1,3 +1,5 @@
+import com.android.build.api.artifact.SingleArtifact
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -33,6 +35,18 @@ android {
         getByName("release") {
             signingConfig = signingConfigs.getByName("debug")
         }
+        create("optimized") {
+            initWith(getByName("release"))
+            // Use the local debug key for installable demo builds.
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+        }
     }
     packaging.resources.excludes += "META-INF/**/LICENSE.txt"
     compileOptions {
@@ -44,6 +58,30 @@ android {
 dependencies {
     implementation(project(":demo"))
     implementation(libs.activity.compose)
+}
+
+val demoVersion = version.toString()
+
+androidComponents {
+    onVariants(selector().withBuildType("optimized")) { variant ->
+        tasks.register<Sync>("packageReleaseArtifacts") {
+            group = "distribution"
+            description = "Stages the optimized Android APK for CI."
+            val artifactName = "M3X-Demo-$demoVersion-android.apk"
+            from(variant.artifacts.get(SingleArtifact.APK)) {
+                include("*.apk")
+                rename { artifactName }
+            }
+            duplicatesStrategy = DuplicatesStrategy.FAIL
+            val expectedNames = setOf(artifactName)
+            // Include unexpected staged files in the incremental check so Sync removes stale
+            // assets.
+            outputs.upToDateWhen { task ->
+                (task as Sync).destinationDir.list()?.toSet() == expectedNames
+            }
+            into(layout.buildDirectory.dir("release-assets"))
+        }
+    }
 }
 
 spotless {
