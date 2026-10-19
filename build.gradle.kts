@@ -9,6 +9,13 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.spotless)
+}
+
+spotless {
+    kotlinGradle {
+        ktfmt().kotlinlangStyle()
+    }
 }
 
 group = "top.ltfan.m3x"
