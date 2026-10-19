@@ -53,7 +53,7 @@ Skiko initialization before creating a test surface. Test source sets follow the
 | --- | --- | --- |
 | `commonTest` | every target | pure tests and Compose UI tests started with `runInitializedComposeUiTest` |
 | `composeTest` | JVM, Wasm, JS, and Apple; not Android host | Compose UI tests that need a desktop, browser, or native host (`ui`) |
-| `nonBrowserTest` | JVM and Apple; not JS or Wasm | Frame-by-frame rendering tests that cannot complete in browser runners (`material`, `overlay`, `material-overlay`, `material-backdrop`, `foundation`, `settings-page-material`, `demo`) |
+| `nonBrowserTest` | JVM and Apple; not JS or Wasm | Rendering and gesture tests that cannot complete reliably in browser runners (`material`, `overlay`, `material-overlay`, `material-backdrop`, `foundation`, `settings-page-material`, `demo`) |
 | `jvmTest` | JVM | desktop-specific tests |
 
 Shared Compose UI tests are not Android host tests. Modules declaring `withHostTest {}` keep their
@@ -61,6 +61,13 @@ supported non-UI host coverage separately. `compose-test-support` exports `compo
 `coroutines.test`, so dependent test source sets do not repeat those declarations. Compose UI tests
 in `commonTest` start through `runInitializedComposeUiTest` so JS waits for Skiko before creating the
 test surface.
+
+Apple tests that consume `material-bundle` only through `commonTest` apply
+[`compose-test-resources.gradle.kts`](../gradle/compose-test-resources.gradle.kts). It supplements
+Compose's test resource-copy tasks with the bundle's processed resources, including transitive
+resources. This follows the existing native macOS packaging resource flow; it is a local workaround
+for test-only dependencies, rather than a documented Compose test configuration. Rendering tests set
+accessibility preferences explicitly when pixel expectations depend on transparency or contrast.
 
 Library JS/Wasm `binaries.executable()` declarations support the Compose test setup. Preserve them.
 Browser test modules use `karma.config.d/mocha-timeout.js` to give Mocha and browser connection/activity

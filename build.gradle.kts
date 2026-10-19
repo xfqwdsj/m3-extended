@@ -14,6 +14,7 @@ plugins {
 
 spotless {
     kotlinGradle {
+        target("*.gradle.kts", "gradle/*.gradle.kts")
         ktfmt().kotlinlangStyle()
     }
 }

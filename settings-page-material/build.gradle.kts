@@ -21,6 +21,8 @@ compose.resources {
     generateResClass = always
 }
 
+apply(from = rootProject.file("gradle/compose-test-resources.gradle.kts"))
+
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(25))

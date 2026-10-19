@@ -14,11 +14,14 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
 import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
+import top.ltfan.m3x.compose.ui.accessibility.AccessibilityPreference
+import top.ltfan.m3x.compose.ui.accessibility.AccessibilityPreferences
 import top.ltfan.m3x.material.MaterialSurfaceRole
 import top.ltfan.m3x.material.backdrop.BackdropPresets
 import top.ltfan.m3x.material.backdrop.BackdropSurface
@@ -26,11 +29,24 @@ import top.ltfan.m3x.material.bundle.M3xMaterialTheme
 
 class ClearMaterialRenderingTest {
     @Test
-    fun clearPreservesLightBackgroundAndAddsOnlyThemeTint() = runInitializedComposeUiTest {
+    fun clearPreservesLightBackgroundAndAddsOnlyThemeTint() =
+        verifyClear(reduceTransparency = false)
+
+    @Test fun reducedTransparencyUsesOpaqueThemeTint() = verifyClear(reduceTransparency = true)
+
+    private fun verifyClear(reduceTransparency: Boolean) = runInitializedComposeUiTest {
         setContent {
             M3xMaterialTheme(
                 colorScheme = lightColorScheme(surface = Color(0.9f, 0.96f, 1f)),
                 backdrop = BackdropPresets.GlassClear,
+                accessibility =
+                    AccessibilityPreferences(
+                        reduceTransparency =
+                            if (reduceTransparency) AccessibilityPreference.Enabled
+                            else AccessibilityPreference.Disabled,
+                        increaseContrast = AccessibilityPreference.Disabled,
+                        reduceMotion = AccessibilityPreference.Disabled,
+                    ),
             ) {
                 val source = rememberBackdropLayer()
                 Box(Modifier.size(200.dp, 100.dp)) {
@@ -47,7 +63,16 @@ class ClearMaterialRenderingTest {
         }
         val pixels = onNodeWithTag("clear").captureToImage().toPixelMap()
         val color = pixels[pixels.width / 2, pixels.height / 2]
-        assertTrue(color.red > 0.95f, "Clear must preserve a light background: $color")
-        assertTrue(color.blue > color.red, "Clear adds the supplied light blue theme tint: $color")
+        if (reduceTransparency) {
+            assertEquals(0.9f, color.red, 1f / 255f, "Opaque theme red: $color")
+            assertEquals(0.96f, color.green, 1f / 255f, "Opaque theme green: $color")
+            assertEquals(1f, color.blue, 1f / 255f, "Opaque theme blue: $color")
+        } else {
+            assertTrue(color.red > 0.95f, "Clear must preserve a light background: $color")
+            assertTrue(
+                color.blue > color.red,
+                "Clear adds the supplied light blue theme tint: $color",
+            )
+        }
     }
 }
