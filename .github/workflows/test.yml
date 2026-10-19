@@ -27,9 +27,6 @@ jobs:
       - name: Set up node
         run: |
           ./gradlew kotlinNodeJsSetup kotlinWasmNodeJsSetup kotlinNpmInstall kotlinWasmNpmInstall
-      - name: Build demo applications
-        run: |
-          ./gradlew :demo-android:assembleDebug :demo-desktop:assemble :demo-web:assemble :demo-macos:linkDebugExecutableMacosArm64
       - name: Run tests
         run: ./gradlew allTests --continue
       - name: Upload test reports

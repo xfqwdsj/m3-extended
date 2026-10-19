@@ -7,6 +7,7 @@ jobs:
     name: Release build and publish
     runs-on: macOS-latest
     permissions:
+      contents: read
       packages: write
     steps:
       - name: Check out code
@@ -42,3 +43,58 @@ jobs:
       ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
       ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSWORD }}
+
+  demo-artifacts:
+    name: Demo artifacts (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+      - name: Set up packaging JDK
+        id: packaging-java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+          java-package: jdk+jmods
+          cache-jdk: true
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Set gradlew executable
+        if: runner.os != 'Windows'
+        run: chmod +x gradlew
+      - name: Set up Android SDK
+        if: runner.os == 'Linux'
+        uses: android-actions/setup-android@v3
+      - name: Build Linux demo artifacts
+        if: runner.os == 'Linux'
+        run: ./gradlew :demo-android:packageReleaseArtifacts :demo-desktop:packageReleaseArtifacts "-PdesktopJavaHome=${{ steps.packaging-java.outputs.path }}"
+      - name: Build macOS demo artifacts
+        if: runner.os == 'macOS'
+        run: ./gradlew :demo-desktop:packageReleaseArtifacts "-PdesktopJavaHome=${{ steps.packaging-java.outputs.path }}" :demo-macos:packageReleaseArtifacts
+      - name: Build Windows demo artifacts
+        if: runner.os == 'Windows'
+        shell: bash
+        run: ./gradlew :demo-desktop:packageReleaseArtifacts "-PdesktopJavaHome=${{ steps.packaging-java.outputs.path }}"
+      - name: Upload artifacts to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          artifacts=(demo-*/build/release-assets/*)
+          if [ "${#artifacts[@]}" -eq 0 ]; then
+            echo "No release artifacts were staged" >&2
+            exit 1
+          fi
+          gh release upload "$TAG" "${artifacts[@]}" --clobber
