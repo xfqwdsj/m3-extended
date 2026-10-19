@@ -1509,7 +1509,6 @@
                 reject(new Error("Application script failed to execute"));
             };
             document.head.append(script);
-            window.setTimeout(restoreCurrentScript, 0);
         });
     }
 
