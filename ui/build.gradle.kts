@@ -78,15 +78,13 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(project(":compose-test-support"))
             }
         }
 
         val composeTest =
             create("composeTest") {
                 dependsOn(commonTest.get())
-                dependencies {
-                    implementation(project(":compose-test-support"))
-                }
             }
         jvmTest {
             dependsOn(composeTest)

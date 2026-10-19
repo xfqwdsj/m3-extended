@@ -86,14 +86,10 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(project(":material-bundle"))
-            }
-        }
-
-        jvmTest {
-            dependencies {
                 implementation(project(":compose-test-support"))
             }
         }
+
         val nonBrowserTest = create("nonBrowserTest") { dependsOn(commonTest.get()) }
         getByName("jvmTest").dependsOn(nonBrowserTest)
         getByName("nativeTest").dependsOn(nonBrowserTest)
