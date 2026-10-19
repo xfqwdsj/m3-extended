@@ -14,6 +14,8 @@ internal actual fun rememberDemoStoreFile(): StoreFile {
         DemoStoreFile(
             { preferences.getString(it, null) },
             { key, value ->
+                // KTX edit(commit = true) discards commit()'s result, which this store checks.
+                @Suppress("UseKtx")
                 check(preferences.edit().putString(key, value).commit()) {
                     "Could not save demo settings"
                 }
