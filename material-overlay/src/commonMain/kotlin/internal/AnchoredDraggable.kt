@@ -608,7 +608,8 @@ internal class AnchoredDraggableState<T>(
  *
  * @param targetValue The target value of the animation
  * @throws CancellationException if the interaction interrupted by another interaction like a
- *   gesture interaction or another programmatic interaction like a [anchoredDrag] or [snapTo] call.
+ *   gesture interaction or another programmatic interaction like an
+ *   [AnchoredDraggableState.anchoredDrag] or [snapTo] call.
  */
 internal suspend fun <T> AnchoredDraggableState<T>.snapTo(targetValue: T) {
     anchoredDrag(targetValue = targetValue) { anchors, latestTarget ->

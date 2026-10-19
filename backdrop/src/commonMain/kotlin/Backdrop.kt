@@ -293,8 +293,8 @@ public fun Modifier.backdropSurface(
 /** The default values of the backdrop surfaces. */
 public object BackdropDefaults {
     /**
-     * The default effects of a backdrop surface: a vibrancy tint and, while [LocalBlurEnabled] is
-     * true, a blur.
+     * The default effects of a backdrop surface: a vibrancy tint and, while [BackdropBlurEnabled]
+     * is true, a blur.
      */
     public val effects: BackdropEffectScope.() -> Unit
         @Composable
