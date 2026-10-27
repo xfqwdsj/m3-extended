@@ -8,7 +8,7 @@ import top.ltfan.m3x.compose.foundation.LazyItem
 
 class CardLazyGroupDslTest {
     @Test
-    fun `latest header is first and item order is preserved`() {
+    fun latestHeaderIsFirstAndItemOrderIsPreserved() {
         val builder =
             CardLazyGroupSpecBuilder(
                 useStickyHeader = true,

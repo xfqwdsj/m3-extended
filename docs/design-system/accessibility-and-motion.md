@@ -28,8 +28,8 @@ Platform readers preserve unknown values when the host cannot report a setting. 
 lifetimes.
 
 Regressions: [observation](../../ui/src/composeTest/kotlin/AccessibilityTest.kt),
-[theme recomposition and inheritance](../../material-theming/src/commonTest/kotlin/AccessibilityThemeTest.kt),
-and [surface response](../../material-backdrop/src/commonTest/kotlin/AccessibilityAppearanceTest.kt).
+[theme recomposition and inheritance](../../material-theming/src/composeTest/kotlin/AccessibilityThemeTest.kt),
+and [surface response](../../material-backdrop/src/composeTest/kotlin/AccessibilityAppearanceTest.kt).
 
 ## A3. Reduced transparency changes appearance
 
@@ -96,8 +96,8 @@ Nested M3X themes inherit the current scheme; an explicit `motionScheme` supplie
 
 Sources: [typed motion thresholds](../../material3/src/commonMain/kotlin/SharedBoundsMotion.kt) and
 [corner progress tolerance](../../material-overlay/src/commonMain/kotlin/MenuTransitionShape.kt).
-Regressions: [theme inheritance](../../material-theming/src/commonTest/kotlin/M3xThemeExtensionsTest.kt)
-and [corner motion](../../material-overlay/src/nonBrowserTest/kotlin/MenuTransitionShapeTest.kt).
+Regressions: [theme inheritance](../../material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt)
+and [corner motion](../../material-overlay/src/jvmTest/kotlin/MenuTransitionShapeTest.kt).
 
 Animations use Compose's native transitions, animation state helpers, and coroutine scopes.
 `ProvideAccessibility` resolves settings; it does not override animation duration scales.
@@ -130,8 +130,8 @@ chain observes focus and keyboard activation. Reducing motion shortens release r
 inventing a different material role.
 
 Source: [source and receiver wiring](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Regressions: [input lighting](../../material/src/nonBrowserTest/kotlin/InteractionLightTest.kt) and
-[shared-light rendering](../../material-backdrop/src/nonBrowserTest/kotlin/SharedLightRenderingTest.kt).
+Regressions: [input lighting](../../material/src/jvmTest/kotlin/InteractionLightTest.kt) and
+[shared-light rendering](../../material-backdrop/src/jvmTest/kotlin/SharedLightRenderingTest.kt).
 
 ## A6. Entrance and exit blur follows component ownership
 
@@ -178,13 +178,13 @@ opacity with `fade = false` to avoid multiplying fades.
 Sources: [optical helpers](../../animation/src/commonMain/kotlin/BlurAnimation.kt),
 [host integration](../../material-overlay/src/commonMain/kotlin/OverlayBlur.kt), and
 [bounded background motion](../../material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt).
-Regressions: [optical ownership](../../material/src/nonBrowserTest/kotlin/BlurTransitionTest.kt),
-[container rendering](../../material/src/nonBrowserTest/kotlin/ContainerBlurRenderingTest.kt),
-[shared crossfading](../../material/src/nonBrowserTest/kotlin/SharedContainerFadeTest.kt),
-[shared motion specs](../../material/src/nonBrowserTest/kotlin/SharedMotionSchemeTest.kt),
-[press and release continuity](../../material-backdrop/src/nonBrowserTest/kotlin/FloatingBottomBarMotionTest.kt),
-[editor integration](../../settings-page-material/src/nonBrowserTest/kotlin/CardSettingsTest.kt), and
-[bounded background fallback](../../material-backdrop/src/nonBrowserTest/kotlin/BackdropScrollPresenceTest.kt).
+Regressions: [optical ownership](../../material/src/jvmTest/kotlin/BlurTransitionTest.kt),
+[container rendering](../../material/src/jvmTest/kotlin/ContainerBlurRenderingTest.kt),
+[shared crossfading](../../material/src/jvmTest/kotlin/SharedContainerFadeTest.kt),
+[shared motion specs](../../material/src/jvmTest/kotlin/SharedMotionSchemeTest.kt),
+[press and release continuity](../../material-backdrop/src/jvmTest/kotlin/FloatingBottomBarMotionTest.kt),
+[editor integration](../../settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt), and
+[bounded background fallback](../../material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt).
 
 ## Platform interpretation
 

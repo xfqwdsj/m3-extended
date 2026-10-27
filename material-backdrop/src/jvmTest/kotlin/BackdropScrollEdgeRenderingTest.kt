@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
@@ -34,14 +35,13 @@ import top.ltfan.backdrop.highlight.HighlightStyle
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
-import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.material.backdrop.theme.M3xBackdropMaterial
 import top.ltfan.m3x.material.backdrop.theme.M3xBackdropTheme
 import top.ltfan.m3x.material.backdrop.theme.ProvideBackdropTheme
 
 class BackdropScrollEdgeRenderingTest {
     @Test
-    fun hiddenEdgeLeavesTranslucentSourceUnchanged() = runInitializedComposeUiTest {
+    fun hiddenEdgeLeavesTranslucentSourceUnchanged() = runComposeUiTest {
         val drawEdge = mutableStateOf(false)
         setContent {
             MaterialTheme {
@@ -74,7 +74,7 @@ class BackdropScrollEdgeRenderingTest {
     }
 
     @Test
-    fun verticalEdgeKeepsItsOutsetBlurWhenExportingItsBackground() = runInitializedComposeUiTest {
+    fun verticalEdgeKeepsItsOutsetBlurWhenExportingItsBackground() = runComposeUiTest {
         setContent {
             MaterialTheme {
                 val page = rememberBackdropLayer()
@@ -126,7 +126,7 @@ class BackdropScrollEdgeRenderingTest {
     fun finiteStripNeedsClampedSourceToKeepSharpStripesFromShowingThrough() {
         for (edge in listOf(BackdropEdge.Start, BackdropEdge.End)) {
             val jumps = mutableMapOf<TileMode, Float>()
-            for (tile in listOf(TileMode.Decal, TileMode.Clamp)) runInitializedComposeUiTest {
+            for (tile in listOf(TileMode.Decal, TileMode.Clamp)) runComposeUiTest {
                 setContent {
                     MaterialTheme {
                         val source = rememberBackdropLayer(tileMode = tile)
@@ -183,7 +183,7 @@ class BackdropScrollEdgeRenderingTest {
     @Test
     fun rawHeaderCaptureAvoidsInheritingTheControlContour() {
         val colored = mutableMapOf<Boolean, Int>()
-        for (raw in listOf(false, true)) runInitializedComposeUiTest {
+        for (raw in listOf(false, true)) runComposeUiTest {
             setContent {
                 MaterialTheme {
                     val control =

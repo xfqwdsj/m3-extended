@@ -1,59 +1,107 @@
 name: Publish
+
 on:
   release:
     types: [ published ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
-  test:
-    name: Platform tests
-    uses: ./.github/workflows/test.yml
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.contract.outputs.sha }}
+      tag: ${{ steps.contract.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate release version and commit
+        id: contract
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { readFileSync } = await import('node:fs');
+            const { execFileSync } = await import('node:child_process');
+            const { pathToFileURL } = await import('node:url');
+            const { checkVersion } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/.github/scripts/release.mjs`).href);
+            const { data: release } = await github.rest.repos.getRelease({ ...context.repo, release_id: context.payload.release.id });
+            if (release.draft) throw new Error('The release must remain published.');
+            checkVersion(release.tag_name, readFileSync('gradle.properties', 'utf8'));
+            const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+            const tagSha = execFileSync('git', ['rev-parse', `refs/tags/${release.tag_name}^{commit}`], { encoding: 'utf8' }).trim();
+            if (sha !== tagSha) throw new Error('The published tag moved after the release event.');
+            core.setOutput('sha', sha);
+            core.setOutput('tag', release.tag_name);
+
+  tests:
+    name: Require passing Test CI
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: read
-    secrets:
-      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/github-script@v9
+        env:
+          TESTED_SHA: ${{ needs.prepare.outputs.sha }}
+        with:
+          script: |
+            const { pathToFileURL } = await import('node:url');
+            const { requirePassingTests } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/.github/scripts/release.mjs`).href);
+            const run = await requirePassingTests(github, context.repo, process.env.TESTED_SHA);
+            await core.summary.addLink('Passing Test CI', run.html_url).write();
 
   publish:
-    name: Release build and publish
-    needs: test
-    runs-on: macOS-latest
+    name: Verify and publish artifacts
+    needs: [ prepare, tests ]
+    runs-on: macos-latest
     permissions:
       contents: read
       packages: write
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v7
-      - name: Set up JDK
-        uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: 25
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-      - name: Set gradlew executable
-        run: chmod +x gradlew
-      - name: Set up node
-        run: |
-          ./gradlew kotlinNodeJsSetup kotlinWasmNodeJsSetup kotlinNpmInstall kotlinWasmNpmInstall
-      - name: Publish to GitHub Packages
-        continue-on-error: true
-        run: |
-          ./gradlew publishAllPublicationsToGitHubPackagesRepository --continue
-      - name: Publish to Maven Central
-        run: |
-          ./gradlew publishToMavenCentral
     env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
       ORG_GRADLE_PROJECT_publishSigningMode: inMemory
-      ORG_GRADLE_PROJECT_gitHubPackagesUsername: xfqwdsj
-      ORG_GRADLE_PROJECT_gitHubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
-      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
       ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup-build
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Check release and assemble artifacts
+        run: ./gradlew :verifyRelease -PreleaseTag="$RELEASE_TAG"
+      - name: Publish to GitHub Packages
+        env:
+          ORG_GRADLE_PROJECT_gitHubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_gitHubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :publishPackages -PreleaseTag="$RELEASE_TAG" --continue
+      - name: Publish to Maven Central
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: ./gradlew :publishCentral -PreleaseTag="$RELEASE_TAG"
 
   demo-artifacts:
     name: Demo artifacts (${{ matrix.os }})
-    needs: test
+    needs: [ prepare, tests ]
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -64,6 +112,9 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
       - name: Set up packaging JDK
         id: packaging-java
         uses: actions/setup-java@v6

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -23,7 +24,6 @@ import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.backdrop.backdropSurface
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
-import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.material.overlay.MaterialOverlay
 import top.ltfan.m3x.overlay.OverlayHandle
@@ -39,7 +39,7 @@ import top.ltfan.m3x.overlay.OverlayHostState
  */
 class BackdropStackOverlayRenderingTest {
     @Test
-    fun layerUnderANewlyOpenedOverlayStaysInTheBackdropChain() = runInitializedComposeUiTest {
+    fun layerUnderANewlyOpenedOverlayStaysInTheBackdropChain() = runComposeUiTest {
         mainClock.autoAdvance = false
         var showUpper by mutableStateOf(false)
         setContent {

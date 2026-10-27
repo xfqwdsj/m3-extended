@@ -1,7 +1,7 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
-import kotlin.time.Duration.Companion.seconds
-import org.jetbrains.kotlin.gradle.ExperimentalJsTestDsl
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -15,8 +15,6 @@ plugins {
     alias(libs.plugins.mavenPublish)
     signing
 }
-
-apply(from = rootProject.file("gradle/compose-test-resources.gradle.kts"))
 
 kotlin {
     jvmToolchain {
@@ -39,6 +37,20 @@ kotlin {
                 }
         }
         androidResources.enable = true
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
+            .configure {
+                instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                managedDevices {
+                    localDevices.create("pixel6Api37") {
+                        device = "Pixel 6"
+                        apiLevel = 37
+                        systemImageSource = "google_apis"
+                        pageAlignment = ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
+                    }
+                }
+            }
         minSdk = 21
         compilations.configureEach {
             compileTaskProvider.configure {
@@ -52,13 +64,7 @@ kotlin {
     iosSimulatorArm64()
     iosArm64()
     js {
-        browser {
-            @OptIn(ExperimentalJsTestDsl::class)
-            test {
-                timeout = 120.seconds
-                chromium()
-            }
-        }
+        browser()
         binaries.executable()
     }
     @OptIn(ExperimentalWasmDsl::class)
@@ -85,19 +91,27 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(project(":material-bundle"))
-                implementation(project(":compose-test-support"))
             }
         }
-        val nonBrowserTest =
-            create("nonBrowserTest") {
+
+        val composeTest =
+            create("composeTest") {
                 dependsOn(commonTest.get())
+                dependencies {
+                    implementation(project(":material-bundle"))
+                    implementation(libs.compose.ui.test)
+                }
             }
         jvmTest {
-            dependsOn(nonBrowserTest)
+            dependsOn(composeTest)
         }
-        nativeTest {
-            dependsOn(nonBrowserTest)
+        getByName("androidDeviceTest") {
+            dependsOn(composeTest)
+            dependencies {
+                implementation(libs.androidx.test.runner)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.activity.compose)
+            }
         }
     }
 
@@ -120,6 +134,7 @@ spotless {
 dokka {
     dokkaSourceSets {
         configureEach {
+            documentedVisibilities(VisibilityModifier.Public, VisibilityModifier.Protected)
             sourceLink {
                 remoteUrl =
                     uri("https://github.com/xfqwdsj/m3-extended/tree/v${version}/${project.name}")

@@ -102,8 +102,8 @@ Sources: [resource abstractions](../resource-core/build.gradle.kts),
 dependencies. Modules consuming generated declarations own their producer dependencies and generated
 source inclusion. See [development](development.md#preserve-generation-dependencies).
 
-`compose-test-support` provides shared Compose test infrastructure. Tests live with the layer they
-verify. Integration tests may depend on the complete composition without adding it to a lower
+Compose UI interaction tests share JVM and Android device source sets; pixel and deterministic
+frame tests run on JVM. Tests live with the layer they verify. Integration tests may depend on the complete composition without adding it to a lower
 layer's production dependencies. Runner-specific constraints belong in
 [development](development.md#test-targets).
 

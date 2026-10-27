@@ -113,7 +113,7 @@ callbacks precede optional arguments; use named arguments for callbacks and modi
 Sources: [structured errors](../settings-page-compose/src/commonMain/kotlin/SettingsPresentationError.kt)
 and [commit path](../settings-page-core/src/commonMain/kotlin/SettingsCommit.kt).
 Regressions: [commit validation](../settings-page-core/src/commonTest/kotlin/SettingsCommitTest.kt)
-and [Material editors](../settings-page-material/src/nonBrowserTest/kotlin/CardSettingsTest.kt).
+and [Material editors](../settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt).
 
 ## Persistence adapter and custom renderers
 

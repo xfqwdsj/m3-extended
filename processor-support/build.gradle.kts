@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 
 plugins {
     kotlin("jvm")
@@ -40,6 +41,7 @@ spotless {
 dokka {
     dokkaSourceSets {
         configureEach {
+            documentedVisibilities(VisibilityModifier.Public, VisibilityModifier.Protected)
             sourceLink {
                 remoteUrl =
                     uri("https://github.com/xfqwdsj/m3-extended/tree/v${version}/${project.name}")

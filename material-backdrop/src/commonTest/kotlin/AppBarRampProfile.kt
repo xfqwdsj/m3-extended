@@ -8,10 +8,8 @@ import top.ltfan.backdrop.BackdropSide
 
 /**
  * The intensity a top app bar's ramp has [y] px below its top, for a bar [height] px tall whose
- * content is inset by [insetTop], as [shape] measures it against the content that remains.
- *
- * A test states the shape it expects through this instead of the raw curve, so the bar's geometry
- * lives in one place and follows the theme's shape.
+ * content is inset by [insetTop]. The supplied [ramp] resolves its span against the bar's occupied
+ * and content bounds, with density and font scale fixed to one.
  */
 internal fun appBarRampIntensity(
     y: Float,

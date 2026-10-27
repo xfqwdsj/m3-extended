@@ -1,5 +1,3 @@
-import kotlin.time.Duration.Companion.seconds
-import org.jetbrains.kotlin.gradle.ExperimentalJsTestDsl
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -11,13 +9,7 @@ plugins {
 
 kotlin {
     js {
-        browser {
-            @OptIn(ExperimentalJsTestDsl::class)
-            test {
-                timeout = 120.seconds
-                chromium()
-            }
-        }
+        browser()
         binaries.executable()
     }
     @OptIn(ExperimentalWasmDsl::class)

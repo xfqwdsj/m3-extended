@@ -5,16 +5,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.compose.ui.accessibility.LocalSystemAccessibilitySettingsHook
 import top.ltfan.m3x.compose.ui.accessibility.SystemAccessibilitySettings
 import top.ltfan.m3x.compose.ui.accessibility.rememberSystemAccessibilitySettings
 
 class SystemAccessibilitySettingsTest {
     @Test
-    fun hookReportsUnknownAndRecomposesWhenItsSourceChanges() = runInitializedComposeUiTest {
+    fun hookReportsUnknownAndRecomposesWhenItsSourceChanges() = runComposeUiTest {
         var value by mutableStateOf(SystemAccessibilitySettings())
         var useHook by mutableStateOf(true)
         var observed = SystemAccessibilitySettings(reduceMotion = false)

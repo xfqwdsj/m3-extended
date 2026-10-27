@@ -23,8 +23,12 @@ dslUtilities = "2.2.0"
 spotless = "8.10.4"
 dokka = "2.2.0"
 mavenPublish = "0.37.0"
+androidx-test-runner = "1.7.0"
+androidx-test-junit = "1.3.0"
 
 [libraries]
+androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-junit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }

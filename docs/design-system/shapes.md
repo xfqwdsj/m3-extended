@@ -22,7 +22,8 @@ uses per-corner physical measurements. The finite roles follow layout direction;
 corners retain their screen positions in both LTR and RTL.
 
 Source: [shape values and conversion](../../material-theme/src/commonMain/kotlin/M3xShapes.kt).
-Regression: [preset geometry](../../material-theming/src/commonTest/kotlin/ShapePresetTest.kt).
+Regressions: [preset contracts](../../material-theming/src/commonTest/kotlin/ShapePresetTest.kt) and
+[rendered geometry](../../material-theming/src/composeTest/kotlin/ShapeRenderingTest.kt).
 
 ## S2. Factories preserve the role model
 
@@ -98,9 +99,9 @@ through. Vertical controls pass their orientation to their default thumbs; stand
 Material owns time picker rendering and the interaction shapes of its AM/PM selector.
 
 Source: [component defaults](../../material/src/commonMain/kotlin/ToggleButton.kt).
-Regressions: [inheritance and overrides](../../material/src/commonTest/kotlin/ThemeShapeDefaultsTest.kt),
-[connected geometry](../../material/src/commonTest/kotlin/ConnectedShapeFactoryTest.kt), and
-[rendered slots](../../material/src/nonBrowserTest/kotlin/ThemeShapeSlotIntegrationTest.kt).
+Regressions: [inheritance and overrides](../../material/src/composeTest/kotlin/ThemeShapeDefaultsTest.kt),
+[connected geometry](../../material/src/composeTest/kotlin/ConnectedShapeFactoryTest.kt), and
+[rendered slots](../../material/src/jvmTest/kotlin/ThemeShapeSlotIntegrationTest.kt).
 
 ## S6. Grouped cards preserve the outer silhouette
 
@@ -112,4 +113,4 @@ position: without it, outer cards keep the base shape and middle cards use `Rect
 
 Source: [group shape contract](../../material/src/commonMain/kotlin/CardLazyGroup.kt).
 Regressions: [fallback](../../material/src/commonTest/kotlin/CardGroupShapeFallbackTest.kt) and
-[continuous grouped geometry](../../material/src/commonTest/kotlin/CardGroupShapeSkiaTest.kt).
+[continuous grouped geometry](../../material/src/composeTest/kotlin/CardGroupShapeSkiaTest.kt).

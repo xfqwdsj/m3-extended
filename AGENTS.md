@@ -35,6 +35,7 @@ details in build configuration.
 - Compose-only utility modules use `top.ltfan.m3x.compose.<subject>` for both the Kotlin package
   root and the Android namespace; nested adapters extend that root, as in
   `top.ltfan.m3x.compose.ui.privateapi`.
+- Shared tests use camelCase method names because Android DEX for the minimum SDK rejects spaces.
 - Tests use the module root package directly under the test source root and import production
   subpackages. Test filenames/classes distinguish responsibilities.
 
@@ -57,12 +58,11 @@ details in build configuration.
   `material`, and `demo`. Consumers and source JARs must see the generated symbols.
 - Keep per-module targets, KSP, resources, and publication configuration in module build scripts;
   the root declares shared plugin aliases with `apply false`.
-- Preserve JS/Wasm `binaries.executable()` declarations required by Compose test setup and keep
-  shared Compose UI tests on supported runners. Preserve the JS Skiko startup wait in
-  `compose-test-support/src/jsMain/kotlin/InitializedComposeUiTest.kt`.
-- Keep `commonTest` JS-safe by starting Compose UI tests through `runInitializedComposeUiTest`.
-  Frame-by-frame rendering tests that cannot complete in browser runners live in `nonBrowserTest`;
-  tests that must skip Android host coverage live in `composeTest`.
+- Compose UI tests belong to `composeTest`, shared only by JVM and Android device tests, or to
+  platform-specific JVM/Android test sources. Offscreen pixel baselines and deterministic frame tests
+  stay in `jvmTest`; device tests share semantic and interaction contracts. Keep non-UI tests in
+  `commonTest` for local Web/Apple verification. CI runs JVM and Android tests only. Use `verify`
+  daily and `verifyManaged` or `verifyConnected` at key validation points. Keep GMD configuration in module build scripts.
 - Preserve `androidResources` for resource-bearing Android KMP modules, native macOS resource
   staging, and `mavenLocal()` resolution of locally published sibling libraries.
 - The shared demo owns UI/models/storage and consumes both processors. Platform application

@@ -25,8 +25,8 @@ M3X top bars allow control shadows outside their rows while clipping title conte
 Sources: [bars](../../material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt),
 [control surface](../../material-backdrop/src/commonMain/kotlin/BackdropTopAppBarControl.kt), and
 [demo layout](../../demo/src/commonMain/kotlin/DemoApp.kt).
-Regressions: [scroll presence](../../material-backdrop/src/nonBrowserTest/kotlin/BackdropScrollPresenceTest.kt)
-and [measured demo layout](../../demo/src/nonBrowserTest/kotlin/DemoLayoutTest.kt).
+Regressions: [scroll presence](../../material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt)
+and [measured demo layout](../../demo/src/jvmTest/kotlin/DemoLayoutTest.kt).
 
 ## C2. Floating navigation sizes to its tabs
 
@@ -36,8 +36,8 @@ to the caller; selection requests use `onTabSelected`. Each tab is at least `tab
 unrelated tabs' proportions. The bar uses current Material motion and the library blur preference.
 
 Source: [floating bar](../../material/src/commonMain/kotlin/FloatingBottomBar.kt).
-Regressions: [sizing](../../material-backdrop/src/commonTest/kotlin/FloatingBottomBarSizingTest.kt) and
-[interaction/layout](../../material-backdrop/src/nonBrowserTest/kotlin/FloatingBottomBarTest.kt).
+Regressions: [sizing](../../material-backdrop/src/composeTest/kotlin/FloatingBottomBarSizingTest.kt) and
+[interaction/layout](../../material-backdrop/src/jvmTest/kotlin/FloatingBottomBarTest.kt).
 
 ## C3. Card appearance combines one backing with Material elevation
 
@@ -73,9 +73,9 @@ full expansion. State-change vetoes remain caller-owned.
 See [gesture integration](../overlays.md#dismissal-contract).
 
 Source: [overlay host](../../overlay/src/commonMain/kotlin/Overlay.kt).
-Regressions: [visibility](../../overlay/src/commonTest/kotlin/OverlayVisibilityProviderTest.kt),
-[dismissal](../../material-overlay/src/commonTest/kotlin/OverlayDismissBehaviorTest.kt), and
-[sheet reopening](../../material-overlay/src/commonTest/kotlin/OverlaySheetReopeningTest.kt).
+Regressions: [visibility](../../overlay/src/jvmTest/kotlin/OverlayVisibilityProviderTest.kt),
+[dismissal](../../material-overlay/src/composeTest/kotlin/OverlayDismissBehaviorTest.kt), and
+[sheet reopening](../../material-overlay/src/composeTest/kotlin/OverlaySheetReopeningTest.kt).
 
 ## C5. List structure uses the public DSL
 
@@ -104,7 +104,8 @@ consumes the enclosing theme and overlay host.
 
 Source: [settings UI](../../settings-page-material/src/commonMain/kotlin/CardSettings.kt).
 Details: [settings guide](../settings.md).
-Regression: [settings rendering and interaction](../../settings-page-material/src/nonBrowserTest/kotlin/CardSettingsTest.kt).
+Regressions: [settings interaction](../../settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt)
+and [rendering transitions](../../settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
 
 ## C7. Expressive controls retain Material interaction ownership
 
@@ -130,7 +131,7 @@ Sources: [toggle buttons](../../material/src/commonMain/kotlin/ToggleButton.kt),
 [sliders](../../material/src/commonMain/kotlin/Slider.kt),
 [search](../../material/src/commonMain/kotlin/SearchBar.kt), and
 [menu items](../../material-overlay/src/commonMain/kotlin/OverlayMenu.kt).
-Regressions: [size and icon slots](../../material/src/commonTest/kotlin/ToggleButtonSizeTest.kt),
-[slider ownership](../../material/src/commonTest/kotlin/SliderCallbackTest.kt),
-[menu semantics](../../material/src/commonTest/kotlin/OverlayMenuItemSemanticsTest.kt), and
-[top-bar inputs](../../material/src/commonTest/kotlin/BackdropAppBarApiTest.kt).
+Regressions: [size and icon slots](../../material/src/composeTest/kotlin/ToggleButtonSizeTest.kt),
+[slider ownership](../../material/src/composeTest/kotlin/SliderCallbackTest.kt),
+[menu semantics](../../material/src/composeTest/kotlin/OverlayMenuItemSemanticsTest.kt), and
+[top-bar inputs](../../material/src/composeTest/kotlin/BackdropAppBarApiTest.kt).

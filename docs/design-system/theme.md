@@ -29,7 +29,7 @@ The theme supplies the control material's default Backdrop style and joins the s
 lighting scope. Actual pixels still require a captured source supplied by `BackdropHost`.
 
 Source: [M3xMaterialTheme](../../material-bundle/src/commonMain/kotlin/M3xMaterialTheme.kt).
-Regression: [root and nested themes](../../material-theming/src/commonTest/kotlin/M3xThemeExtensionsTest.kt).
+Regression: [root and nested themes](../../material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt).
 
 ## T3. Nested themes inherit by input domain
 
@@ -50,8 +50,8 @@ radius metadata intact. Reconstruct the current complete preset with
 `MaterialTheme.extended.shapes.toM3xShapes(MaterialTheme.shapes)` when an API needs `M3xShapes`.
 Changing the backdrop preset preserves inherited shapes and independent accessibility preferences.
 
-Regression: [theme resolution](../../material-theming/src/commonTest/kotlin/M3xThemeExtensionsTest.kt)
-and [preference inheritance](../../material-theming/src/commonTest/kotlin/AccessibilityThemeTest.kt).
+Regression: [theme resolution](../../material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt)
+and [preference inheritance](../../material-theming/src/composeTest/kotlin/AccessibilityThemeTest.kt).
 
 ## T4. Overrides have an explicit scope
 

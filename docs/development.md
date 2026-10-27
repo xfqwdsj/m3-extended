@@ -5,7 +5,7 @@
 Use the repository Gradle wrapper. Versions and plugin aliases live in
 [libs.versions.toml](../gradle/libs.versions.toml); inspect module build scripts and
 [CI workflows](../.github/workflows) for toolchain, target, and runner requirements.
-The Android target reads its SDK path from `local.properties`.
+Android targets resolve the SDK from `local.properties` or the Android SDK environment variables.
 
 The root build declares shared plugin aliases with `apply false`; per-module target, KSP,
 resource, and publishing configuration belongs in each module. `mavenLocal()` in settings permits
@@ -37,57 +37,48 @@ multiplatform modules expose target tasks such as `jvmTest`. Spotless uses ktfmt
 with per-module targets; `spotlessApply` formats those targets. The root project also applies
 Spotless to its Gradle Kotlin scripts.
 
-For fresh execution bypass task/build-cache reuse with `--no-build-cache --rerun-tasks`.
-Configuration cache is a separate mechanism: these flags do not disable it. Use
-`--no-configuration-cache` as well when a check specifically needs configuration to run again.
-Do not interpret a cached result, an unavailable runner, or an environment failure as a fresh pass.
+Use `--rerun-tasks` on affected tasks when fresh execution is required. Gradle reuses valid outputs
+for normal verification. Configuration cache can be inspected separately with
+`--no-configuration-cache` when configuration itself needs to run again. Report cached results,
+unavailable runners and environment failures separately from fresh test execution.
 For a documentation-only change, check local links, anchors, example correspondence, and diff scope;
 report separately whatever code checks actually ran.
 
 ## Test targets
 
-`compose-test-support` provides shared Compose test infrastructure. Its startup helper waits for JS
-Skiko initialization before creating a test surface. Test source sets follow the runner boundary:
+Daily verification uses `./gradlew :verify`: formatting, JVM and processor tests, release automation and the generated build contract. At key validation points,
+run `./gradlew :verifyManaged` for Gradle Managed Devices or `:verifyConnected` for attached devices.
+`./gradlew :verifyManaged` is the CI entry point; `:verifyTargets` also runs local Web and Apple tests.
 
 | Source set | Runs on | Use |
 | --- | --- | --- |
-| `commonTest` | every target | pure tests and Compose UI tests started with `runInitializedComposeUiTest` |
-| `composeTest` | JVM, Wasm, JS, and Apple; not Android host | Compose UI tests that need a desktop, browser, or native host (`ui`) |
-| `nonBrowserTest` | JVM and Apple; not JS or Wasm | Rendering and gesture tests that cannot complete reliably in browser runners (`material`, `overlay`, `material-overlay`, `material-backdrop`, `foundation`, `settings-page-material`, `demo`) |
-| `jvmTest` | JVM | desktop-specific tests |
+| `commonTest` | All declared test targets | Tests without Compose UI test infrastructure |
+| `composeTest` | JVM and Android devices | Shared Compose UI state, semantics and interaction tests |
+| `jvmTest` | JVM | Desktop integration, offscreen pixel and deterministic frame tests |
+| `androidDeviceTest` | Android devices | Device integration and runner dependencies |
 
-Shared Compose UI tests are not Android host tests. Modules declaring `withHostTest {}` keep their
-supported non-UI host coverage separately. `compose-test-support` exports `compose.ui.test` and
-`coroutines.test`, so dependent test source sets do not repeat those declarations. Compose UI tests
-in `commonTest` start through `runInitializedComposeUiTest` so JS waits for Skiko before creating the
-test surface.
+Compose UI tests call `androidx.compose.ui.test.v2.runComposeUiTest` directly. UI test dependencies
+are scoped to JVM/Android tests. Pixel baselines and manually stepped rendering tests remain on JVM;
+Android shares semantic and interaction contracts. Web and Apple retain non-UI common tests,
+available locally through `:verifyWeb` and `:verifyApple`; CI runs only JVM and Android tests. A JVM pass does not establish
+Android, Web or Apple behavior. Rendering tests explicitly supply accessibility preferences where
+pixel expectations depend on them.
 
-Apple tests that consume `material-bundle` only through `commonTest` apply
-[`compose-test-resources.gradle.kts`](../gradle/compose-test-resources.gradle.kts). It supplements
-Compose's test resource-copy tasks with the bundle's processed resources, including transitive
-resources. This follows the existing native macOS packaging resource flow; it is a local workaround
-for test-only dependencies, rather than a documented Compose test configuration. Rendering tests set
-accessibility preferences explicitly when pixel expectations depend on transparency or contrast.
+Module Android targets own instrumentation runners and GMD definitions. AGP creates and tears down
+the managed device. Compose-enabled Android targets enable `androidResources` so AGP registers
+the test asset output. CI enables KVM and uses Xvfb for JVM rendering tests. Reports include JVM and
+Android results. Demo packaging remains in release and Pages workflows.
 
-Library JS/Wasm `binaries.executable()` declarations support the Compose test setup. Preserve them.
-Browser test modules use `karma.config.d/mocha-timeout.js` to give Mocha and browser connection/activity
-checks 120 seconds. Keep this configuration with tests when splitting modules; the JS test DSL timeout
-does not configure the Wasm Karma runner.
-For web dependency changes, prepare the toolchain and regenerate the repository lock:
+Browser tests use Kotlin's default headless Chrome runner and require a local Chrome installation.
+Prepare the Web toolchain before local browser verification:
 
 ```sh
 ./gradlew kotlinNodeJsSetup kotlinWasmNodeJsSetup kotlinNpmInstall kotlinWasmNpmInstall
-./gradlew kotlinUpgradeYarnLock
+./gradlew :verifyWeb
 ```
 
-Review `kotlin-js-store/yarn.lock`. The [test workflow](../.github/workflows/test.yml) runs JVM,
-Android host, JVM-only module, and JS/Wasm browser tests on Linux, with Node setup before web tests
-and Xvfb for desktop UI tests. Its macOS job runs `macosArm64Test` and `iosSimulatorArm64Test`.
-Android host tests run on the JVM; iOS tests run in the simulator. Demo packaging belongs to the
-release and Pages workflows. The release workflow reuses both test jobs before publishing libraries
-or uploading demo artifacts. A JVM result does not establish JS, Wasm, Android, or Apple behavior.
-Rendering checks should exercise the affected source/stack/frame path;
-contract pages link existing regression tests by responsibility.
+Run `./gradlew kotlinUpgradeYarnLock` after Web dependency changes and review
+`kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock`.
 
 ## Run the existing launchers
 
@@ -151,7 +142,31 @@ release assets, excluding the website; each matrix job builds only formats suppo
 Published modules configure Maven Central and GitHub Packages, POM metadata, Dokka source links,
 and signing in their own build scripts. Inspect a module's metadata with
 `generatePomFileForKotlinMultiplatformPublication` and read `build/publications/` in that module.
-Publication tasks are `publishToMavenCentral` and
-`publishAllPublicationsToGitHubPackagesRepository`; the
+Use `:publishLocal` for local integration. Remote entry points `:publishCentral` and
+`:publishPackages` require `-PreleaseTag=<tag>`, a matching version and a clean checkout at the tag. The
 [publishing workflow](../.github/workflows/publish.yml) supplies credentials and signing mode.
 Publication, committing, and pushing require the session's explicit authorization.
+
+Prepare an editable release draft with the manual draft workflow. Generated notes seed the draft;
+resuming it preserves edits. Publishing requires successful push Test CI for the exact release
+commit. GitHub Packages attempts independent uploads with `--continue`; any failure blocks Central.
+Demo artifacts build from the same verified commit.
+
+## Build and release tasks
+
+This table is generated from root task declarations. Run `./gradlew :updateBuildDocs` after changes.
+
+<!-- build-contract:start -->
+| Root task | Contract |
+| --- | --- |
+| `./gradlew :verify` | Checks formatting, JVM tests and release automation. |
+| `./gradlew :verifyTargets` | Runs JVM verification and local Web and Apple tests. |
+| `./gradlew :verifyApple` | Runs Apple target tests. |
+| `./gradlew :verifyWeb` | Runs shared non-UI browser tests. |
+| `./gradlew :verifyConnected` | Runs JVM verification and connected Android tests. |
+| `./gradlew :verifyManaged` | Runs JVM verification and Android managed-device tests. |
+| `./gradlew :verifyRelease` | Checks the release tag, clean checkout and library artifacts. |
+| `./gradlew :publishLocal` | Runs verification and publishes artifacts to Maven Local. |
+| `./gradlew :publishCentral` | Verifies the release and publishes to Maven Central. |
+| `./gradlew :publishPackages` | Verifies the release and publishes to GitHub Packages. |
+<!-- build-contract:end -->

@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 class CardGroupShapeFallbackTest {
     @Test
-    fun `outer positions account for orientation and reverse layout`() {
+    fun outerPositionsAccountForOrientationAndReverseLayout() {
         assertEquals(CardGroupShapePosition.Top, fallbackCardPosition(true, false, false))
         assertEquals(CardGroupShapePosition.Bottom, fallbackCardPosition(true, false, true))
         assertEquals(CardGroupShapePosition.Bottom, fallbackCardPosition(true, true, false))

@@ -84,9 +84,6 @@ include(
     ":processor-support",
 )
 
-// Shared Compose test infrastructure.
-include(":compose-test-support")
-
 // Demo application and platform launchers.
 include(
     ":demo",

@@ -98,7 +98,6 @@ roles, accessibility, motion, and component behavior individually, with source a
 | `settings-page-datastore` | DataStore integration for settings. |
 | `datastore-core`, `datastore-compose`, `datastore-serialization` | DataStore persistence foundations and optional Compose and serialization integration. |
 | `datastore-processor`, `settings-page-processor`, `processor-support` | Code generation and shared processor infrastructure. |
-| `compose-test-support` | Shared Compose test infrastructure. |
 | `demo` | Shared demo application. |
 | `demo-android`, `demo-desktop`, `demo-web`, `demo-macos`, `demo-ios` | Platform integration for the shared demo. |
 

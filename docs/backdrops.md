@@ -37,7 +37,7 @@ surfaces. Hosted overlays participate in the automatic stack through their host 
 Lower-level `rememberStackedBackdropLayer` and `captureStackBackdrop` support custom source
 composition.
 
-Regressions: [stack composition](../material-backdrop/src/nonBrowserTest/kotlin/BackdropStackRenderingTest.kt),
+Regressions: [stack composition](../material-backdrop/src/jvmTest/kotlin/BackdropStackRenderingTest.kt),
 [overlay stack rendering](../material/src/jvmTest/kotlin/BackdropStackOverlayRenderingTest.kt), and
 [active-stack rebuild](../material-backdrop/src/jvmTest/kotlin/FloatingBottomBarStackRebuildRenderingTest.kt).
 

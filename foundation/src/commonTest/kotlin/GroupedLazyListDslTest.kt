@@ -7,7 +7,7 @@ import kotlin.test.assertSame
 
 class GroupedLazyListDslTest {
     @Test
-    fun `groups preserve order and built results are snapshots`() {
+    fun groupsPreserveOrderAndBuiltResultsAreSnapshots() {
         val first = LazyGroup { item(key = "first") {} }
         val builder =
             GroupedLazyListSpecBuilder(
@@ -30,7 +30,7 @@ class GroupedLazyListDslTest {
     }
 
     @Test
-    fun `item and sticky header append in declaration order`() {
+    fun itemAndStickyHeaderAppendInDeclarationOrder() {
         val builder = LazyListGroupSpecBuilder()
         builder.item(key = "regular") {}
         builder.stickyHeader(key = "sticky") {}

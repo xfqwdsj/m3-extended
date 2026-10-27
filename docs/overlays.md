@@ -58,8 +58,8 @@ scrim action when outside dismissal is enabled. These use the same component clo
 non-focusable tooltips pass through outside input and expose no Dismiss action.
 
 Source: [scrim/input handling](../overlay/src/commonMain/kotlin/OverlayScrim.kt).
-Regressions: [dismissal paths](../material-overlay/src/commonTest/kotlin/OverlayDismissBehaviorTest.kt) and
-[input lifetime](../overlay/src/nonBrowserTest/kotlin/OverlayInputLifetimeTest.kt).
+Regressions: [dismissal paths](../material-overlay/src/composeTest/kotlin/OverlayDismissBehaviorTest.kt) and
+[input lifetime](../overlay/src/jvmTest/kotlin/OverlayInputLifetimeTest.kt).
 
 Back gestures use NavigationEvent at overlay priority. The topmost visible entry that accepts Back
 receives that gesture's events through completion or cancellation. A newer semantic target takes
@@ -92,13 +92,13 @@ their own identity when another item opens. One presentation scrim follows the r
 content remains composed until its animations finish. Shared anchors borrow their panel's inverse
 visibility instead of maintaining another seekable state.
 
-Regression: [predictive Back](../overlay/src/nonBrowserTest/kotlin/OverlayPredictiveBackTest.kt).
+Regression: [predictive Back](../overlay/src/jvmTest/kotlin/OverlayPredictiveBackTest.kt).
 Native timeline regression:
-[unequal child durations](../overlay/src/nonBrowserTest/kotlin/OverlayTimelineTest.kt).
+[unequal child durations](../overlay/src/jvmTest/kotlin/OverlayTimelineTest.kt).
 Gesture ownership regression:
-[interruption and terminal playback](../overlay/src/nonBrowserTest/kotlin/OverlayGestureTakeoverTest.kt).
+[interruption and terminal playback](../overlay/src/jvmTest/kotlin/OverlayGestureTakeoverTest.kt).
 Settings regression:
-[cancellation, completion and reopening](../settings-page-material/src/nonBrowserTest/kotlin/CardSettingsTest.kt).
+[cancellation, completion and reopening](../settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
 
 ## Compose a hosted surface
 

@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
@@ -28,7 +29,6 @@ import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
-import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.material.FloatingBottomBar
 import top.ltfan.m3x.material.MaterialSurfaceRole
 import top.ltfan.m3x.material.backdrop.theme.BackdropAdaptation
@@ -39,7 +39,7 @@ import top.ltfan.m3x.material.item
 
 class FloatingBottomBarLensRenderingTest {
     @Test
-    fun lensPreservesTheBarAndPageBehindIt() = runInitializedComposeUiTest {
+    fun lensPreservesTheBarAndPageBehindIt() = runComposeUiTest {
         mainClock.autoAdvance = false
         val highlightEnabled = mutableStateOf(true)
         setContent {

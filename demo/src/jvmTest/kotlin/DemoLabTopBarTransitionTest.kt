@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
@@ -24,7 +25,6 @@ import top.ltfan.backdrop.BackdropFill
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
-import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.material.backdrop.BackdropLargeFlexibleTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropTopAppBar
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
@@ -34,7 +34,7 @@ class DemoLabTopBarTransitionTest {
 
     @Test fun collapsingBarReusesTheOrdinaryScrollToTopTransition() = transition(BarVariant.Large)
 
-    private fun transition(variant: BarVariant) = runInitializedComposeUiTest {
+    private fun transition(variant: BarVariant) = runComposeUiTest {
         val switched = mutableStateOf(false)
         val behaviors = arrayOfNulls<TopAppBarScrollBehavior>(3)
         setContent {

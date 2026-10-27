@@ -80,7 +80,7 @@ Background adaptation changes foreground only when the material also enables
 and hysteresis. Reading theme brightness alone is insufficient to describe an adapted surface.
 
 Source: [surface color resolution](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Regression: [inverse panels](../../material/src/nonBrowserTest/kotlin/InversePanelRenderingTest.kt).
+Regression: [inverse panels](../../material/src/jvmTest/kotlin/InversePanelRenderingTest.kt).
 
 ## M4. Source absence is a supported appearance
 
@@ -97,7 +97,7 @@ foreground and container together and uses an opaque fallback when the source is
 Sources: [low-level surface](../../backdrop/src/commonMain/kotlin/Backdrop.kt) and
 [built-in fallback](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
 Regressions: [rendered fallback](../../material-backdrop/src/jvmTest/kotlin/BackdropFallbackRenderingTest.kt)
-and [overlay fallback](../../overlay/src/commonTest/kotlin/OverlayFallbackTest.kt).
+and [overlay fallback](../../overlay/src/composeTest/kotlin/OverlayFallbackTest.kt).
 
 ## M5. Background adaptation is local and opt-in
 
@@ -156,9 +156,9 @@ support, the approximation modes use material tint fallback. Explicit effects an
 graphs retain their own processing policy.
 
 Regressions: [public surfaces and algorithms](../../material-backdrop/src/jvmTest/kotlin/PublicBackdropSurfaceTest.kt),
-[fill behavior](../../material-backdrop/src/nonBrowserTest/kotlin/BackdropFillTest.kt),
-[fill brush](../../material-backdrop/src/nonBrowserTest/kotlin/BackdropFillBrushTest.kt), and
-[scroll-edge room](../../material-backdrop/src/nonBrowserTest/kotlin/ScrollEdgeAreaTest.kt).
+[fill behavior](../../material-backdrop/src/jvmTest/kotlin/BackdropFillTest.kt),
+[fill brush](../../material-backdrop/src/jvmTest/kotlin/BackdropFillBrushTest.kt), and
+[scroll-edge room](../../material-backdrop/src/jvmTest/kotlin/ScrollEdgeAreaTest.kt).
 
 ## M7. Presets select optics independently of theme content
 
@@ -170,4 +170,5 @@ that the application does not override retain that preset's values.
 The exact optical tuning is owned by
 [BackdropPresets](../../material-backdrop/src/commonMain/kotlin/BackdropPresets.kt) and the
 [role definitions](../../material-backdrop/src/commonMain/kotlin/theme/M3xBackdropTheme.kt).
-Regression: [preset stability and runtime replacement](../../material-theming/src/commonTest/kotlin/BackdropThemeTest.kt).
+Regressions: [preset stability](../../material-theming/src/commonTest/kotlin/BackdropPresetTest.kt) and
+[runtime replacement](../../material-theming/src/composeTest/kotlin/BackdropThemeTest.kt).

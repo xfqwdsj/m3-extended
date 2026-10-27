@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
@@ -29,14 +30,13 @@ import top.ltfan.backdrop.side
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
-import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 
 class ScrollEdgeDirectionTest {
     @Test
     fun upstreamBlurAndScrollEdgeFillAreStrongestAtTheNamedPhysicalEdge() {
         for (direction in LayoutDirection.entries) for (edge in BackdropEdge.entries) {
-            for (fill in listOf(false, true)) runInitializedComposeUiTest {
+            for (fill in listOf(false, true)) runComposeUiTest {
                 val side = edge.side(direction)
                 setContent {
                     ProvideM3xMaterialRendering {
