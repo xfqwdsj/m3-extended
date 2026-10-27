@@ -39,6 +39,7 @@ import top.ltfan.m3x.compose.ui.accessibility.AccessibilitySettings
 import top.ltfan.m3x.compose.ui.accessibility.LocalAccessibilitySettings
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.material.overlay.OverlayBottomSheet
+import top.ltfan.m3x.material.overlay.OverlayBottomSheetValue
 import top.ltfan.m3x.material.overlay.OverlayDialog
 import top.ltfan.m3x.material.overlay.OverlayDialogProperties
 import top.ltfan.m3x.material.overlay.OverlayMenu
@@ -141,7 +142,11 @@ class ContainerBlurRenderingTest {
                                             onDismissRequest = { shown = false },
                                             sheetState =
                                                 rememberOverlayBottomSheetState(
-                                                    skipPartiallyExpanded = true,
+                                                    enabledValues =
+                                                        setOf(
+                                                            OverlayBottomSheetValue.Hidden,
+                                                            OverlayBottomSheetValue.Expanded,
+                                                        ),
                                                 ),
                                             sheetMaxWidth = 240.dp,
                                             shape = RectangleShape,

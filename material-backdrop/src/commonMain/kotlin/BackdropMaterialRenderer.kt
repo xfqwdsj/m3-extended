@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import top.ltfan.backdrop.BackdropEffectScope
-import top.ltfan.backdrop.highlight.HighlightExclusion
 import top.ltfan.m3x.backdrop.BackdropLayerHandle
 import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
@@ -86,10 +85,7 @@ public object BackdropMaterialRenderer : MaterialSurfaceRenderer {
                 contentColor,
                 effects?.block,
                 shape = shape,
-                highlightExclusions =
-                    if (MaterialSurfaceEdge.Bottom in excludedEdges)
-                        setOf(HighlightExclusion.Bottom)
-                    else emptySet(),
+                excludedEdges = excludedEdges,
             )
         return object : MaterialSurfaceAppearance {
             override val contentColor: Color = appearance.contentColor

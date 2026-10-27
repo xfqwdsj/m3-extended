@@ -2,7 +2,8 @@ package top.ltfan.m3x.material.backdrop
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.dp
-import top.ltfan.backdrop.BackdropStyle
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropLens
 import top.ltfan.backdrop.highlight.Highlight
 import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.material.backdrop.theme.M3xBackdropTheme
@@ -17,15 +18,27 @@ public object BackdropPresets {
         GlassRegular.copy(
             control =
                 GlassRegular.control.copy(
-                    blurRadius = 2.dp,
+                    style =
+                        GlassRegular.control.style {
+                            blur = { BackdropBlur.Uniform(2.dp) }
+                        },
                     tintAlpha = 0.16f,
                 ),
             panel =
                 GlassRegular.panel.copy(
-                    blurRadius = 8.dp,
+                    style =
+                        GlassRegular.panel.style {
+                            blur = { BackdropBlur.Uniform(8.dp) }
+                        },
                     tintAlpha = 0.28f,
                 ),
-            inversePanel = GlassRegular.inversePanel.copy(blurRadius = 8.dp),
+            inversePanel =
+                GlassRegular.inversePanel.copy(
+                    style =
+                        GlassRegular.inversePanel.style {
+                            blur = { BackdropBlur.Uniform(8.dp) }
+                        },
+                ),
         )
 
     /** Soft Material surfaces with blur, stable Material foregrounds, and quiet decoration. */
@@ -35,21 +48,33 @@ public object BackdropPresets {
             control =
                 GlassRegular.control.copy(
                     style =
-                        BackdropStyle(
-                            highlight = { Highlight.None },
-                            shadow = { Shadow(radius = 8.dp) },
-                        ),
-                    blurRadius = 8.dp,
+                        GlassRegular.control.style {
+                            blur = { BackdropBlur.Uniform(8.dp) }
+                            vibrancy = { 1f }
+                            lens = { BackdropLens.None }
+                            highlight = { Highlight.None }
+                            shadow = { Shadow(radius = 8.dp) }
+                        },
                     tintAlpha = 0.6f,
                 ),
             panel =
                 GlassRegular.panel.copy(
-                    style = BackdropStyle(highlight = { Highlight.None }),
+                    style =
+                        GlassRegular.panel.style {
+                            vibrancy = { 1f }
+                            lens = { BackdropLens.None }
+                            highlight = { Highlight.None }
+                        },
                     tintAlpha = 0.8f,
                 ),
             inversePanel =
                 GlassRegular.inversePanel.copy(
-                    style = BackdropStyle(highlight = { Highlight.None }),
+                    style =
+                        GlassRegular.inversePanel.style {
+                            vibrancy = { 1f }
+                            lens = { BackdropLens.None }
+                            highlight = { Highlight.None }
+                        },
                 ),
         )
 }

@@ -23,8 +23,6 @@ import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
-import top.ltfan.backdrop.highlight.Highlight
-import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.BackdropLayerHandle
 import top.ltfan.m3x.backdrop.LocalBackdrop
@@ -176,9 +174,6 @@ class BackdropLayerTest {
                                                 Modifier.size(48.dp)
                                                     .backdropSurface(
                                                         shape = RectangleShape,
-                                                        effects = {},
-                                                        highlight = { Highlight.None },
-                                                        shadow = { Shadow.None },
                                                     ),
                                             )
                                         }

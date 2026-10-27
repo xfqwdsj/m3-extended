@@ -20,8 +20,6 @@ import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.highlight.Highlight
-import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.BackdropLayerHandle
 import top.ltfan.m3x.backdrop.backdropSurface
@@ -66,9 +64,6 @@ class BackdropStackRenderingTest {
                                         .backdropSurface(
                                             handle = upper,
                                             shape = RectangleShape,
-                                            effects = {},
-                                            highlight = { Highlight.None },
-                                            shadow = { Shadow.None },
                                         ),
                                 )
                             }
@@ -112,9 +107,6 @@ class BackdropStackRenderingTest {
                                         .backdropSurface(
                                             handle = upper,
                                             shape = RectangleShape,
-                                            effects = {},
-                                            highlight = { Highlight.None },
-                                            shadow = { Shadow.None },
                                         ),
                                 )
                             }

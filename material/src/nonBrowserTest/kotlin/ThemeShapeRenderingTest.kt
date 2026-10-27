@@ -128,4 +128,27 @@ class ThemeShapeRenderingTest {
         onNodeWithTag("thumb").captureToImage()
         assertEquals(Size(8f, 44f), full.sizes.last())
     }
+
+    @Test
+    fun verticalThumbUsesItsNativeSizeAndCompressesItsHeight() = runInitializedComposeUiTest {
+        val shape = RecordedShape()
+        val source = MutableInteractionSource()
+        setContent {
+            MaterialExpressiveTheme {
+                SliderDefaults.Thumb(
+                    source,
+                    isVertical = true,
+                    modifier = Modifier.testTag("verticalThumb"),
+                    shape = shape,
+                )
+            }
+        }
+        onNodeWithTag("verticalThumb").captureToImage()
+        assertEquals(Size(44f, 4f), shape.sizes.last())
+        val press = PressInteraction.Press(Offset.Zero)
+        runOnIdle { assertTrue(source.tryEmit(press)) }
+        waitForIdle()
+        onNodeWithTag("verticalThumb").captureToImage()
+        assertEquals(Size(44f, 2f), shape.sizes.last())
+    }
 }

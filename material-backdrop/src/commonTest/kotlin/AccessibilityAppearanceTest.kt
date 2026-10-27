@@ -33,7 +33,7 @@ class AccessibilityAppearanceTest {
                         reduceMotion = true,
                     ),
                 )
-            var appearance: MaterialBackdropAppearance? = null
+            var appearance: BackdropSurfaceAppearance? = null
             setContent {
                 ProvideM3xMaterialRendering {
                     CompositionLocalProvider(
@@ -98,7 +98,7 @@ class AccessibilityAppearanceTest {
     @Test
     fun explicitDisabledPreferenceReachesAppearanceDespiteEnabledSystemSetting() =
         runInitializedComposeUiTest {
-            var appearance: MaterialBackdropAppearance? = null
+            var appearance: BackdropSurfaceAppearance? = null
             setContent {
                 ProvideM3xMaterialRendering {
                     CompositionLocalProvider(

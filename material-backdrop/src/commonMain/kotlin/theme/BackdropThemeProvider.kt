@@ -1,11 +1,22 @@
 package top.ltfan.m3x.material.backdrop.theme
 
+import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropLens
+import top.ltfan.backdrop.BackdropStyle
+import top.ltfan.backdrop.LocalBackdropStyle
+import top.ltfan.backdrop.ProvideBackdropRenderStyle
+import top.ltfan.backdrop.ProvideBackdropStyle
+import top.ltfan.backdrop.interaction.InteractionLighting
+import top.ltfan.backdrop.styledSurface
+import top.ltfan.m3x.compose.ui.accessibility.BackgroundTransparencyEnabled
+import top.ltfan.m3x.compose.ui.visual.BackdropBlurEnabled
 import top.ltfan.m3x.material.MaterialSurfaceRole
 import top.ltfan.m3x.material.theme.M3xThemeExtensions
 import top.ltfan.m3x.material.theme.extended
@@ -44,5 +55,30 @@ public fun ProvideBackdropMaterial(
  */
 @Composable
 public fun ProvideBackdropTheme(theme: M3xBackdropTheme, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalM3xBackdropTheme provides theme, content = content)
+    val material = theme.control
+    val transparent = BackgroundTransparencyEnabled
+    val blurEnabled = BackdropBlurEnabled
+    val resolved = material.style.resolveAgainst(LocalBackdropStyle.current)
+    val style =
+        if (!transparent) BackdropStyle.NoEffects { insets = resolved.insets }
+        else
+            resolved {
+                if (!blurEnabled) blur = { BackdropBlur.None }
+                if (!theme.lighting.enabled || !material.interactiveLighting)
+                    interactionLighting = { InteractionLighting.None }
+            }
+    CompositionLocalProvider(LocalM3xBackdropTheme provides theme) {
+        ProvideBackdropStyle(style) {
+            ProvideBackdropRenderStyle(
+                render =
+                    material.render
+                        ?: {
+                            if (shape is CornerBasedShape) styledSurface()
+                            else styledSurface(BackdropStyle { lens = { BackdropLens.None } })
+                        },
+                insets = style.insets!!,
+                content = content,
+            )
+        }
+    }
 }

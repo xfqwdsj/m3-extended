@@ -60,8 +60,7 @@
     <string name="demo_display">显示</string>
     <string name="demo_done">完成</string>
     <string name="demo_drag_between_partial_expanded_and_hidden_states_or_dismiss_with_back">拖动可切换半展开、展开和隐藏状态，也可按返回键关闭。</string>
-    <string name="demo_drag_me">拖动我</string>
-    <string name="demo_drag_surfaces_to_move_drag_to_resize_parameters_apply_live_to_this_preview_only">拖动表面可移动，拖动 ↘ 可调整大小。参数仅实时应用于此预览。</string>
+    <string name="demo_drag_me">表面 A</string>
     <string name="demo_draggable_glass_sheet">可拖动的玻璃底部弹层</string>
     <string name="demo_draw_a_striped_extended_range_patch_in_the_preview_enable_hdr_output_in_appearance_to_see_it_above_sdr_white">在预览中绘制条纹扩展范围色块；在“外观”中启用 HDR 输出后，可看到高于 SDR 白色的亮度。</string>
     <string name="demo_draw_the_shared_press_and_pointer_light_above_sdr_white_when_hdr_is_active">HDR 启用时，将共享按压和指针光效绘制在 SDR 白色之上。</string>
@@ -139,7 +138,7 @@
     <string name="demo_move_left">向左移动</string>
     <string name="demo_move_right">向右移动</string>
     <string name="demo_move_up">向上移动</string>
-    <string name="demo_neighbor">相邻表面</string>
+    <string name="demo_neighbor">表面 B</string>
     <string name="demo_nested_modal">嵌套模态面板</string>
     <string name="demo_no_editor_registered_for">未注册编辑器：</string>
     <string name="demo_no_radius_metadata_is_attached_to_this_shape_preset">此形状预设未提供圆角信息。</string>
@@ -173,7 +172,6 @@
     <string name="demo_refraction">折射</string>
     <string name="demo_refraction_amount">折射强度</string>
     <string name="demo_refraction_height">折射高度</string>
-    <string name="demo_render_effects">渲染特效</string>
     <string name="demo_request_hdr_color_mode_for_the_android_app_window_the_display_must_support_hdr">为 Android 应用窗口请求 HDR 色彩模式；显示设备必须支持 HDR。</string>
     <string name="demo_requested_hdr_headroom_relative_to_sdr_white_android_15_and_later">相对于 SDR 白色请求的 HDR 余量；需要 Android 15 或更高版本。</string>
     <string name="demo_reset_lab_parameters">重置实验室参数</string>
@@ -181,7 +179,6 @@
     <string name="demo_resize">调整大小</string>
     <string name="demo_restore_defaults">恢复默认设置</string>
     <string name="demo_retry_count">重试次数</string>
-    <string name="demo_runtime_shaders">运行时着色器</string>
     <string name="demo_s">小</string>
     <string name="demo_saturation">饱和度</string>
     <string name="demo_container_radius">容器圆角半径</string>
@@ -230,7 +227,6 @@
     <string name="demo_xli">特大</string>
     <string name="demo_xs">超小</string>
     <string name="demo_xxl">极大</string>
-    <string name="demo_your_glass_live">实时预览玻璃效果</string>
     <string name="demo_display_reported">设备报告值</string>
     <string name="demo_fallback_radius">回退圆角</string>
     <string name="demo_full_uses_size">全圆角随尺寸变化</string>
@@ -238,4 +234,19 @@
     <string name="demo_none">无</string>
     <string name="demo_scale">缩放</string>
     <string name="demo_blur_animation">模糊动画</string>
+    <string name="demo_scroll_edges">滚动边缘</string>
+    <string name="demo_material_surfaces">表面</string>
+    <string name="demo_progressive_blur">渐进式模糊</string>
+    <string name="demo_progressive_auto">自动</string>
+    <string name="demo_progressive_full">完整着色器</string>
+    <string name="demo_progressive_layered">层叠近似</string>
+    <string name="demo_progressive_alpha">均匀模糊与 alpha 渐变</string>
+    <string name="demo_progressive_blur_description">自动模式可回退到层叠模糊。完整模式在不支持着色器时不绘制材质背景。Alpha 模式改变透明度而非模糊半径。</string>
+    <string name="demo_layered_blur_levels">层叠模糊档数</string>
+    <string name="demo_layered_blur_levels_description">仅用于层叠模式。自动模式回退时使用八档。</string>
+    <string name="demo_lab_surface_hint">拖动移动 · ↘ 缩放</string>
+    <string name="demo_lab_scroll_hint">上下、左右滚动</string>
+    <string name="demo_lab_limited_effects">部分效果不可用</string>
+    <string name="demo_lab_sample">示例</string>
+    <string name="demo_lab_option">选项</string>
 </resources>

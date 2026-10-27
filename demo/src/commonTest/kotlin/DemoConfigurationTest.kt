@@ -14,6 +14,7 @@ import top.ltfan.backdrop.highlight.Highlight
 import top.ltfan.backdrop.highlight.HighlightColorResponse
 import top.ltfan.backdrop.highlight.HighlightDirection
 import top.ltfan.backdrop.highlight.HighlightStyle
+import top.ltfan.m3x.backdrop.ProgressiveBlurMode
 import top.ltfan.m3x.compose.ui.accessibility.AccessibilityPreference
 import top.ltfan.m3x.compose.ui.accessibility.AccessibilityPreferences
 import top.ltfan.m3x.datastore.compose.storeHost
@@ -26,6 +27,71 @@ import top.ltfan.m3x.settingspage.SettingsItem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DemoConfigurationTest {
+    @Test
+    fun progressiveSettingsPreserveLegacyPreferencesAndRoundTripThroughTheExistingCodec() {
+        val codec = DemoJsonCodec.create(DemoPreferences.serializer())
+        val old = codec.decode("""{"effects":{"blur":false}}""".encodeToByteArray())
+        assertFalse(old.effects.blur)
+        assertEquals(ProgressiveBlurMode.Auto, old.effects.progressiveBlurMode())
+        assertEquals(8, old.effects.layeredBlurLevels)
+        val changed =
+            old.copy(effects = old.effects.copy(progressiveBlur = DemoProgressiveBlurMode.Full))
+        val restored = codec.decode(codec.encode(changed))
+        assertEquals(changed, restored)
+        assertEquals(ProgressiveBlurMode.Full, restored.effects.progressiveBlurMode())
+        assertFalse(restored.effects.blur)
+    }
+
+    @Test
+    fun generatedProgressiveSettingsCommitPersistAndRestoreDefaults() = runTest {
+        val disk = mutableMapOf<String, String>()
+        val file = DemoStoreFile(disk::get) { key, value -> disk[key] = value }
+        val host = storeHost(backgroundScope, file)
+        val store = host.mutable(DemoPreferencesStore)
+        store.awaitInitialized()
+        val category =
+            store.settingsDescriber().items.first { it.id == "effects" } as SettingsItem.Category
+        val mode =
+            category.children.first { it.id == "effects.progressiveBlur" }
+                as SettingsItem.Item.Selector<*>
+        val levels =
+            category.children.first { it.id == "effects.layeredBlurLevels" }
+                as SettingsItem.Item.SingleNumber<*>
+        assertEquals(DemoProgressiveBlurMode.entries, mode.options.map { it.value })
+        assertEquals(
+            SettingsCommitResult.AcceptedLocally,
+            SettingsCommit.tryCommitDraft(
+                mode,
+                mode.options.single { it.value == DemoProgressiveBlurMode.Layered },
+            ),
+        )
+        assertEquals(
+            SettingsCommitResult.AcceptedLocally,
+            SettingsCommit.tryCommitDraft(levels, 12),
+        )
+        runCurrent()
+        assertEquals(ProgressiveBlurMode.Layered(12), store.value.effects.progressiveBlurMode())
+        host.closeAndJoin()
+        val reopened = storeHost(backgroundScope, file)
+        val restored = reopened.mutable(DemoPreferencesStore)
+        restored.awaitInitialized()
+        assertEquals(ProgressiveBlurMode.Layered(12), restored.value.effects.progressiveBlurMode())
+        val restoredCategory =
+            restored.settingsDescriber().items.first { it.id == "effects" } as SettingsItem.Category
+        for (id in listOf("effects.progressiveBlur", "effects.layeredBlurLevels")) {
+            assertEquals(
+                SettingsCommitResult.AcceptedLocally,
+                SettingsCommit.tryRestoreDefault(
+                    restoredCategory.children.first { it.id == id } as SettingsItem.Item<*>,
+                ),
+            )
+        }
+        runCurrent()
+        assertEquals(ProgressiveBlurMode.Auto, restored.value.effects.progressiveBlurMode())
+        assertEquals(8, restored.value.effects.layeredBlurLevels)
+        reopened.closeAndJoin()
+    }
+
     @Test
     fun accessibilityChoicesDefaultToSystemAndMapAndSerializeAsThreeStates() {
         assertEquals(DemoPreferences.Accessibility(), DemoPreferences().accessibility)
@@ -77,7 +143,7 @@ class DemoConfigurationTest {
                 .copy(alpha = DemoBackdropDefaults.highlight.style.color.alpha)
 
         fun highlightColor(material: M3xBackdropMaterial) =
-            (material.style.highlight() as Highlight.Config).style.color
+            (material.style.highlight!!.invoke() as Highlight.Config).style.color
 
         assertSame(BackdropPresets.GlassRegular, sdr)
         assertEquals(DemoBackdropDefaults.highlight.style.color, highlightColor(sdr.control))
@@ -163,10 +229,22 @@ class DemoConfigurationTest {
             assertSame(theme, selected.themeBackdrop())
             val changedOtherSetting =
                 selected.copy(effects = selected.effects.copy(interaction = false)).themeBackdrop()
-            assertEquals(theme.control.blurRadius, changedOtherSetting.control.blurRadius)
-            assertEquals(theme.panel.blurRadius, changedOtherSetting.panel.blurRadius)
-            assertEquals(theme.surface.blurRadius, changedOtherSetting.surface.blurRadius)
-            assertEquals(theme.scrollEdge.blurRadius, changedOtherSetting.scrollEdge.blurRadius)
+            assertEquals(
+                theme.control.style.blur!!.invoke().radius,
+                changedOtherSetting.control.style.blur!!.invoke().radius,
+            )
+            assertEquals(
+                theme.panel.style.blur!!.invoke().radius,
+                changedOtherSetting.panel.style.blur!!.invoke().radius,
+            )
+            assertEquals(
+                theme.surface.style.blur!!.invoke().radius,
+                changedOtherSetting.surface.style.blur!!.invoke().radius,
+            )
+            assertEquals(
+                theme.scrollEdge.style.blur!!.invoke().radius,
+                changedOtherSetting.scrollEdge.style.blur!!.invoke().radius,
+            )
         }
         val custom =
             prefs
@@ -181,11 +259,11 @@ class DemoConfigurationTest {
                         ),
                 )
                 .themeBackdrop()
-        assertEquals(7.dp, custom.control.blurRadius)
-        assertEquals(21.dp, custom.panel.blurRadius)
-        assertEquals(3.dp, custom.surface.blurRadius)
-        assertEquals(21.dp, custom.inversePanel.blurRadius)
-        assertEquals(11.dp, custom.scrollEdge.blurRadius)
+        assertEquals(7.dp, custom.control.style.blur!!.invoke().radius)
+        assertEquals(21.dp, custom.panel.style.blur!!.invoke().radius)
+        assertEquals(3.dp, custom.surface.style.blur!!.invoke().radius)
+        assertEquals(21.dp, custom.inversePanel.style.blur!!.invoke().radius)
+        assertEquals(11.dp, custom.scrollEdge.style.blur!!.invoke().radius)
     }
 
     @Test
@@ -243,11 +321,11 @@ class DemoConfigurationTest {
         val committedTheme = appearance.value.themeBackdrop()
         assertEquals(BackdropAdaptation.Background, committedTheme.control.adaptation)
         assertTrue(committedTheme.control.adaptiveContentColor)
-        assertEquals(7.dp, committedTheme.control.blurRadius)
-        assertEquals(21.dp, committedTheme.panel.blurRadius)
-        assertEquals(3.dp, committedTheme.surface.blurRadius)
-        assertEquals(21.dp, committedTheme.inversePanel.blurRadius)
-        assertEquals(11.dp, committedTheme.scrollEdge.blurRadius)
+        assertEquals(7.dp, committedTheme.control.style.blur!!.invoke().radius)
+        assertEquals(21.dp, committedTheme.panel.style.blur!!.invoke().radius)
+        assertEquals(3.dp, committedTheme.surface.style.blur!!.invoke().radius)
+        assertEquals(21.dp, committedTheme.inversePanel.style.blur!!.invoke().radius)
+        assertEquals(11.dp, committedTheme.scrollEdge.style.blur!!.invoke().radius)
         val interaction =
             category.children.first { it.id == "effects.interaction" } as SettingsItem.Item.Switch
         SettingsCommit.tryCommit(interaction, false)
@@ -257,12 +335,13 @@ class DemoConfigurationTest {
         assertEquals(90f, lab.value.edge.highlightAngle)
         assertEquals(
             DemoBackdropDefaults.highlight.colorResponse,
-            (appearance.value.themeBackdrop().control.style.highlight() as Highlight.Config)
+            (appearance.value.themeBackdrop().control.style.highlight!!.invoke()
+                    as Highlight.Config)
                 .colorResponse,
         )
         assertEquals(
             DemoBackdropDefaults.highlight.colorResponse,
-            (lab.value.material().style.highlight() as Highlight.Config).colorResponse,
+            (lab.value.material().style.highlight!!.invoke() as Highlight.Config).colorResponse,
         )
         assertTrue(appearance.value.effects.followBackdropColor)
         assertTrue(lab.value.edge.followBackdropColor)
@@ -285,10 +364,12 @@ class DemoConfigurationTest {
         assertFalse(lab.value.edge.customHighlightStrengthCurve)
         assertFalse(lab.value.edge.customHighlightWidthCurve)
         val defaultDirection =
-            lab.value.material().style.highlight().let { (it as Highlight.Config).direction }
+            lab.value.material().style.highlight!!.invoke().let {
+                (it as Highlight.Config).direction
+            }
         assertEquals(
             DemoBackdropDefaults.direction.strength.curve,
-            (defaultDirection as HighlightDirection.Config).strength.curve,
+            (defaultDirection as HighlightDirection.Incidence).strength.curve,
         )
         assertEquals(
             DemoBackdropDefaults.direction.widthScale.curve,
@@ -329,11 +410,11 @@ class DemoConfigurationTest {
         val restoredTheme = restored.value.themeBackdrop()
         assertEquals(BackdropAdaptation.Background, restoredTheme.control.adaptation)
         assertTrue(restoredTheme.control.adaptiveContentColor)
-        assertEquals(7.dp, restoredTheme.control.blurRadius)
-        assertEquals(21.dp, restoredTheme.panel.blurRadius)
-        assertEquals(3.dp, restoredTheme.surface.blurRadius)
-        assertEquals(21.dp, restoredTheme.inversePanel.blurRadius)
-        assertEquals(11.dp, restoredTheme.scrollEdge.blurRadius)
+        assertEquals(7.dp, restoredTheme.control.style.blur!!.invoke().radius)
+        assertEquals(21.dp, restoredTheme.panel.style.blur!!.invoke().radius)
+        assertEquals(3.dp, restoredTheme.surface.style.blur!!.invoke().radius)
+        assertEquals(21.dp, restoredTheme.inversePanel.style.blur!!.invoke().radius)
+        assertEquals(11.dp, restoredTheme.scrollEdge.style.blur!!.invoke().radius)
         assertEquals(32f, restoredLab.value.optics.blurRadius)
         assertEquals(
             SettingsCommitResult.AcceptedLocally,
@@ -347,7 +428,7 @@ class DemoConfigurationTest {
             ),
         )
         runCurrent()
-        assertEquals(4.dp, restored.value.themeBackdrop().control.blurRadius)
+        assertEquals(4.dp, restored.value.themeBackdrop().control.style.blur!!.invoke().radius)
         val restoredAdaptation =
             (restored.settingsDescriber().items.first { it.id == "effects" }
                     as SettingsItem.Category)
@@ -361,10 +442,10 @@ class DemoConfigurationTest {
         )
         runCurrent()
         assertEquals(BackdropAdaptation.Fixed, restored.value.themeBackdrop().control.adaptation)
-        val highlight = restoredLab.value.material().style.highlight() as Highlight.Config
+        val highlight = restoredLab.value.material().style.highlight!!.invoke() as Highlight.Config
         assertSame(HighlightStyle.Solid, highlight.style)
         assertEquals(HighlightColorResponse(amount = 0.75f), highlight.colorResponse)
-        val direction = highlight.direction as HighlightDirection.Config
+        val direction = highlight.direction as HighlightDirection.Incidence
         assertEquals(0.2f, direction.strength.from)
         assertEquals(1.4f, direction.strength.to)
         assertEquals(0.45f, direction.widthScale.from)

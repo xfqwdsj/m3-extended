@@ -30,7 +30,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropRamp
 import top.ltfan.backdrop.BackdropRampAnchors
 import top.ltfan.m3x.backdrop.LocalBackdrop
@@ -49,7 +49,7 @@ import top.ltfan.m3x.material.theme.M3xThemeExtensions
 /** The room a scroll edge's effects cover past the surface, which its ramp decides. */
 class BackdropRegionTest {
     @Test
-    fun anExtentCarriesTheMaskPastTheSurface() = runInitializedComposeUiTest {
+    fun anExtentCarriesTheFillPastTheSurface() = runInitializedComposeUiTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme(colorScheme = lightColorScheme(surface = Color.White)) {
@@ -69,7 +69,8 @@ class BackdropRegionTest {
                                     {},
                                     Modifier.testTag("bar"),
                                     windowInsets = WindowInsets(0, 0, 0, 0),
-                                    mask = BackdropMask(Color.White),
+                                    fill = BackdropFill(Color.White),
+                                    scrollBehavior = scrolledAppBarBehavior(),
                                 )
                             }
                         }
@@ -81,7 +82,7 @@ class BackdropRegionTest {
 
         // The surface keeps its own box: the room is drawn around it, not added to it.
         onNodeWithTag("bar").assertHeightIsEqualTo(64.dp)
-        // The mask reaches past the bar and thins out over the ramp, then the extent it was asked
+        // The fill reaches past the bar and thins out over the ramp, then the extent it was asked
         // for ends.
         val below = 66
         val past = 89
@@ -92,12 +93,12 @@ class BackdropRegionTest {
         )
         assertTrue(
             root[100, past].red < 0.02f,
-            "past the extent the mask is gone: ${root[100, past]}",
+            "past the extent the fill is gone: ${root[100, past]}",
         )
     }
 
     @Test
-    fun anExtentCarriesTheMaskPastTheSurfaceWithoutABackdrop() = runInitializedComposeUiTest {
+    fun anExtentCarriesTheFillPastTheSurfaceWithoutABackdrop() = runInitializedComposeUiTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme(colorScheme = lightColorScheme(surface = Color.White)) {
@@ -110,7 +111,8 @@ class BackdropRegionTest {
                                 {},
                                 Modifier.testTag("bar"),
                                 windowInsets = WindowInsets(0, 0, 0, 0),
-                                mask = BackdropMask(Color.White),
+                                fill = BackdropFill(Color.White),
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -129,7 +131,7 @@ class BackdropRegionTest {
         )
         assertTrue(
             root[100, 89].red < 0.02f,
-            "past the extent the mask is gone: ${root[100, 89]}",
+            "past the extent the fill is gone: ${root[100, 89]}",
         )
     }
 
@@ -150,7 +152,8 @@ class BackdropRegionTest {
                                 {},
                                 Modifier.testTag("bar"),
                                 windowInsets = WindowInsets(0.dp, 24.dp, 0.dp, 0.dp),
-                                mask = BackdropMask(Color.White, alpha = 1f),
+                                fill = BackdropFill(Color.White, alpha = 1f),
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -207,7 +210,8 @@ class BackdropRegionTest {
                                     {},
                                     Modifier.testTag("bar"),
                                     windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                                    mask = BackdropMask(Color.White, alpha = 1f),
+                                    fill = BackdropFill(Color.White, alpha = 1f),
+                                    scrollBehavior = scrolledAppBarBehavior(),
                                 )
                             }
                         }
@@ -255,7 +259,8 @@ class BackdropRegionTest {
                             BackdropTopAppBar(
                                 {},
                                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                                mask = null,
+                                fill = null,
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -307,7 +312,7 @@ class BackdropRegionTest {
                             shape = TriangleShape,
                             role = MaterialSurfaceRole.ScrollEdge,
                             effects = {},
-                            mask = BackdropMask(Color.White),
+                            fill = BackdropFill(Color.White),
                         ) {}
                     }
                 }
@@ -315,7 +320,7 @@ class BackdropRegionTest {
         }
         val pixels = onNodeWithTag("surface").captureToImage().toPixelMap()
 
-        // The surface draws its fallback mask inside its own outline, corners included.
+        // The surface draws its fallback fill inside its own outline, corners included.
         assertTrue(
             pixels[4, 4].red < 0.1f,
             "the top-left corner, outside the path: ${pixels[4, 4]}",
@@ -325,7 +330,7 @@ class BackdropRegionTest {
     }
 
     @Test
-    fun aMaskWithoutBlurStillCoversTheRampItFadesOver() = runInitializedComposeUiTest {
+    fun aFillWithoutBlurStillCoversTheRampItFadesOver() = runInitializedComposeUiTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme(colorScheme = lightColorScheme(surface = Color.White)) {
@@ -344,7 +349,8 @@ class BackdropRegionTest {
                                 {},
                                 Modifier.testTag("bar"),
                                 windowInsets = WindowInsets(0, 0, 0, 0),
-                                mask = BackdropMask(Color.White),
+                                fill = BackdropFill(Color.White),
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -353,14 +359,14 @@ class BackdropRegionTest {
         }
         val root = onNodeWithTag("root").captureToImage().toPixelMap()
 
-        // With the blur off the mask carries the separation, so it still fades over the ramp's
-        // span: the layer covers the room that span reaches and the mask spends itself there.
+        // With the blur off the fill carries the separation, so it still fades over the ramp's
+        // span: the layer covers the room that span reaches and the fill spends itself there.
         onNodeWithTag("bar").assertHeightIsEqualTo(64.dp)
         val end = appBarRampEnd(height = 64f)
         val justBelow = root[100, 66].red
-        assertTrue(justBelow > 0.1f, "the mask reaches past the bar: $justBelow")
-        assertTrue(root[100, (end - 4f).toInt()].red < justBelow, "the mask thins out")
-        assertTrue(root[100, (end + 8f).toInt()].red < 0.02f, "the mask is spent past the bar")
+        assertTrue(justBelow > 0.1f, "the fill reaches past the bar: $justBelow")
+        assertTrue(root[100, (end - 4f).toInt()].red < justBelow, "the fill thins out")
+        assertTrue(root[100, (end + 8f).toInt()].red < 0.02f, "the fill is spent past the bar")
     }
 
     @Test
@@ -414,7 +420,8 @@ class BackdropRegionTest {
                             BackdropTopAppBar(
                                 {},
                                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                                mask = null,
+                                fill = null,
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }

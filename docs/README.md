@@ -18,7 +18,7 @@ implementation. Resource and persistence foundations also support applications o
 | --- | --- |
 | [Theme composition](design-system/theme.md) | Material inputs, extension values, inheritance, and override ownership |
 | [Shape system](design-system/shapes.md) | Logical roles, physical corners, adaptive radii, and component shape states |
-| [Material system](design-system/materials.md) | Surface roles, optical effects, color, masks, adaptation, and fallback |
+| [Material system](design-system/materials.md) | Surface roles, optical effects, color, fills, adaptation, and fallback |
 | [Motion and accessibility](design-system/accessibility-and-motion.md) | Live system preferences, visual response, animation boundaries, and shared lighting |
 | [Component behavior](design-system/components.md) | Ownership of layout, appearance, state, input, and edit transactions |
 

@@ -5,12 +5,8 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
-import top.ltfan.backdrop.ProvideBackdropStyle
-import top.ltfan.backdrop.effects.blur
 import top.ltfan.backdrop.interaction.ProvideInteractionLighting
 import top.ltfan.m3x.compose.ui.accessibility.AccessibilityPreferences
-import top.ltfan.m3x.compose.ui.accessibility.BackgroundTransparencyEnabled
-import top.ltfan.m3x.compose.ui.visual.BackdropBlurEnabled
 import top.ltfan.m3x.compose.ui.visual.DefaultEnterExitBlurRadius
 import top.ltfan.m3x.material.backdrop.theme.LocalM3xBackdropTheme
 import top.ltfan.m3x.material.backdrop.theme.M3xBackdropTheme
@@ -75,22 +71,8 @@ public fun M3xMaterialTheme(
         rootShapeFactory = CapsuleM3xShapeFactory,
     ) {
         ProvideBackdropTheme(configuredBackdrop) {
-            val reduceTransparency = !BackgroundTransparencyEnabled
-            val material = configuredBackdrop.control
-            val blurEnabled = BackdropBlurEnabled
-            val style =
-                material.style.copy(
-                    effects = {
-                        if (!reduceTransparency) {
-                            if (blurEnabled) blur(material.blurRadius.toPx())
-                            material.style.effects(this)
-                        }
-                    },
-                )
             ProvideM3xMaterialRendering {
-                ProvideBackdropStyle(style) {
-                    ProvideInteractionLighting(isolate = false, content = content)
-                }
+                ProvideInteractionLighting(isolate = false, content = content)
             }
         }
     }

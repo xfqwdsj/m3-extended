@@ -60,8 +60,7 @@
     <string name="demo_display">Display</string>
     <string name="demo_done">Done</string>
     <string name="demo_drag_between_partial_expanded_and_hidden_states_or_dismiss_with_back">Drag between partial, expanded and hidden states, or dismiss with Back.</string>
-    <string name="demo_drag_me">Drag me</string>
-    <string name="demo_drag_surfaces_to_move_drag_to_resize_parameters_apply_live_to_this_preview_only">Drag surfaces to move; drag ↘ to resize. Parameters apply live to this preview only.</string>
+    <string name="demo_drag_me">Surface A</string>
     <string name="demo_draggable_glass_sheet">Draggable glass sheet</string>
     <string name="demo_draw_a_striped_extended_range_patch_in_the_preview_enable_hdr_output_in_appearance_to_see_it_above_sdr_white">Draw a striped extended-range patch in the preview; enable HDR output in Appearance to see it above SDR white.</string>
     <string name="demo_draw_the_shared_press_and_pointer_light_above_sdr_white_when_hdr_is_active">Draw the shared press and pointer light above SDR white when HDR is active.</string>
@@ -139,7 +138,7 @@
     <string name="demo_move_left">Move left</string>
     <string name="demo_move_right">Move right</string>
     <string name="demo_move_up">Move up</string>
-    <string name="demo_neighbor">Neighbor</string>
+    <string name="demo_neighbor">Surface B</string>
     <string name="demo_nested_modal">Nested modal</string>
     <string name="demo_no_editor_registered_for">No editor registered for</string>
     <string name="demo_no_radius_metadata_is_attached_to_this_shape_preset">No radius metadata is attached to this shape preset.</string>
@@ -173,7 +172,6 @@
     <string name="demo_refraction">Refraction</string>
     <string name="demo_refraction_amount">Refraction amount</string>
     <string name="demo_refraction_height">Refraction height</string>
-    <string name="demo_render_effects">Render effects</string>
     <string name="demo_request_hdr_color_mode_for_the_android_app_window_the_display_must_support_hdr">Request HDR color mode for the Android app window; the display must support HDR.</string>
     <string name="demo_requested_hdr_headroom_relative_to_sdr_white_android_15_and_later">Requested HDR headroom relative to SDR white; Android 15 and later.</string>
     <string name="demo_reset_lab_parameters">Reset lab parameters</string>
@@ -181,7 +179,6 @@
     <string name="demo_resize">Resize</string>
     <string name="demo_restore_defaults">Restore defaults</string>
     <string name="demo_retry_count">Retry count</string>
-    <string name="demo_runtime_shaders">Runtime shaders</string>
     <string name="demo_s">S</string>
     <string name="demo_saturation">Saturation</string>
     <string name="demo_container_radius">Container radius</string>
@@ -230,7 +227,6 @@
     <string name="demo_xli">XLI</string>
     <string name="demo_xs">XS</string>
     <string name="demo_xxl">XXL</string>
-    <string name="demo_your_glass_live">Your glass, live</string>
     <string name="demo_display_reported">display reported</string>
     <string name="demo_fallback_radius">fallback radius</string>
     <string name="demo_full_uses_size">full uses size</string>
@@ -238,4 +234,19 @@
     <string name="demo_none">none</string>
     <string name="demo_scale">scale</string>
     <string name="demo_blur_animation">Blur animations</string>
+    <string name="demo_scroll_edges">Scroll edges</string>
+    <string name="demo_material_surfaces">Surfaces</string>
+    <string name="demo_progressive_blur">Progressive blur</string>
+    <string name="demo_progressive_auto">Auto</string>
+    <string name="demo_progressive_full">Full shader</string>
+    <string name="demo_progressive_layered">Layered approximation</string>
+    <string name="demo_progressive_alpha">Uniform blur with alpha gradient</string>
+    <string name="demo_progressive_blur_description">Auto falls back to layered blur. Full draws no material background when its shader is unsupported. Alpha varies opacity instead of blur radius.</string>
+    <string name="demo_layered_blur_levels">Layered blur levels</string>
+    <string name="demo_layered_blur_levels_description">Used by Layered mode. Auto uses eight levels when it falls back.</string>
+    <string name="demo_lab_surface_hint">Drag to move · ↘ to resize</string>
+    <string name="demo_lab_scroll_hint">Scroll vertically or sideways</string>
+    <string name="demo_lab_limited_effects">Some effects are unavailable</string>
+    <string name="demo_lab_sample">Sample</string>
+    <string name="demo_lab_option">Option</string>
 </resources>

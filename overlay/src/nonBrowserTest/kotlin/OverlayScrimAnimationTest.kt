@@ -297,7 +297,13 @@ class OverlayScrimAnimationTest {
                             if (attached) {
                                 val rememberedState =
                                     rememberOverlayBottomSheetState(
-                                        skipPartiallyExpanded = skipPartiallyExpanded,
+                                        enabledValues =
+                                            if (skipPartiallyExpanded)
+                                                setOf(
+                                                    OverlayBottomSheetValue.Hidden,
+                                                    OverlayBottomSheetValue.Expanded,
+                                                )
+                                            else OverlayBottomSheetValue.entries.toSet(),
                                     )
                                 sheetState = rememberedState
                                 scope = rememberCoroutineScope()

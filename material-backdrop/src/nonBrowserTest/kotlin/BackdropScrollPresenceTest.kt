@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +33,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
@@ -43,10 +44,38 @@ import top.ltfan.m3x.compose.ui.accessibility.LocalAccessibilitySettings
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 
 /**
- * The bar's mask and blur follow the scroll state its behavior reports, so the glass arrives with
+ * The bar's fill and blur follow the scroll state its behavior reports, so the glass arrives with
  * the content that scrolls under the bar and leaves when that content returns to its start.
  */
 class BackdropScrollPresenceTest {
+    @Test
+    fun callerOwnedEdgePresenceCanReverseBeforeSettling() = runInitializedComposeUiTest {
+        val visible = mutableStateOf(false)
+        lateinit var presence: State<Float>
+        val motion =
+            object : MotionScheme by MotionScheme.standard() {
+                override fun <T> defaultEffectsSpec(): FiniteAnimationSpec<T> =
+                    tween(1000, easing = LinearEasing)
+            }
+        setContent {
+            MaterialTheme(motionScheme = motion) {
+                presence = rememberScrollEdgePresence { visible.value }
+            }
+        }
+        mainClock.autoAdvance = false
+        runOnIdle { visible.value = true }
+        mainClock.advanceTimeByFrame()
+        mainClock.advanceTimeBy(400)
+        val rising = presence.value
+        assertTrue(rising in 0.2f..0.6f)
+        runOnIdle { visible.value = false }
+        mainClock.advanceTimeByFrame()
+        mainClock.advanceTimeBy(200)
+        assertTrue(presence.value in 0f..rising)
+        mainClock.advanceTimeBy(1200)
+        assertEquals(0f, presence.value)
+    }
+
     @Test
     fun theBarShowsItsGlassOnceContentMovesUnderIt() = runInitializedComposeUiTest {
         lateinit var behavior: TopAppBarScrollBehavior
@@ -72,13 +101,13 @@ class BackdropScrollPresenceTest {
         behavior.state.contentOffset = -80f
         waitForIdle()
         val scrolled = onNodeWithTag("root").captureToImage().toPixelMap()
-        assertTrue(scrolled[100, 32].red > 0.5f, "the mask arrives: ${scrolled[100, 32]}")
+        assertTrue(scrolled[100, 32].red > 0.5f, "the fill arrives: ${scrolled[100, 32]}")
 
         // Content back at its start takes the glass with it.
         behavior.state.contentOffset = 0f
         waitForIdle()
         val back = onNodeWithTag("root").captureToImage().toPixelMap()
-        assertEquals(0f, back[100, 32].red, 0.02f, "the mask leaves: ${back[100, 32]}")
+        assertEquals(0f, back[100, 32].red, 0.02f, "the fill leaves: ${back[100, 32]}")
     }
 
     @Test
@@ -140,7 +169,7 @@ class BackdropScrollPresenceTest {
                                     {},
                                     windowInsets = WindowInsets(0, 0, 0, 0),
                                     scrollBehavior = behavior,
-                                    mask = BackdropMask(Color.White, alpha = 0f),
+                                    fill = BackdropFill(Color.White, alpha = 0f),
                                 )
                             }
                         }
@@ -192,7 +221,7 @@ class BackdropScrollPresenceTest {
             }
         }
         val pixels = onNodeWithTag("root").captureToImage().toPixelMap()
-        assertTrue(pixels[100, 32].red > 0.5f, "the mask stays: ${pixels[100, 32]}")
+        assertTrue(pixels[100, 32].red > 0.5f, "the fill stays: ${pixels[100, 32]}")
     }
 
     @Test
@@ -233,7 +262,7 @@ class BackdropScrollPresenceTest {
             modifier,
             windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
             scrollBehavior = scrollBehavior,
-            mask = BackdropMask(Color.White, alpha = 1f),
+            fill = BackdropFill(Color.White, alpha = 1f),
         )
     }
 

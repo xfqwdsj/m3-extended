@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -62,11 +63,12 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import kotlin.time.Duration.Companion.milliseconds
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropHdrScope
-import top.ltfan.backdrop.BackdropMask
 import top.ltfan.backdrop.LocalBackdropHdrHeadroom
 import top.ltfan.backdrop.LocalBackdropHdrRefreshInterval
 import top.ltfan.m3x.backdrop.BackdropHost
+import top.ltfan.m3x.backdrop.LocalProgressiveBlurMode
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
 import top.ltfan.m3x.compose.animation.LocalBlurAnimationEnabled
@@ -85,7 +87,6 @@ import top.ltfan.m3x.demo.generated.resources.demo_visual_settings
 import top.ltfan.m3x.material.FloatingBottomBar
 import top.ltfan.m3x.material.IconButton
 import top.ltfan.m3x.material.IconButtonDefaults
-import top.ltfan.m3x.material.backdrop.BackdropCenterAlignedTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropLargeFlexibleTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropMediumFlexibleTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropTopAppBar
@@ -134,6 +135,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
         LocalBackdropHdrRefreshInterval provides
             prefs.effects.hdrRefreshIntervalMs.toInt().milliseconds,
         LocalBlurEnabled provides prefs.effects.blur,
+        LocalProgressiveBlurMode provides prefs.effects.progressiveBlurMode(),
         LocalBlurAnimationEnabled provides prefs.effects.blurAnimation,
         LocalDensity provides
             Density(density.density, density.fontScale * prefs.appearance.fontScale),
@@ -177,15 +179,9 @@ private fun DemoAppContent(storeFile: StoreFile) {
                     val overlay = remember { OverlayHostState() }
                     val manualSettings = remember { ManualSettingsTree() }
                     var pageSize by remember { mutableStateOf(IntSize.Zero) }
-                    // The app bar mask continues the page background instead of covering it with a
-                    // flat
-                    // theme color. The gradient is anchored to the page, so the bar samples the
-                    // same
-                    // colors the page paints behind it rather than restarting the gradient in its
-                    // own
-                    // bounds.
+                    // Anchor the app bar fill to the page so both sample the same gradient colors.
                     val backgroundColors = demoBackgroundColors(prefs.appearance.background)
-                    val maskBrush =
+                    val fillBrush =
                         remember(backgroundColors, pageSize) {
                             if (pageSize.width == 0 || pageSize.height == 0) null
                             else
@@ -215,13 +211,8 @@ private fun DemoAppContent(storeFile: StoreFile) {
                             OverlayHost(overlay) {
                                 Scaffold(
                                     modifier =
-                                        Modifier.fillMaxSize().let { modifier ->
-                                            if (scrollBehavior == null) modifier
-                                            else
-                                                modifier.nestedScroll(
-                                                    scrollBehavior.nestedScrollConnection,
-                                                )
-                                        },
+                                        Modifier.fillMaxSize()
+                                            .nestedScroll(scrollBehavior.nestedScrollConnection),
                                     containerColor = Color.Transparent,
                                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                                     topBar = {
@@ -349,16 +340,18 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                     scrollBehavior = scrollBehavior,
                                                     navigationIcon = navigation,
                                                     actions = actions,
-                                                    mask = BackdropMask(brush = maskBrush),
+                                                    fill = BackdropFill(brush = fillBrush),
                                                 )
                                             BarVariant.Centered ->
-                                                BackdropCenterAlignedTopAppBar(
+                                                BackdropTopAppBar(
                                                     title,
                                                     modifier = Modifier,
                                                     scrollBehavior = scrollBehavior,
                                                     navigationIcon = navigation,
                                                     actions = actions,
-                                                    mask = BackdropMask(brush = maskBrush),
+                                                    fill = BackdropFill(brush = fillBrush),
+                                                    titleHorizontalAlignment =
+                                                        Alignment.CenterHorizontally,
                                                 )
                                             BarVariant.Medium ->
                                                 BackdropMediumFlexibleTopAppBar(
@@ -367,7 +360,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                     scrollBehavior = scrollBehavior,
                                                     navigationIcon = navigation,
                                                     actions = actions,
-                                                    mask = BackdropMask(brush = maskBrush),
+                                                    fill = BackdropFill(brush = fillBrush),
                                                 )
                                             BarVariant.Large ->
                                                 BackdropLargeFlexibleTopAppBar(
@@ -376,7 +369,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                     scrollBehavior = scrollBehavior,
                                                     navigationIcon = navigation,
                                                     actions = actions,
-                                                    mask = BackdropMask(brush = maskBrush),
+                                                    fill = BackdropFill(brush = fillBrush),
                                                 )
                                         }
                                     },
@@ -495,7 +488,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
 internal fun demoBackground(background: PreviewBackground): Brush =
     Brush.linearGradient(demoBackgroundColors(background))
 
-/** The page colors, shared with the app bar mask so the bar continues the page background. */
+/** The page colors, shared with the app bar fill so the bar continues the page background. */
 @Composable
 internal fun demoBackgroundColors(background: PreviewBackground): List<Color> {
     val scheme = MaterialTheme.colorScheme
@@ -519,17 +512,18 @@ internal fun rememberDemoScrollBehavior(
     route: DemoRoute,
     bar: BarVariant,
     width: Dp,
-): TopAppBarScrollBehavior? {
+): TopAppBarScrollBehavior {
     val narrowLab = isNarrowDemoLab(route, width)
+    val state = rememberTopAppBarState()
     val behavior =
-        if (narrowLab) null
-        else if (shouldCollapseDemoBar(route, bar, width))
-            TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-        else TopAppBarDefaults.pinnedScrollBehavior()
-    // Re-entering the wide layout starts the bar expanded, including after resizing mid-scroll.
+        if (shouldCollapseDemoBar(route, bar, width))
+            TopAppBarDefaults.exitUntilCollapsedScrollBehavior(state = state)
+        else TopAppBarDefaults.pinnedScrollBehavior(state = state, canScroll = { !narrowLab })
+    // Keep the same overlap state and drawing path while the existing presence animation clears.
+    // Navigation and resizing start the next page with the bar expanded.
     LaunchedEffect(route, bar, narrowLab) {
-        behavior?.state?.heightOffset = 0f
-        behavior?.state?.contentOffset = 0f
+        state.heightOffset = 0f
+        state.contentOffset = 0f
     }
     return behavior
 }

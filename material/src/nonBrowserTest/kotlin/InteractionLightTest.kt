@@ -34,7 +34,10 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropStyle
+import top.ltfan.backdrop.interaction.InteractionLighting
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
@@ -48,10 +51,14 @@ import top.ltfan.m3x.material.bundle.M3xMaterialTheme
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 
 class InteractionLightTest {
-    private fun testMaterial() =
+    private fun testMaterial(lighting: InteractionLighting = InteractionLighting.Config()) =
         M3xBackdropMaterial(
-            style = BackdropStyle(effects = BackdropStyle.NoEffects),
-            blurRadius = 0.dp,
+            style =
+                BackdropStyle.Default {
+                    fill = { BackdropFill(Color.Unspecified) }
+                    blur = { BackdropBlur.Uniform(0.dp) }
+                    interactionLighting = { lighting }
+                },
             tintAlpha = 1f,
             adaptation = BackdropAdaptation.Fixed,
         )
@@ -154,8 +161,6 @@ class InteractionLightTest {
                                 M3xBackdropLighting(
                                     color = Color.Red,
                                     radius = 8.dp,
-                                    interiorAlpha = 1f,
-                                    edgeAlpha = 0f,
                                 ),
                         ),
                 ) {
@@ -172,7 +177,7 @@ class InteractionLightTest {
                                         }
                                         .size(64.dp),
                                     RectangleShape,
-                                    material = testMaterial(),
+                                    material = testMaterial(InteractionLighting.Config(1f, 0f)),
                                     containerColor = Color.Black,
                                     interactionSource = interactions,
                                 ) {}
@@ -205,8 +210,6 @@ class InteractionLightTest {
                                 M3xBackdropLighting(
                                     color = Color.Red,
                                     radius = 8.dp,
-                                    interiorAlpha = 1f,
-                                    edgeAlpha = 0f,
                                 ),
                         ),
                 ) {
@@ -224,7 +227,7 @@ class InteractionLightTest {
                                         .size(64.dp)
                                         .testTag("input"),
                                     RectangleShape,
-                                    material = testMaterial(),
+                                    material = testMaterial(InteractionLighting.Config(1f, 0f)),
                                     containerColor = Color.Black,
                                 ) {}
                             }

@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
@@ -32,9 +32,9 @@ import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.material.theme.LocalM3xThemeExtensions
 import top.ltfan.m3x.material.theme.M3xThemeExtensions
 
-class BackdropMaskFillTest {
+class BackdropFillBrushTest {
     @Test
-    fun flattenedMasksKeepTheirFillWithAndWithoutSampling() {
+    fun flattenedFillsKeepTheirFillWithAndWithoutSampling() {
         for (sampled in listOf(false, true)) for (gradient in
             listOf(false, true)) runInitializedComposeUiTest {
             setContent {
@@ -42,13 +42,13 @@ class BackdropMaskFillTest {
                     MaterialTheme {
                         val background = rememberBackdropLayer()
                         val color = Color.Blue.copy(alpha = .5f)
-                        val mask =
+                        val fill =
                             if (gradient) {
-                                BackdropMask(
+                                BackdropFill(
                                     brush = Brush.verticalGradient(listOf(color, color)),
                                     alpha = 1f,
                                 )
-                            } else BackdropMask(color, alpha = 1f)
+                            } else BackdropFill(color, alpha = 1f)
                         ProvideAccessibility(
                             AccessibilityPreferences(
                                 reduceTransparency = AccessibilityPreference.Enabled,
@@ -75,8 +75,9 @@ class BackdropMaskFillTest {
                                     BackdropTopAppBar(
                                         {},
                                         windowInsets = WindowInsets(0, 0, 0, 0),
-                                        mask = mask,
+                                        fill = fill,
                                         effects = {},
+                                        scrollBehavior = scrolledAppBarBehavior(),
                                     )
                                 }
                             }

@@ -511,6 +511,7 @@ private fun visibilitySnapshot(
 private class SettingsCardAppearance(
     val shape: Shape,
     val colors: CardColors,
+    val backdrop: Boolean,
     val elevation: CardElevation,
     val border: BorderStroke?,
     val material: MaterialSurfaceStyle?,
@@ -556,16 +557,16 @@ public fun CardSettings(
     lazyListState: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(16.dp),
     cardSpacing: Dp = 12.dp,
-    cardShape: Shape = MaterialTheme.shapes.large,
+    cardShape: Shape = CardDefaults.shape,
     cardColors: CardColors = CardColorsLowest,
     cardElevation: CardElevation = CardDefaults.cardElevation(),
     cardBorder: BorderStroke? = null,
+    cardBackdrop: Boolean = true,
+    cardMaterial: MaterialSurfaceStyle? = null,
     editorShape: Shape = MaterialTheme.shapes.extraLarge,
     customEditor: CustomSettingsEditor? = null,
     labels: CardSettingsLabels = remember { CardSettingsLabels() },
     sliderCommitMode: SliderCommitMode = SliderCommitMode.OnRelease,
-    cardBackdrop: Boolean = true,
-    cardMaterial: MaterialSurfaceStyle? = null,
     onError: (SettingsPresentationError) -> Unit = {},
 ) {
     val resolvedCardMaterial =
@@ -662,6 +663,7 @@ public fun CardSettings(
         SettingsCardAppearance(
             shape = cardShape,
             colors = cardColors,
+            backdrop = cardBackdrop,
             elevation = cardElevation,
             border = cardBorder,
             material = resolvedCardMaterial,
@@ -779,6 +781,7 @@ private fun GroupedLazyListScope.settingsGroupCard(
     card(
         shape = { appearance.shape },
         colors = { appearance.colors },
+        backdrop = appearance.backdrop,
         backdropMaterial = { appearance.material },
         elevation = { appearance.elevation },
         border = { appearance.border },

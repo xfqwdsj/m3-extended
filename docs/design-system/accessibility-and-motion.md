@@ -34,7 +34,7 @@ and [surface response](../../material-backdrop/src/commonTest/kotlin/Accessibili
 ## A3. Reduced transparency changes appearance
 
 Built-in material appearance resolves role tint to opaque, stops optical effects and local
-adaptation sampling, and flattens progressive masking. The source and host architecture remain
+adaptation sampling, and flattens progressive filling. The source and host architecture remain
 available to the composition. Explicit component effects are subject to this appearance policy.
 This policy is applied by the Material appearance layer; low-level rendering primitives remain the
 caller's responsibility.
@@ -147,11 +147,11 @@ contracts, such as a bottom sheet's slide and anchoring, use no added blur layer
 replaces programmatic presentation with fading while preserving direct dragging.
 
 Bounded Backdrop transitions have a different optical contract. With blur motion enabled, the
-radius varies within the material's range and the mask fades, without a whole-background fade.
-With it disabled, the material stays at full strength and the whole background fades. Component
-providers and callers own adherence to this contract; foreground blur defaults do not determine
-the material radius. Adaptive material blur also holds a fixed radius when blur motion is disabled;
-color adaptation may continue through effects transitions.
+radius and fill strength vary within the material's range, without a whole-background fade.
+With it disabled, the material stays at full strength and the background alpha parameter fades the
+whole background. Component providers and callers own adherence to this contract; foreground blur
+defaults do not determine the material radius. Adaptive material blur also holds a fixed radius
+when blur motion is disabled; color adaptation may continue through effects transitions.
 
 Press deformation and velocity settle through spatial specs independently of optical progress.
 Optical fading cannot truncate a geometric release; reduced motion omits decorative settling.

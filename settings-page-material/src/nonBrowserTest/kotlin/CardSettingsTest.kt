@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PixelMap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -80,6 +83,14 @@ import top.ltfan.m3x.backdrop.rememberBackdropLayer
 import top.ltfan.m3x.compose.animation.LocalBlurAnimationEnabled
 import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.compose.ui.visual.LocalBlurEnabled
+import top.ltfan.m3x.material.LocalMaterialSurfaceRenderer
+import top.ltfan.m3x.material.MaterialSurfaceAppearance
+import top.ltfan.m3x.material.MaterialSurfaceEdge
+import top.ltfan.m3x.material.MaterialSurfaceEffects
+import top.ltfan.m3x.material.MaterialSurfaceRenderer
+import top.ltfan.m3x.material.MaterialSurfaceRole
+import top.ltfan.m3x.material.MaterialSurfaceStyle
+import top.ltfan.m3x.material.PlainMaterialSurfaceRenderer
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.overlay.OverlayHost
 import top.ltfan.m3x.overlay.OverlayHostState
@@ -101,6 +112,75 @@ import top.ltfan.m3x.settingspage.compose.SettingsEditSession
 import top.ltfan.m3x.settingspage.compose.SettingsPresentationError
 
 class CardSettingsTest {
+    @Test
+    fun cardDefaultsAndRendererEnablementReachGroupedCards() {
+        for (enabled in listOf(false, true)) for (custom in
+            listOf(false, true)) runInitializedComposeUiTest {
+            val renderedShapes = mutableListOf<Shape>()
+            val explicitShape = RoundedCornerShape(2.dp)
+            lateinit var nativeShape: Shape
+            val tree =
+                object : SettingsTree {
+                    override val items = listOf(TextItem())
+                }
+            val renderer =
+                object : MaterialSurfaceRenderer by PlainMaterialSurfaceRenderer {
+                    @Composable
+                    override fun appearance(
+                        role: MaterialSurfaceRole,
+                        style: MaterialSurfaceStyle?,
+                        containerColor: Color,
+                        contentColor: Color,
+                        effects: MaterialSurfaceEffects?,
+                        shape: Shape,
+                        excludedEdges: Set<MaterialSurfaceEdge>,
+                    ): MaterialSurfaceAppearance {
+                        renderedShapes.add(shape)
+                        return PlainMaterialSurfaceRenderer.appearance(
+                            role,
+                            style,
+                            containerColor,
+                            contentColor,
+                            effects,
+                            shape,
+                            excludedEdges,
+                        )
+                    }
+                }
+            setContent {
+                MaterialTheme {
+                    nativeShape = CardDefaults.shape
+                    CompositionLocalProvider(LocalMaterialSurfaceRenderer provides renderer) {
+                        OverlayHost(remember { OverlayHostState() }) {
+                            if (custom)
+                                CardSettings(
+                                    tree,
+                                    cardBackdrop = enabled,
+                                    cardShape = explicitShape,
+                                )
+                            else CardSettings(tree, cardBackdrop = enabled)
+                        }
+                    }
+                }
+            }
+            waitForIdle()
+            runOnIdle {
+                if (!enabled)
+                    assertTrue(
+                        renderedShapes.isEmpty(),
+                        "Disabled settings cards must bypass the surface renderer",
+                    )
+                else {
+                    assertTrue(renderedShapes.isNotEmpty())
+                    assertTrue(
+                        renderedShapes.all { it == if (custom) explicitShape else nativeShape },
+                        "Settings cards must retain native Card defaults or the explicit shape",
+                    )
+                }
+            }
+        }
+    }
+
     @Test
     fun removingThePageClosesTheEditorAndReleasesItsPresentation() = runInitializedComposeUiTest {
         var mounted by mutableStateOf(true)

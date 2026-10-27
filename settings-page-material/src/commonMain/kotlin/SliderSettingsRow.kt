@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -89,7 +90,9 @@ internal fun SliderSettingsRow(
         )
         if (mapping != null)
             Slider(
-                value = position,
+                state =
+                    remember(mapping.steps) { SliderState(position, steps = mapping.steps) }
+                        .apply { value = position },
                 onValueChange = { next ->
                     if (!currentlyInteractive) return@Slider
                     dragging = true
@@ -116,7 +119,6 @@ internal fun SliderSettingsRow(
                     }
                 },
                 enabled = interactive && item.enabled && !mapping.isFixed,
-                steps = mapping.steps,
                 modifier =
                     Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
                         stateDescription = preview.toString()

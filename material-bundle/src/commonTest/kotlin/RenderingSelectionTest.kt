@@ -2,6 +2,9 @@ package top.ltfan.m3x.material.bundle
 
 import kotlin.test.Test
 import kotlin.test.assertSame
+import top.ltfan.backdrop.BackdropRenderScope
+import top.ltfan.backdrop.LocalBackdropRenderStyle
+import top.ltfan.backdrop.LocalBackdropStyle
 import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
 import top.ltfan.m3x.material.LocalFloatingBottomBarRenderer
 import top.ltfan.m3x.material.LocalMaterialSurfaceRenderer
@@ -21,6 +24,27 @@ import top.ltfan.m3x.overlay.backdrop.BackdropOverlayDecoration
 import top.ltfan.m3x.overlay.backdrop.ProvideBackdropOverlay
 
 class RenderingSelectionTest {
+    @Test
+    fun materialOverridesProvideCompleteRenderDefaultsAndRestoreTheirParent() =
+        runInitializedComposeUiTest {
+            val parentRender: BackdropRenderScope.() -> Unit = {}
+            val childRender: BackdropRenderScope.() -> Unit = { source() }
+            val theme = M3xBackdropTheme()
+            val parent = theme.control.copy(render = parentRender)
+            val child = theme.control.copy(render = childRender)
+            setContent {
+                ProvideBackdropTheme(theme.copy(control = parent)) {
+                    assertSame(parentRender, LocalBackdropRenderStyle.current.render)
+                    assertSame(parent.style.insets, LocalBackdropRenderStyle.current.insets)
+                    ProvideBackdropMaterial(MaterialSurfaceRole.Control, child) {
+                        assertSame(childRender, LocalBackdropRenderStyle.current.render)
+                        assertSame(child.style.insets, LocalBackdropStyle.current.insets)
+                    }
+                    assertSame(parentRender, LocalBackdropRenderStyle.current.render)
+                }
+            }
+        }
+
     @Test
     fun scopedPlainRenderingRestoresTheCompleteRenderingAndHostSelection() =
         runInitializedComposeUiTest {

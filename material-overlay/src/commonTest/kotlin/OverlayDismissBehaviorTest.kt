@@ -447,7 +447,13 @@ class OverlayDismissBehaviorTest {
                         OverlayHost(remember { OverlayHostState() }) {
                             Box(Modifier.fillMaxSize().clickable { pageClicks++ })
                             val state =
-                                rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                                rememberOverlayBottomSheetState(
+                                    enabledValues =
+                                        setOf(
+                                            OverlayBottomSheetValue.Hidden,
+                                            OverlayBottomSheetValue.Expanded,
+                                        ),
+                                )
                             sheetState = state
                             OverlayBottomSheet(
                                 onDismissRequest = { dismissals++ },
@@ -492,7 +498,14 @@ class OverlayDismissBehaviorTest {
                 MaterialTheme {
                     closeSheetLabel = OverlayStrings.closeSheet()
                     OverlayHost(remember { OverlayHostState() }) {
-                        val state = rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                        val state =
+                            rememberOverlayBottomSheetState(
+                                enabledValues =
+                                    setOf(
+                                        OverlayBottomSheetValue.Hidden,
+                                        OverlayBottomSheetValue.Expanded,
+                                    ),
+                            )
                         sheetState = state
                         OverlayBottomSheet(
                             onDismissRequest = { dismissals++ },
@@ -526,7 +539,14 @@ class OverlayDismissBehaviorTest {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(remember { OverlayHostState() }) {
-                        val state = rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                        val state =
+                            rememberOverlayBottomSheetState(
+                                enabledValues =
+                                    setOf(
+                                        OverlayBottomSheetValue.Hidden,
+                                        OverlayBottomSheetValue.Expanded,
+                                    ),
+                            )
                         sheetState = state
                         OverlayBottomSheet(
                             onDismissRequest = { dismissals++ },
@@ -577,7 +597,13 @@ class OverlayDismissBehaviorTest {
                     MaterialTheme {
                         OverlayHost(remember { OverlayHostState() }) {
                             val state =
-                                rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                                rememberOverlayBottomSheetState(
+                                    enabledValues =
+                                        setOf(
+                                            OverlayBottomSheetValue.Hidden,
+                                            OverlayBottomSheetValue.Expanded,
+                                        ),
+                                )
                             sheetState = state
                             scope = rememberCoroutineScope()
                             OverlayBottomSheet(

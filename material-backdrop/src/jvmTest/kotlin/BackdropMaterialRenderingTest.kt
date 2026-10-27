@@ -20,6 +20,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -41,7 +42,8 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropStyle
 import top.ltfan.backdrop.effects.colorControls
 import top.ltfan.backdrop.highlight.Highlight
@@ -79,8 +81,14 @@ class BackdropMaterialRenderingTest {
                                         material =
                                             M3xBackdropMaterial(
                                                 style =
-                                                    BackdropStyle(
-                                                        highlight = { Highlight.None },
+                                                    BackdropStyle.Default {
+                                                        fill = {
+                                                            BackdropFill(Color.Unspecified)
+                                                        }
+                                                        blur = {
+                                                            BackdropBlur.Uniform(0.dp)
+                                                        }
+                                                        highlight = { Highlight.None }
                                                         shadow = {
                                                             Shadow(
                                                                 radius = 16.dp,
@@ -88,9 +96,8 @@ class BackdropMaterialRenderingTest {
                                                                 color =
                                                                     Color.Black.copy(alpha = 0.8f),
                                                             )
-                                                        },
-                                                    ),
-                                                blurRadius = 0.dp,
+                                                        }
+                                                    },
                                                 adaptation = BackdropAdaptation.Fixed,
                                                 interactiveLighting = false,
                                             ),
@@ -104,24 +111,29 @@ class BackdropMaterialRenderingTest {
                                             title = {},
                                             actions = actions,
                                             windowInsets = WindowInsets(0, 0, 0, 0),
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                     1 ->
-                                        BackdropCenterAlignedTopAppBar(
+                                        BackdropTopAppBar(
                                             title = {},
                                             actions = actions,
                                             windowInsets = WindowInsets(0, 0, 0, 0),
+                                            scrollBehavior = scrolledAppBarBehavior(),
+                                            titleHorizontalAlignment = Alignment.CenterHorizontally,
                                         )
                                     2 ->
                                         BackdropMediumFlexibleTopAppBar(
                                             title = {},
                                             actions = actions,
                                             windowInsets = WindowInsets(0, 0, 0, 0),
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                     3 ->
                                         BackdropLargeFlexibleTopAppBar(
                                             title = {},
                                             actions = actions,
                                             windowInsets = WindowInsets(0, 0, 0, 0),
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                 }
                             }
@@ -164,11 +176,16 @@ class BackdropMaterialRenderingTest {
                                         material =
                                             M3xBackdropMaterial(
                                                 style =
-                                                    BackdropStyle(
-                                                        highlight = { Highlight.None },
-                                                        shadow = { Shadow.None },
-                                                    ),
-                                                blurRadius = 0.dp,
+                                                    BackdropStyle.Default {
+                                                        fill = {
+                                                            BackdropFill(Color.Unspecified)
+                                                        }
+                                                        blur = {
+                                                            BackdropBlur.Uniform(0.dp)
+                                                        }
+                                                        highlight = { Highlight.None }
+                                                        shadow = { Shadow.None }
+                                                    },
                                                 tintAlpha = 0f,
                                                 adaptation = BackdropAdaptation.Fixed,
                                                 interactiveLighting = false,
@@ -185,17 +202,20 @@ class BackdropMaterialRenderingTest {
                                             modifier = Modifier.testTag("bar"),
                                             actions = actions,
                                             effects = {},
-                                            mask = BackdropMask(Color.Red, alpha = 1f),
+                                            fill = BackdropFill(Color.Red, alpha = 1f),
                                             windowInsets = insets,
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                     1 ->
-                                        BackdropCenterAlignedTopAppBar(
+                                        BackdropTopAppBar(
                                             title = {},
                                             modifier = Modifier.testTag("bar"),
                                             actions = actions,
                                             effects = {},
-                                            mask = BackdropMask(Color.Red, alpha = 1f),
+                                            fill = BackdropFill(Color.Red, alpha = 1f),
                                             windowInsets = insets,
+                                            scrollBehavior = scrolledAppBarBehavior(),
+                                            titleHorizontalAlignment = Alignment.CenterHorizontally,
                                         )
                                     2 ->
                                         BackdropMediumFlexibleTopAppBar(
@@ -203,8 +223,9 @@ class BackdropMaterialRenderingTest {
                                             modifier = Modifier.testTag("bar"),
                                             actions = actions,
                                             effects = {},
-                                            mask = BackdropMask(Color.Red, alpha = 1f),
+                                            fill = BackdropFill(Color.Red, alpha = 1f),
                                             windowInsets = insets,
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                     else ->
                                         BackdropLargeFlexibleTopAppBar(
@@ -212,8 +233,9 @@ class BackdropMaterialRenderingTest {
                                             modifier = Modifier.testTag("bar"),
                                             actions = actions,
                                             effects = {},
-                                            mask = BackdropMask(Color.Red, alpha = 1f),
+                                            fill = BackdropFill(Color.Red, alpha = 1f),
                                             windowInsets = insets,
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                 }
                             }
@@ -290,13 +312,17 @@ class BackdropMaterialRenderingTest {
                                                     navigationIcon = navigation,
                                                     actions = actions,
                                                     windowInsets = insets,
+                                                    scrollBehavior = scrolledAppBarBehavior(),
                                                 )
                                             1 ->
-                                                BackdropCenterAlignedTopAppBar(
+                                                BackdropTopAppBar(
                                                     title,
                                                     navigationIcon = navigation,
                                                     actions = actions,
                                                     windowInsets = insets,
+                                                    scrollBehavior = scrolledAppBarBehavior(),
+                                                    titleHorizontalAlignment =
+                                                        Alignment.CenterHorizontally,
                                                 )
                                             2 ->
                                                 BackdropMediumFlexibleTopAppBar(
@@ -304,6 +330,7 @@ class BackdropMaterialRenderingTest {
                                                     navigationIcon = navigation,
                                                     actions = actions,
                                                     windowInsets = insets,
+                                                    scrollBehavior = scrolledAppBarBehavior(),
                                                 )
                                             else ->
                                                 BackdropLargeFlexibleTopAppBar(
@@ -311,6 +338,7 @@ class BackdropMaterialRenderingTest {
                                                     navigationIcon = navigation,
                                                     actions = actions,
                                                     windowInsets = insets,
+                                                    scrollBehavior = scrolledAppBarBehavior(),
                                                 )
                                         }
                                     else
@@ -406,13 +434,23 @@ class BackdropMaterialRenderingTest {
                                 .onGloballyPositioned { sampler.updateCoordinates(it) }
                                 .backdropSurface(
                                     shape = RectangleShape,
-                                    effects = { colorControls(brightness = 0.8f) },
-                                    highlight = { Highlight.None },
-                                    shadow = { Shadow.None },
-                                    onDrawBackdrop = { draw, _ ->
-                                        with(sampler) { drawAndRecord(draw) }
+                                    render = {
+                                        val raw = image {
+                                            source()
+                                            drawWithContent { drawContent, _ ->
+                                                with(sampler) {
+                                                    drawAndRecord { drawContent() }
+                                                }
+                                            }
+                                        }
+                                        val material = image {
+                                            replace(raw)
+                                            effects { colorControls(brightness = 0.8f) }
+                                            clipSurface()
+                                        }
+                                        draw(material)
+                                        paintSurface { drawRect(Color.Blue) }
                                     },
-                                    onDrawSurface = { drawRect(Color.Blue) },
                                 ),
                         )
                     }
@@ -425,8 +463,8 @@ class BackdropMaterialRenderingTest {
 
     @Test
     fun defaultMaterialKeepsThemeContentWithoutAppearanceSampling() = runComposeUiTest {
-        lateinit var defaultAppearance: MaterialBackdropAppearance
-        lateinit var adaptedAppearance: MaterialBackdropAppearance
+        lateinit var defaultAppearance: BackdropSurfaceAppearance
+        lateinit var adaptedAppearance: BackdropSurfaceAppearance
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
@@ -444,7 +482,11 @@ class BackdropMaterialRenderingTest {
                                 role = MaterialSurfaceRole.Control,
                                 material =
                                     M3xBackdropMaterial(
-                                        blurRadius = 0.dp,
+                                        style =
+                                            BackdropStyle.Default {
+                                                fill = { BackdropFill(Color.Unspecified) }
+                                                blur = { BackdropBlur.Uniform(0.dp) }
+                                            },
                                         adaptation = BackdropAdaptation.Background,
                                         adaptiveContentColor = true,
                                     ),
@@ -507,12 +549,22 @@ class BackdropMaterialRenderingTest {
                                     .onGloballyPositioned { sampler.updateCoordinates(it) }
                                     .backdropSurface(
                                         shape = RectangleShape,
-                                        highlight = { Highlight.None },
-                                        shadow = { Shadow.None },
-                                        onDrawBackdrop = { draw, _ ->
-                                            with(sampler) { drawAndRecord(draw) }
+                                        render = {
+                                            val raw = image {
+                                                source()
+                                                drawWithContent { drawContent, _ ->
+                                                    with(sampler) {
+                                                        drawAndRecord { drawContent() }
+                                                    }
+                                                }
+                                            }
+                                            val material = image {
+                                                replace(raw)
+                                                clipSurface()
+                                            }
+                                            draw(material)
+                                            paintSurface { drawRect(tint) }
                                         },
-                                        onDrawSurface = { drawRect(tint) },
                                     ),
                             )
                         }

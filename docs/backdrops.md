@@ -12,9 +12,15 @@ baked into the capture. Alternatively, draw the background inside the captured s
 `captureBackdrop` before `background` in the modifier chain so that background is recorded.
 
 `BackdropHost` provides `LocalBackdrop`, an appearance readback batch, and a shared lighting scope.
-Built-in surfaces read the handle automatically. Low-level `Modifier.backdropSurface` takes a shape,
-effects, decorations, draw callbacks, and optional exports. Its no-source behavior is to add no
-drawing; custom callers own their fallback background. Built-in surfaces use the role's tint.
+Built-in surfaces read the handle automatically. `Modifier.backdropSurface` exposes one Backdrop
+DSL for surface drawing and image composition. Effects, fill, highlights and shadows work at the
+root and inside nested images or explicit `layer` declarations. `surface { }` applies fixed
+appearance phases with inherited `BackdropStyle` values. An explicit layer retains its isolation;
+ordinary single-consumer drawing can share a recording with its destination.
+
+Both Material roles and custom callers choose their image dependencies, masks and export selection
+through the same declaration. Material roles add color and accessibility policy. A low-level caller
+without a source owns its fallback background.
 
 Source: [handle, capture, provider, and low-level drawing](../backdrop/src/commonMain/kotlin/Backdrop.kt).
 Appearance policy: [material contracts](design-system/materials.md).

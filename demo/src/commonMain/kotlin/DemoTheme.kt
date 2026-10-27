@@ -1,12 +1,12 @@
 package top.ltfan.m3x.demo
 
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropLens
 import top.ltfan.backdrop.BackdropRamp
 import top.ltfan.backdrop.BackdropRampAnchors
-import top.ltfan.backdrop.effects.lens
-import top.ltfan.backdrop.effects.vibrancy
 import top.ltfan.backdrop.highlight.Highlight
 import top.ltfan.backdrop.highlight.HighlightColorResponse
 import top.ltfan.backdrop.highlight.HighlightDirection
@@ -36,30 +36,41 @@ internal fun DemoPreferences.themeBackdrop(
             base.copy(
                 control =
                     base.control.copy(
-                        blurRadius =
-                            if (effects.customBlurRadii) effects.controlBlurRadiusDp.dp
-                            else base.control.blurRadius,
-                        adaptiveContentColor = effects.adaptation && effects.adaptiveContentColor,
                         style =
-                            base.control.style.copy(
-                                effects = {
-                                    if (appearance.preset != MaterialPreset.Blur) {
-                                        if (effects.vibrancy) vibrancy()
-                                        if (effects.lens && shape is CornerBasedShape)
-                                            lens(12.dp.toPx(), 24.dp.toPx())
-                                    }
-                                },
+                            base.control.style {
+                                vibrancy = {
+                                    if (
+                                        effects.vibrancy && appearance.preset != MaterialPreset.Blur
+                                    )
+                                        1.5f
+                                    else 1f
+                                }
+                                lens = {
+                                    if (effects.lens && appearance.preset != MaterialPreset.Blur)
+                                        BackdropLens(12.dp, 24.dp)
+                                    else BackdropLens.None
+                                }
+
+                                blur = {
+                                    BackdropBlur.Uniform(
+                                        if (effects.customBlurRadii) effects.controlBlurRadiusDp.dp
+                                        else base.control.style.blur!!.invoke().radius,
+                                    )
+                                }
                                 highlight = {
                                     effects.backdropHighlight(highlightColor)
-                                },
+                                }
                                 shadow = {
-                                    if (effects.shadow) base.control.style.shadow() else Shadow.None
-                                },
+                                    if (effects.shadow) base.control.style.shadow!!.invoke()
+                                    else Shadow.None
+                                }
                                 innerShadow = {
-                                    if (effects.innerShadow) base.control.style.innerShadow()
+                                    if (effects.innerShadow)
+                                        base.control.style.innerShadow!!.invoke()
                                     else InnerShadow.None
-                                },
-                            ),
+                                }
+                            },
+                        adaptiveContentColor = effects.adaptation && effects.adaptiveContentColor,
                         adaptation =
                             if (effects.adaptation) BackdropAdaptation.Background
                             else BackdropAdaptation.Fixed,
@@ -71,10 +82,11 @@ internal fun DemoPreferences.themeBackdrop(
                             appearance.preset,
                             highlightColor,
                         )
+                        .withBlur(
+                            effects.customBlurRadii,
+                            effects.panelBlurRadiusDp.dp,
+                        )
                         .copy(
-                            blurRadius =
-                                if (effects.customBlurRadii) effects.panelBlurRadiusDp.dp
-                                else base.panel.blurRadius,
                             adaptation =
                                 if (effects.adaptation) BackdropAdaptation.Background
                                 else BackdropAdaptation.Fixed,
@@ -84,10 +96,11 @@ internal fun DemoPreferences.themeBackdrop(
                 surface =
                     base.surface
                         .configuredSurface(effects, appearance.preset)
+                        .withBlur(
+                            effects.customBlurRadii,
+                            effects.surfaceBlurRadiusDp.dp,
+                        )
                         .copy(
-                            blurRadius =
-                                if (effects.customBlurRadii) effects.surfaceBlurRadiusDp.dp
-                                else base.surface.blurRadius,
                             adaptation =
                                 if (effects.adaptation) BackdropAdaptation.Background
                                 else BackdropAdaptation.Fixed,
@@ -101,10 +114,11 @@ internal fun DemoPreferences.themeBackdrop(
                             appearance.preset,
                             highlightColor,
                         )
+                        .withBlur(
+                            effects.customBlurRadii,
+                            effects.panelBlurRadiusDp.dp,
+                        )
                         .copy(
-                            blurRadius =
-                                if (effects.customBlurRadii) effects.panelBlurRadiusDp.dp
-                                else base.inversePanel.blurRadius,
                             adaptation = BackdropAdaptation.Fixed,
                             adaptiveContentColor = false,
                         ),
@@ -118,9 +132,16 @@ internal fun DemoPreferences.themeBackdrop(
                     ),
                 scrollEdge =
                     base.scrollEdge.copy(
-                        blurRadius =
-                            if (effects.customBlurRadii) effects.scrollEdgeBlurRadiusDp.dp
-                            else base.scrollEdge.blurRadius,
+                        style =
+                            base.scrollEdge.style {
+                                blur = {
+                                    BackdropBlur.Uniform(
+                                        if (effects.customBlurRadii)
+                                            effects.scrollEdgeBlurRadiusDp.dp
+                                        else base.scrollEdge.style.blur!!.invoke().radius,
+                                    )
+                                }
+                            },
                         ramp =
                             BackdropRamp(
                                 anchors =
@@ -148,19 +169,36 @@ private fun AccessibilityMode.toLibraryPreference(): AccessibilityPreference =
         AccessibilityMode.Disabled -> AccessibilityPreference.Disabled
     }
 
+private fun M3xBackdropMaterial.withBlur(
+    customBlur: Boolean,
+    radius: Dp,
+): M3xBackdropMaterial =
+    copy(
+        style =
+            style {
+                blur = {
+                    BackdropBlur.Uniform(
+                        if (customBlur) radius else style.blur!!.invoke().radius,
+                    )
+                }
+            },
+    )
+
 private fun M3xBackdropMaterial.configuredSurface(
     settings: DemoPreferences.Effects,
     preset: MaterialPreset,
 ): M3xBackdropMaterial =
-    configuredPanel(settings, preset)
-        .copy(
+    configuredPanel(settings, preset).let { configured ->
+        configured.copy(
             style =
-                style.copy(
-                    highlight = { Highlight.None },
-                    shadow = { Shadow.None },
-                    innerShadow = { InnerShadow.None },
-                ),
+                configured.style {
+                    lens = { BackdropLens.None }
+                    highlight = { Highlight.None }
+                    shadow = { Shadow.None }
+                    innerShadow = { InnerShadow.None }
+                },
         )
+    }
 
 private fun M3xBackdropMaterial.configuredPanel(
     settings: DemoPreferences.Effects,
@@ -169,22 +207,22 @@ private fun M3xBackdropMaterial.configuredPanel(
 ): M3xBackdropMaterial =
     copy(
         style =
-            style.copy(
-                effects = {
-                    if (preset != MaterialPreset.Blur) {
-                        if (settings.vibrancy) vibrancy()
-                        if (settings.lens && shape is CornerBasedShape)
-                            lens(24.dp.toPx(), 24.dp.toPx(), depthEffect = true)
-                    }
-                },
+            style {
+                vibrancy = { if (settings.vibrancy && preset != MaterialPreset.Blur) 1.5f else 1f }
+                lens = {
+                    if (settings.lens && preset != MaterialPreset.Blur)
+                        BackdropLens(24.dp, 24.dp, depthEffect = true)
+                    else BackdropLens.None
+                }
+
                 highlight = {
                     settings.backdropHighlight(highlightColor)
-                },
-                shadow = { if (settings.shadow) style.shadow() else Shadow.None },
+                }
+                shadow = { if (settings.shadow) style.shadow!!.invoke() else Shadow.None }
                 innerShadow = {
-                    if (settings.innerShadow) style.innerShadow() else InnerShadow.None
-                },
-            ),
+                    if (settings.innerShadow) style.innerShadow!!.invoke() else InnerShadow.None
+                }
+            },
     )
 
 private fun DemoPreferences.Effects.backdropHighlight(color: Color? = null): Highlight =
@@ -192,7 +230,7 @@ private fun DemoPreferences.Effects.backdropHighlight(color: Color? = null): Hig
     else
         Highlight(
             direction =
-                if (highlightType == DemoHighlightType.Plain) HighlightDirection.None
+                if (highlightType == DemoHighlightType.Plain) HighlightDirection.Uniform
                 else HighlightDirection(),
             style = highlightType.style(color),
             colorResponse =

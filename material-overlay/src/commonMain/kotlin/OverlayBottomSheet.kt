@@ -836,12 +836,12 @@ private fun BoxScope.OverlayBottomSheetContent(
                             .sheetAnchors(sheetState.anchoredDraggableState) { size, constraints ->
                                 val fullHeight = constraints.maxHeight.toFloat()
                                 val newAnchors = DraggableAnchors {
-                                    OverlayBottomSheetValue.Hidden at fullHeight
-                                    if (
-                                        size.height > (fullHeight / 2) &&
-                                            !sheetState.skipPartiallyExpanded
-                                    ) {
-                                        OverlayBottomSheetValue.PartiallyExpanded at fullHeight / 2f
+                                    if (!sheetState.skipHiddenState)
+                                        OverlayBottomSheetValue.Hidden at fullHeight
+                                    if (!sheetState.skipPartiallyExpanded) {
+                                        OverlayBottomSheetValue.PartiallyExpanded at
+                                            fullHeight -
+                                                minOf(fullHeight / 2f, size.height.toFloat())
                                     }
                                     if (size.height != 0) {
                                         OverlayBottomSheetValue.Expanded at
@@ -858,7 +858,30 @@ private fun BoxScope.OverlayBottomSheetContent(
                                                 newAnchors.hasAnchorFor(
                                                     OverlayBottomSheetValue.PartiallyExpanded,
                                                 )
-                                            if (hasPartiallyExpandedState) {
+                                            val wasConverged =
+                                                sheetState.anchoredDraggableState.anchors.let {
+                                                    it.hasAnchorFor(
+                                                        OverlayBottomSheetValue.PartiallyExpanded,
+                                                    ) &&
+                                                        it.hasAnchorFor(
+                                                            OverlayBottomSheetValue.Expanded,
+                                                        ) &&
+                                                        it.positionOf(
+                                                            OverlayBottomSheetValue
+                                                                .PartiallyExpanded,
+                                                        ) ==
+                                                            it.positionOf(
+                                                                OverlayBottomSheetValue.Expanded,
+                                                            )
+                                                }
+                                            if (
+                                                wasConverged &&
+                                                    newAnchors.hasAnchorFor(
+                                                        OverlayBottomSheetValue.Expanded,
+                                                    )
+                                            ) {
+                                                OverlayBottomSheetValue.Expanded
+                                            } else if (hasPartiallyExpandedState) {
                                                 OverlayBottomSheetValue.PartiallyExpanded
                                             } else if (
                                                 newAnchors.hasAnchorFor(

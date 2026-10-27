@@ -23,6 +23,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.ButtonDefaults as MaterialButtonDefaults
@@ -34,6 +35,7 @@ import androidx.compose.material3.DropdownMenuItem as MaterialDropdownMenuItem
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.runtime.Composable
@@ -41,9 +43,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import top.ltfan.m3x.material.theme.extended
 
 /**
@@ -137,18 +139,21 @@ public class ButtonGroupScope internal constructor(private val delegate: Materia
         weight: Float = Float.NaN,
         enabled: Boolean = true,
     ) {
+        require(weight > 0f || weight.isNaN()) {
+            "invalid weight $weight; must be greater than zero or Float.NaN"
+        }
         delegate.customItem(
             buttonGroupContent = {
                 val source = remember { MutableInteractionSource() }
                 val padding =
                     if (icon != null) MaterialButtonDefaults.ButtonWithIconContentPadding
                     else MaterialButtonDefaults.ContentPadding
+                val layoutDirection = LocalLayoutDirection.current
                 val modifier =
                     with(delegate) {
                         Modifier.animateWidth(
                                 source,
-                                padding.calculateLeftPadding(LayoutDirection.Ltr) +
-                                    padding.calculateRightPadding(LayoutDirection.Ltr),
+                                padding.calculateEndPadding(layoutDirection),
                             )
                             .then(
                                 if (weight.isNaN()) Modifier
@@ -184,6 +189,7 @@ public class ButtonGroupScope internal constructor(private val delegate: Materia
             },
             menuContent = { state ->
                 MaterialDropdownMenuItem(
+                    shape = MenuDefaults.standaloneItemShape,
                     text = { Text(label) },
                     leadingIcon = icon,
                     enabled = enabled,

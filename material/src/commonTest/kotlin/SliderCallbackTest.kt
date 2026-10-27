@@ -32,7 +32,7 @@ class SliderCallbackTest {
                     if (vertical) {
                         VerticalSlider(
                             state,
-                            Modifier.testTag("slider"),
+                            modifier = Modifier.testTag("slider"),
                             onValueChange = {
                                 proposal = it
                                 changes++
@@ -43,7 +43,7 @@ class SliderCallbackTest {
                     } else {
                         Slider(
                             state,
-                            Modifier.testTag("slider"),
+                            modifier = Modifier.testTag("slider"),
                             onValueChange = {
                                 proposal = it
                                 changes++
@@ -66,11 +66,17 @@ class SliderCallbackTest {
     }
 
     @Test
-    fun absentCallbackLetsTheNativeStateChange() = runInitializedComposeUiTest {
+    fun ownerCallbackUpdatesTheState() = runInitializedComposeUiTest {
         val state = SliderState(0.25f)
         setContent {
             ProvideM3xMaterialRendering {
-                MaterialTheme { Slider(state, Modifier.testTag("slider")) }
+                MaterialTheme {
+                    Slider(
+                        state,
+                        onValueChange = { state.value = it },
+                        modifier = Modifier.testTag("slider"),
+                    )
+                }
             }
         }
         onNodeWithTag("slider").performSemanticsAction(SemanticsActions.SetProgress) { it(0.75f) }

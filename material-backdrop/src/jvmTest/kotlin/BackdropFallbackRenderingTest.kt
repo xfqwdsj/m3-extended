@@ -23,7 +23,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.m3x.backdrop.BackdropLayerHandle
 import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.material.FloatingBottomBar
@@ -107,7 +107,8 @@ class BackdropFallbackRenderingTest {
                         BackdropTopAppBar(
                             title = { Text("Title") },
                             modifier = Modifier.testTag("topBar"),
-                            mask = BackdropMask(topBarTint, alpha = 0.1f),
+                            fill = BackdropFill(topBarTint, alpha = 0.1f),
+                            scrollBehavior = scrolledAppBarBehavior(),
                         )
                         OverlayPlainTooltip(
                             modifier = Modifier.testTag("tooltip"),
@@ -120,7 +121,7 @@ class BackdropFallbackRenderingTest {
             }
         }
         val topBar = onNodeWithTag("topBar").captureToImage()
-        // The mask alpha multiplies the alpha of the mask color, so a translucent mask color
+        // The fill alpha multiplies the alpha of the fill color, so a translucent fill color
         // weakens the ramp instead of being overridden by it.
         assertClose(
             topBarTint.copy(
@@ -139,7 +140,7 @@ class BackdropFallbackRenderingTest {
     }
 
     @Test
-    fun topBarUsesProgressiveMaskOpacityByDefaultWithoutBackdrop() = runComposeUiTest {
+    fun topBarUsesProgressiveFillOpacityByDefaultWithoutBackdrop() = runComposeUiTest {
         var fallback = 0f
         setContent {
             ProvideM3xMaterialRendering {
@@ -149,7 +150,8 @@ class BackdropFallbackRenderingTest {
                     BackdropTopAppBar(
                         title = {},
                         modifier = Modifier.testTag("topBar"),
-                        mask = BackdropMask(Color.Red),
+                        fill = BackdropFill(Color.Red),
+                        scrollBehavior = scrolledAppBarBehavior(),
                     )
                 }
             }

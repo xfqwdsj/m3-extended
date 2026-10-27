@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -25,7 +26,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import top.ltfan.backdrop.BackdropCurve
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropRamp
 import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.backdrop.captureBackdrop
@@ -39,7 +40,7 @@ import top.ltfan.m3x.material.backdrop.theme.backdrop
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.material.theme.extended
 
-class BackdropMaskTest {
+class BackdropFillTest {
     /** A straight curve, so a test can predict the ramp by hand. */
     private val linearCurve = BackdropCurve.Linear
 
@@ -66,6 +67,7 @@ class BackdropMaskTest {
                                         Box(Modifier.size(48.dp))
                                     }
                                 },
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -81,7 +83,7 @@ class BackdropMaskTest {
         }
         val blue = sampled.getValue(Color.Blue)
         val red = sampled.getValue(Color.Red)
-        // The bar's mask covers most of the capsule, so the page color shows through as a tint:
+        // The bar's fill covers most of the capsule, so the page color shows through as a tint:
         // enough to tell the two pages apart, and never the green backing behind them.
         assertTrue(
             blue.blue > red.blue && red.red > blue.red,
@@ -118,44 +120,49 @@ class BackdropMaskTest {
                                             {},
                                             modifier,
                                             windowInsets = insets,
-                                            mask =
-                                                BackdropMask(
+                                            fill =
+                                                BackdropFill(
                                                     Color.White,
                                                     alpha = 0.6f,
                                                 ),
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                     1 ->
-                                        BackdropCenterAlignedTopAppBar(
+                                        BackdropTopAppBar(
                                             {},
                                             modifier,
                                             windowInsets = insets,
-                                            mask =
-                                                BackdropMask(
+                                            fill =
+                                                BackdropFill(
                                                     Color.White,
                                                     alpha = 0.6f,
                                                 ),
+                                            scrollBehavior = scrolledAppBarBehavior(),
+                                            titleHorizontalAlignment = Alignment.CenterHorizontally,
                                         )
                                     2 ->
                                         BackdropMediumFlexibleTopAppBar(
                                             {},
                                             modifier,
                                             windowInsets = insets,
-                                            mask =
-                                                BackdropMask(
+                                            fill =
+                                                BackdropFill(
                                                     Color.White,
                                                     alpha = 0.6f,
                                                 ),
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                     else ->
                                         BackdropLargeFlexibleTopAppBar(
                                             {},
                                             modifier,
                                             windowInsets = insets,
-                                            mask =
-                                                BackdropMask(
+                                            fill =
+                                                BackdropFill(
                                                     Color.White,
                                                     alpha = 0.6f,
                                                 ),
+                                            scrollBehavior = scrolledAppBarBehavior(),
                                         )
                                 }
                             }
@@ -184,8 +191,8 @@ class BackdropMaskTest {
     }
 
     @Test
-    fun maskBrushPaintsThePageBackgroundThroughTheSameRamp() = runInitializedComposeUiTest {
-        // The page is pure blue and the mask paints red, so the two contributions stay separable.
+    fun fillBrushPaintsThePageBackgroundThroughTheSameRamp() = runInitializedComposeUiTest {
+        // The page is pure blue and the fill paints red, so the two contributions stay separable.
         val background = Brush.verticalGradient(listOf(Color.Red, Color.Red))
         setContent {
             ProvideM3xMaterialRendering {
@@ -195,7 +202,8 @@ class BackdropMaskTest {
                             {},
                             Modifier.testTag("bar"),
                             windowInsets = WindowInsets(0, 0, 0, 0),
-                            mask = BackdropMask(brush = background, alpha = 1f),
+                            fill = BackdropFill(brush = background, alpha = 1f),
+                            scrollBehavior = scrolledAppBarBehavior(),
                         )
                     }
                 }
@@ -206,7 +214,7 @@ class BackdropMaskTest {
             val y = (pixels.height * fraction).toInt().coerceAtMost(pixels.height - 1)
             val strength = appBarRampIntensity(y + 0.5f, pixels.height.toFloat())
             val actual = pixels[pixels.width / 2, y]
-            // The mask keeps its maximum alpha while its colors come from the caller's brush, so
+            // The fill keeps its maximum alpha while its colors come from the caller's brush, so
             // the sampled pixel is the brush over the page at the ramp's alpha.
             assertTrue(
                 abs(actual.red - strength) < 0.03f,
@@ -220,11 +228,11 @@ class BackdropMaskTest {
     }
 
     @Test
-    fun themeRampMovesTheMaskAndItsBlurTogether() = runInitializedComposeUiTest {
+    fun themeRampMovesTheFillAndItsBlurTogether() = runInitializedComposeUiTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme(colorScheme = lightColorScheme(surface = Color.White)) {
-                    // A black page keeps the sampled pixel equal to the mask's own alpha.
+                    // A black page keeps the sampled pixel equal to the fill's own alpha.
                     Box(Modifier.size(240.dp, 280.dp).background(Color.Black)) {
                         ProvideBackdropMaterial(
                             MaterialSurfaceRole.ScrollEdge,
@@ -236,7 +244,8 @@ class BackdropMaskTest {
                                 {},
                                 Modifier.testTag("bar"),
                                 windowInsets = WindowInsets(0, 0, 0, 0),
-                                mask = BackdropMask(Color.White, alpha = 0.6f),
+                                fill = BackdropFill(Color.White, alpha = 0.6f),
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -262,7 +271,7 @@ class BackdropMaskTest {
     }
 
     @Test
-    fun disabledBlurHandsTheSeparationToTheMask() = runInitializedComposeUiTest {
+    fun disabledBlurHandsTheSeparationToTheFill() = runInitializedComposeUiTest {
         val blurEnabled = mutableStateOf(true)
         var tint = 0f
         var fallback = 0f
@@ -285,14 +294,15 @@ class BackdropMaskTest {
                                 {},
                                 Modifier.testTag("bar"),
                                 windowInsets = WindowInsets(0, 0, 0, 0),
-                                mask = BackdropMask(Color.White),
+                                fill = BackdropFill(Color.White),
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
                 }
             }
         }
-        // With blur on, the theme's sampled tint applies; with it off, the mask has to carry the
+        // With blur on, the theme's sampled tint applies; with it off, the fill has to carry the
         // whole separation and takes the theme's stronger fallback alpha.
         val expected = listOf(tint, fallback)
         for ((index, blur) in listOf(true, false).withIndex()) {
@@ -308,11 +318,11 @@ class BackdropMaskTest {
     }
 
     @Test
-    fun progressiveBlurOfARoleDoesNotCarryAMask() = runInitializedComposeUiTest {
+    fun progressiveBlurOfARoleDoesNotCarryAFill() = runInitializedComposeUiTest {
         var fallback = 0f
         var ramp = BackdropRamp()
-        // The scroll edge role chooses the progressive blur; masking stays an explicit request, so
-        // the same role draws a flat tint beside the ramped one until a mask asks for the ramp.
+        // The scroll edge role chooses the progressive blur; filling stays an explicit request, so
+        // the same role draws a flat tint beside the ramped one until a fill asks for the ramp.
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme(colorScheme = lightColorScheme(surface = Color.White)) {
@@ -330,11 +340,11 @@ class BackdropMaskTest {
                                 effects = {},
                             ) {}
                             BackdropSurface(
-                                Modifier.size(100.dp, 200.dp).testTag("masked"),
+                                Modifier.size(100.dp, 200.dp).testTag("filled"),
                                 shape = RectangleShape,
                                 role = MaterialSurfaceRole.ScrollEdge,
                                 effects = {},
-                                mask = BackdropMask(),
+                                fill = BackdropFill(),
                             ) {}
                         }
                     }
@@ -342,32 +352,32 @@ class BackdropMaskTest {
             }
         }
         val flat = onNodeWithTag("flat").captureToImage().toPixelMap()
-        val masked = onNodeWithTag("masked").captureToImage().toPixelMap()
-        // The mask follows the material's ramp: 0 on the surface's content side, which for a top
+        val filled = onNodeWithTag("filled").captureToImage().toPixelMap()
+        // The fill follows the material's ramp: 0 on the surface's content side, which for a top
         // edge
         // is its bottom, growing towards its own far edge.
-        val axis = axisOf(masked.height.toFloat())
+        val axis = axisOf(filled.height.toFloat())
         val span = ramp.span(axis)
         for (fraction in listOf(0.0f, 0.25f, 0.5f, 0.75f, 0.99f)) {
             val y = (flat.height * fraction).toInt().coerceAtMost(flat.height - 1)
             val flatAlpha = flat[flat.width / 2, y].red
-            val maskedAlpha = masked[masked.width / 2, y].red
+            val filledAlpha = filled[filled.width / 2, y].red
             assertTrue(
                 abs(flatAlpha - fallback) < 0.03f,
-                "fraction=$fraction a surface without a mask must stay flat: $flatAlpha",
+                "fraction=$fraction a surface without a fill must stay flat: $flatAlpha",
             )
             val position =
-                ((masked.height - (y + 0.5f)) - span.start) / (span.endInclusive - span.start)
+                ((filled.height - (y + 0.5f)) - span.start) / (span.endInclusive - span.start)
             val expected = fallback * ramp.intensityAt(position.coerceIn(0f, 1f))
             assertTrue(
-                abs(maskedAlpha - expected) < 0.03f,
-                "fraction=$fraction the requested mask must ramp: $maskedAlpha vs $expected",
+                abs(filledAlpha - expected) < 0.03f,
+                "fraction=$fraction the requested fill must ramp: $filledAlpha vs $expected",
             )
         }
     }
 
     @Test
-    fun maskRampOverridesTheMaterialRampForTheMaskAlone() = runInitializedComposeUiTest {
+    fun fillRampOverridesTheMaterialRampForTheFillAlone() = runInitializedComposeUiTest {
         var fallback = 0f
         setContent {
             ProvideM3xMaterialRendering {
@@ -383,15 +393,15 @@ class BackdropMaskTest {
                                 shape = RectangleShape,
                                 role = MaterialSurfaceRole.ScrollEdge,
                                 effects = {},
-                                mask = BackdropMask(Color.White),
+                                fill = BackdropFill(Color.White),
                             ) {}
                             BackdropSurface(
                                 Modifier.size(120.dp, 200.dp).testTag("override"),
                                 shape = RectangleShape,
                                 role = MaterialSurfaceRole.ScrollEdge,
                                 effects = {},
-                                mask =
-                                    BackdropMask(
+                                fill =
+                                    BackdropFill(
                                         Color.White,
                                         ramp = BackdropRamp(curve = linearCurve),
                                     ),
@@ -414,13 +424,13 @@ class BackdropMaskTest {
                 abs(expected - actual) < 0.03f,
                 "fraction=$fraction expected=$expected actual=$actual",
             )
-            // Whatever shape the theme's curve has, the mask's own ramp is what it paints.
+            // Whatever shape the theme's curve has, the fill's own ramp is what it paints.
             val differs =
                 (0 until theme.height step 4).any { row ->
                     abs(override[override.width / 2, row].red - theme[theme.width / 2, row].red) >
                         0.02f
                 }
-            assertTrue(differs, "the mask's own ramp must replace the material's")
+            assertTrue(differs, "the fill's own ramp must replace the material's")
         }
     }
 }

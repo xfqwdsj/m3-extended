@@ -33,7 +33,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -48,10 +47,7 @@ import top.ltfan.m3x.material.overlay.internal.snapTo
  *
  * Contains states relating to its swipe position as well as animations between state values.
  *
- * @param skipPartiallyExpanded whether the partially expanded state, if the sheet is large enough,
- *   should be skipped. If true, the sheet will always expand to the
- *   [OverlayBottomSheetValue.Expanded] state and move to the [OverlayBottomSheetValue.Hidden] state
- *   if available when hiding the sheet, either programmatically or by user interaction.
+ * @param enabledValues the states the sheet can settle in; includes Expanded and initialValue.
  * @param positionalThreshold the positional threshold, in px, to be used when calculating the
  *   target state while a drag is in progress and when settling after the drag ends. This is the
  *   distance from the start of a transition. It will be, depending on the direction of the
@@ -62,33 +58,30 @@ import top.ltfan.m3x.material.overlay.internal.snapTo
  *   reached.
  * @param initialValue the initial value of the state.
  * @param confirmValueChange optional callback invoked to confirm or veto a pending state change.
- * @param skipHiddenState whether the hidden state should be skipped. If true, the sheet will always
- *   expand to the [OverlayBottomSheetValue.Expanded] state and move to the
- *   [OverlayBottomSheetValue.PartiallyExpanded] if available, either programmatically or by user
- *   interaction.
  */
 @Stable
 public class OverlayBottomSheetState
-internal constructor(
-    internal val skipPartiallyExpanded: Boolean,
+public constructor(
+    public val enabledValues: Set<OverlayBottomSheetValue>,
     positionalThreshold: () -> Float,
     velocityThreshold: () -> Float,
     initialValue: OverlayBottomSheetValue = OverlayBottomSheetValue.Hidden,
     internal val confirmValueChange: (OverlayBottomSheetValue) -> Boolean = { true },
-    internal val skipHiddenState: Boolean = false,
 ) {
     init {
-        if (skipPartiallyExpanded) {
-            require(initialValue != OverlayBottomSheetValue.PartiallyExpanded) {
-                "The initial value must not be set to PartiallyExpanded if skipPartiallyExpanded is set to true."
-            }
+        require(OverlayBottomSheetValue.Expanded in enabledValues) {
+            "Expanded must be one of the enabled values."
         }
-        if (skipHiddenState) {
-            require(initialValue != OverlayBottomSheetValue.Hidden) {
-                "The initial value must not be set to Hidden if skipHiddenState is set to true."
-            }
+        require(initialValue in enabledValues) {
+            "The initial value must be one of the enabled values."
         }
     }
+
+    internal val skipPartiallyExpanded: Boolean
+        get() = OverlayBottomSheetValue.PartiallyExpanded !in enabledValues
+
+    internal val skipHiddenState: Boolean
+        get() = OverlayBottomSheetValue.Hidden !in enabledValues
 
     /**
      * The current value of the state.
@@ -171,11 +164,11 @@ internal constructor(
      * partially expanded or animation has been canceled.
      *
      * @throws CancellationException if the animation is interrupted
-     * @throws IllegalStateException if [skipPartiallyExpanded] is set to true
+     * @throws IllegalStateException if PartiallyExpanded is absent from [enabledValues]
      */
     public suspend fun partialExpand() {
         check(!skipPartiallyExpanded) {
-            "Attempted to animate to partial expanded when skipPartiallyExpanded was enabled. Set skipPartiallyExpanded to false to use this function."
+            "PartiallyExpanded must be one of the enabled values."
         }
         if (confirmValueChange(OverlayBottomSheetValue.PartiallyExpanded)) {
             animateTo(OverlayBottomSheetValue.PartiallyExpanded, hideMotionSpec)
@@ -206,7 +199,7 @@ internal constructor(
      */
     public suspend fun hide() {
         check(!skipHiddenState) {
-            "Attempted to animate to hidden when skipHiddenState was enabled. Set skipHiddenState to false to use this function."
+            "Hidden must be one of the enabled values."
         }
         if (confirmValueChange(OverlayBottomSheetValue.Hidden)) {
             animateTo(OverlayBottomSheetValue.Hidden, hideMotionSpec)
@@ -336,68 +329,24 @@ internal constructor(
     public companion object {
         /** The default [Saver] implementation for [OverlayBottomSheetState]. */
         public fun Saver(
-            skipPartiallyExpanded: Boolean,
+            enabledValues: Set<OverlayBottomSheetValue>,
             positionalThreshold: () -> Float,
             velocityThreshold: () -> Float,
             confirmValueChange: (OverlayBottomSheetValue) -> Boolean,
-            skipHiddenState: Boolean,
         ): Saver<OverlayBottomSheetState, OverlayBottomSheetValue> =
             Saver(
                 save = { it.currentValue },
                 restore = { savedValue ->
                     OverlayBottomSheetState(
-                        skipPartiallyExpanded,
+                        enabledValues,
                         positionalThreshold,
                         velocityThreshold,
                         savedValue,
                         confirmValueChange,
-                        skipHiddenState,
                     )
                 },
             )
-
-        /**
-         * The default [Saver] implementation for [OverlayBottomSheetState], using a fixed
-         * [density].
-         */
-        public fun Saver(
-            skipPartiallyExpanded: Boolean,
-            confirmValueChange: (OverlayBottomSheetValue) -> Boolean,
-            density: Density,
-            skipHiddenState: Boolean,
-        ): Saver<OverlayBottomSheetState, OverlayBottomSheetValue> =
-            Saver(
-                skipPartiallyExpanded = skipPartiallyExpanded,
-                confirmValueChange = confirmValueChange,
-                skipHiddenState = skipHiddenState,
-                positionalThreshold = {
-                    with(density) { OverlayBottomSheetDefaults.PositionalThreshold.toPx() }
-                },
-                velocityThreshold = {
-                    with(density) { OverlayBottomSheetDefaults.VelocityThreshold.toPx() }
-                },
-            )
     }
-
-    /** Creates a [OverlayBottomSheetState] with the given [density] for its thresholds. */
-    public constructor(
-        skipPartiallyExpanded: Boolean,
-        density: Density,
-        initialValue: OverlayBottomSheetValue = OverlayBottomSheetValue.Hidden,
-        confirmValueChange: (OverlayBottomSheetValue) -> Boolean = { true },
-        skipHiddenState: Boolean = false,
-    ) : this(
-        skipPartiallyExpanded = skipPartiallyExpanded,
-        positionalThreshold = {
-            with(density) { OverlayBottomSheetDefaults.PositionalThreshold.toPx() }
-        },
-        velocityThreshold = {
-            with(density) { OverlayBottomSheetDefaults.VelocityThreshold.toPx() }
-        },
-        initialValue = initialValue,
-        confirmValueChange = confirmValueChange,
-        skipHiddenState = skipHiddenState,
-    )
 }
 
 /** Possible values of [OverlayBottomSheetState]. */
@@ -432,22 +381,22 @@ public object OverlayBottomSheetDefaults {
 /** Creates and remembers a [OverlayBottomSheetState] for a modal bottom sheet. */
 @Composable
 public fun rememberOverlayBottomSheetState(
-    skipPartiallyExpanded: Boolean = false,
+    initialValue: OverlayBottomSheetValue = OverlayBottomSheetValue.Hidden,
+    enabledValues: Set<OverlayBottomSheetValue> = OverlayBottomSheetValue.entries.toSet(),
     confirmValueChange: (OverlayBottomSheetValue) -> Boolean = { true },
 ): OverlayBottomSheetState =
     rememberOverlayBottomSheetStateInternal(
-        skipPartiallyExpanded = skipPartiallyExpanded,
+        enabledValues = enabledValues,
         confirmValueChange = confirmValueChange,
-        initialValue = OverlayBottomSheetValue.Hidden,
+        initialValue = initialValue,
     )
 
 /** Creates and remembers a [OverlayBottomSheetState] with the given [initialValue]. */
 @Composable
 internal fun rememberOverlayBottomSheetStateInternal(
-    skipPartiallyExpanded: Boolean = false,
+    enabledValues: Set<OverlayBottomSheetValue> = OverlayBottomSheetValue.entries.toSet(),
     confirmValueChange: (OverlayBottomSheetValue) -> Boolean = { true },
     initialValue: OverlayBottomSheetValue = OverlayBottomSheetValue.Hidden,
-    skipHiddenState: Boolean = false,
     positionalThreshold: Dp = OverlayBottomSheetDefaults.PositionalThreshold,
     velocityThreshold: Dp = OverlayBottomSheetDefaults.VelocityThreshold,
 ): OverlayBottomSheetState {
@@ -455,25 +404,22 @@ internal fun rememberOverlayBottomSheetStateInternal(
     val positionalThresholdToPx = { with(density) { positionalThreshold.toPx() } }
     val velocityThresholdToPx = { with(density) { velocityThreshold.toPx() } }
     return rememberSaveable(
-        skipPartiallyExpanded,
+        enabledValues,
         confirmValueChange,
-        skipHiddenState,
         saver =
             OverlayBottomSheetState.Saver(
-                skipPartiallyExpanded = skipPartiallyExpanded,
+                enabledValues = enabledValues,
                 positionalThreshold = positionalThresholdToPx,
                 velocityThreshold = velocityThresholdToPx,
                 confirmValueChange = confirmValueChange,
-                skipHiddenState = skipHiddenState,
             ),
     ) {
         OverlayBottomSheetState(
-            skipPartiallyExpanded,
+            enabledValues,
             positionalThresholdToPx,
             velocityThresholdToPx,
             initialValue,
             confirmValueChange,
-            skipHiddenState,
         )
     }
 }

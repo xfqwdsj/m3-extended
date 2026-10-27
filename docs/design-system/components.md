@@ -9,13 +9,15 @@ where each contract applies and how an application uses it.
 Backdrop top bars consume a `TopAppBarScrollBehavior`; connect its `nestedScrollConnection`
 to the scrolling content. Glass appears when its state reports content under the bar, and clears
 when content returns to the start. Background optics follow the [bounded transition contract](accessibility-and-motion.md).
-With no behavior, glass stays present. When replacing the content tracked by a behavior, clear its
+With no behavior, glass stays present within the bar, preserving the supplied fill brush without
+progressive extension. When replacing the content tracked by a behavior, clear its
 state as the demo does when opening another page.
 
 Measure content insets through `Scaffold`'s current `innerPadding`. For a lazy list, put the current
 top inset in `contentPadding` so content can scroll under a collapsing bar as its height changes.
-The full-size background remains behind the app bar. The demo disables the Lab's collapsing
-behavior at the narrow breakpoint and resets offsets when returning to the wide layout.
+The full-size background remains behind the app bar. The demo pins the narrow Lab's bar and disables
+scroll updates while its retained overlap animation clears the background optics. Navigation and
+breakpoint changes reset offsets.
 
 `BackdropTopAppBarControl` groups a navigation icon or actions in a single capsule material. Paired
 M3X top bars allow control shadows outside their rows while clipping title content.
@@ -64,8 +66,11 @@ responsibility of `BackdropHost`. Dismissal timing is component-specific and is 
 [overlay integration](../overlays.md#dismissal-contract).
 
 Back preview traverses the current exit animation and restores it on cancellation. The same
-NavigationEvent gesture stays with its original entry. Sheets retain their partial-collapse and
-state-change veto behavior. See [gesture integration](../overlays.md#dismissal-contract).
+NavigationEvent gesture stays with its original entry. Sheets select available states through
+`enabledValues`, which includes Expanded and the initial state. A small sheet keeps its enabled
+partial anchor at the expanded position; growing a sheet from those converged anchors preserves
+full expansion. State-change vetoes remain caller-owned.
+See [gesture integration](../overlays.md#dismissal-contract).
 
 Source: [overlay host](../../overlay/src/commonMain/kotlin/Overlay.kt).
 Regressions: [visibility](../../overlay/src/commonTest/kotlin/OverlayVisibilityProviderTest.kt),
@@ -103,16 +108,18 @@ Regression: [settings rendering and interaction](../../settings-page-material/sr
 
 ## C7. Expressive controls retain Material interaction ownership
 
-M3X uses the Expressive interaction overload when Material supplies one. Material owns the control's
+M3X exposes Expressive controls and follows official replacement recommendations. Wrappers address
+Backdrop rendering or extended-theme integration; controls that work directly use Material APIs.
+Connected button groups provide single- and multi-selection. Material owns the control's
 layout, semantics, interaction states, typography, and motion. M3X shape defaults adapt the designated
 resting or selected role; explicit shapes and other caller-supplied values keep precedence. Components
 with host-managed optics retain the host, material, and lifecycle contracts above.
 
 Toggle buttons accept Material's `ToggleButtonSize` and optional icon slot. The size selects native
 height, padding, typography, and icon dimensions; the resting shape still follows the extended theme.
-Slider state overloads accept explicit change and completion callbacks. A change callback receives a
-proposed value for the owner to accept; omitting it lets the native slider state update itself.
-Value-based adapters keep the value in application-owned state.
+Slider controls take a state and a required change callback, with an optional completion callback.
+The change callback receives a proposed value for the owner to accept and assign to the state.
+Thumbs take explicit orientation when used outside their default control slots.
 
 Search fields, collapsed bars, and expanded results share one `SearchBarState`. Menu items use the
 Material action, checkbox, or radio semantics and content slots, while the enclosing `OverlayHost`

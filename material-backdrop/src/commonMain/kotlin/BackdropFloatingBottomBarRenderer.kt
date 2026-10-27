@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
@@ -49,9 +50,14 @@ import top.ltfan.backdrop.backdrops.rememberLayerBackdrop
 import top.ltfan.backdrop.drawBackdrop
 import top.ltfan.backdrop.effects.lens
 import top.ltfan.backdrop.highlight.Highlight
+import top.ltfan.backdrop.highlight.highlight
 import top.ltfan.backdrop.interaction.InteractionLight
+import top.ltfan.backdrop.interaction.InteractionLighting
+import top.ltfan.backdrop.interaction.interactionLight
 import top.ltfan.backdrop.interaction.interactionLightSource
 import top.ltfan.backdrop.shadow.Shadow
+import top.ltfan.backdrop.shadow.innerShadow
+import top.ltfan.backdrop.shadow.shadow
 import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.compose.foundation.gestures.DampedDragState
 import top.ltfan.m3x.compose.ui.accessibility.BackgroundTransparencyEnabled
@@ -91,8 +97,8 @@ public object BackdropFloatingBottomBarRenderer : FloatingBottomBarRenderer {
 
         val reduceTransparency = !BackgroundTransparencyEnabled
         val sourceBackdrop = LocalBackdrop.current?.backdrop
-        // The tab layer contributes only its recorded area; enlarged indicators sample the page
-        // beyond it.
+        // The finite tab surface keeps its own contour inside the enlarged lens. Pixels
+        // outside that surface come from the page.
         val tabsBackdrop =
             if (sourceBackdrop != null) rememberLayerBackdrop(tileMode = TileMode.Decal) else null
         val combinedBackdrop =
@@ -138,36 +144,6 @@ public object BackdropFloatingBottomBarRenderer : FloatingBottomBarRenderer {
                     drawBackdrop(
                         backdrop = combinedBackdrop,
                         shape = { shape },
-                        effects = {
-                            val progress = pressFraction()
-                            if (!reduceTransparency) {
-                                if (indicatorEffects != null)
-                                    (indicatorEffects as BackdropIndicatorEffects).block(
-                                        this,
-                                        progress,
-                                    )
-                                else if (shape is CornerBasedShape)
-                                    lens(
-                                        10.dp.toPx() * progress,
-                                        14.dp.toPx() * progress,
-                                        chromaticAberration = true,
-                                    )
-                            }
-                        },
-                        highlight = {
-                            val base = appearance.style.highlight()
-                            if (base is Highlight.Config)
-                                base.copy(opacity = base.opacity * pressFraction())
-                            else base
-                        },
-                        shadow = {
-                            val base = appearance.style.shadow()
-                            if (base is Shadow.Config)
-                                base.copy(alpha = base.alpha * pressFraction())
-                            else base
-                        },
-                        innerShadow = appearance.style.innerShadow,
-                        interactionLighting = appearance.style.interactionLighting,
                         layerBlock = {
                             scaleX = if (appearance.reduceMotion) 1f else dampedDragAnimation.scaleX
                             scaleY = if (appearance.reduceMotion) 1f else dampedDragAnimation.scaleY
@@ -177,15 +153,62 @@ public object BackdropFloatingBottomBarRenderer : FloatingBottomBarRenderer {
                             scaleX /= 1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f)
                             scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
                         },
-                        onDrawSurface = {
-                            val progress = pressFraction()
-                            drawRect(
-                                highlightColor.copy(alpha = 0.1f),
-                                alpha = 1f - progress,
+                    ) {
+                        val material = image {
+                            source()
+                            if (!reduceTransparency) {
+                                effects {
+                                    val progress = pressFraction()
+                                    if (indicatorEffects != null)
+                                        (indicatorEffects as BackdropIndicatorEffects).block(
+                                            this,
+                                            progress,
+                                        )
+                                    else if (shape is CornerBasedShape)
+                                        lens(
+                                            10.dp.toPx() * progress,
+                                            14.dp.toPx() * progress,
+                                            chromaticAberration = true,
+                                        )
+                                }
+                            }
+                            clipSurface()
+                        }
+                        val lighting = appearance.style.interactionLighting!!.invoke()
+                        group {
+                            val shadowConfig = appearance.style.shadow!!.invoke()
+                            if (shadowConfig is Shadow.Config)
+                                shadow(
+                                    shadowConfig.copy(
+                                        alpha = shadowConfig.alpha * pressFraction(),
+                                    ),
+                                )
+                            else shadow(shadowConfig)
+                            draw(material)
+                            paintSurface(compositingStrategy = CompositingStrategy.Auto) {
+                                val progress = pressFraction()
+                                drawRect(
+                                    highlightColor.copy(alpha = 0.1f),
+                                    alpha = 1f - progress,
+                                )
+                                drawRect(highlightColor.copy(alpha = 0.03f * progress))
+                            }
+                            if (lighting is InteractionLighting.Config) interactionLight(lighting)
+                        }
+                        foreground {
+                            val highlight = appearance.style.highlight!!.invoke()
+                            highlight(
+                                if (highlight is Highlight.Config)
+                                    highlight.copy(
+                                        opacity = highlight.opacity * pressFraction(),
+                                    )
+                                else highlight,
+                                colorSource = material,
+                                interactionLighting = lighting,
                             )
-                            drawRect(highlightColor.copy(alpha = 0.03f * progress))
-                        },
-                    )
+                            innerShadow(appearance.style.innerShadow!!.invoke())
+                        }
+                    }
                 }
             }
 
@@ -227,36 +250,43 @@ public object BackdropFloatingBottomBarRenderer : FloatingBottomBarRenderer {
                         Row(
                             Modifier.clearAndSetSemantics {}
                                 .alpha(0f)
-                                // The sway transform sits outside the recording: the layer records
-                                // the
-                                // tabs in the row's own coordinates, where they fit its bounds, and
-                                // the
-                                // layer's position carries the movement to consumers like the
-                                // indicator.
-                                // A transform inside the recording draws past the layer's bounds
-                                // and
-                                // samples back shifted from where the bar draws its own tabs.
+                                // Record tabs in their row coordinates. The outer sway transform
+                                // carries their movement to the indicator without clipping the
+                                // recording or shifting the sampled tab pixels inside its bounds.
                                 .graphicsLayer {
                                     translationX = panelOffset()
                                 }
                                 .layerBackdrop(tabsBackdrop)
-                                .drawBackdrop(
-                                    backdrop = sourceBackdrop,
-                                    shape = { shape },
-                                    effects = {
-                                        appearance.style.effects(this)
-                                    },
-                                    highlight = {
-                                        val highlight = appearance.style.highlight()
-                                        if (highlight is Highlight.Config)
-                                            highlight.copy(
-                                                opacity = highlight.opacity * pressFraction(),
-                                            )
-                                        else highlight
-                                    },
-                                    onDrawSurface = { drawRect(containerColor) },
-                                    interactionLighting = appearance.style.interactionLighting,
-                                )
+                                .drawBackdrop(backdrop = sourceBackdrop, shape = { shape }) {
+                                    val material = image {
+                                        source()
+                                        materialEffects(appearance)
+                                        clipSurface()
+                                    }
+                                    val lighting = appearance.style.interactionLighting!!.invoke()
+                                    group {
+                                        draw(material)
+                                        paintSurface(
+                                            compositingStrategy = CompositingStrategy.Auto,
+                                        ) {
+                                            drawRect(containerColor)
+                                        }
+                                        if (lighting is InteractionLighting.Config)
+                                            interactionLight(lighting)
+                                    }
+                                    foreground {
+                                        val contour = appearance.style.highlight!!.invoke()
+                                        highlight(
+                                            if (contour is Highlight.Config)
+                                                contour.copy(
+                                                    opacity = contour.opacity * pressFraction(),
+                                                )
+                                            else contour,
+                                            colorSource = material,
+                                            interactionLighting = lighting,
+                                        )
+                                    }
+                                }
                                 .height(56.dp)
                                 .padding(horizontal = 4.dp)
                                 .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),

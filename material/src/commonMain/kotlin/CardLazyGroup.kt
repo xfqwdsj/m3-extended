@@ -518,6 +518,7 @@ private class CardGroup(
     private val colors: @Composable () -> CardColors,
     private val elevation: @Composable () -> CardElevation,
     private val border: @Composable () -> BorderStroke?,
+    private val backdrop: Boolean,
     private val backdropMaterial: @Composable () -> MaterialSurfaceStyle?,
     private val items: List<LazyItemWithModifier>,
 ) : LazyGroup {
@@ -552,7 +553,8 @@ private class CardGroup(
                     colors = scope.colors(),
                     elevation = scope.elevation(),
                     border = scope.border(),
-                    backdropMaterial = scope.backdropMaterial(),
+                    backdrop = scope.backdrop,
+                    backdropMaterial = if (scope.backdrop) scope.backdropMaterial() else null,
                 ) {
                     content()
                 }
@@ -676,9 +678,10 @@ private data class CardHeaderContent(val contentType: Any?)
  *   [CornerBasedShape].
  * @param colors composable lambda providing the [CardColors] for the card.
  * @param elevation composable lambda providing the [CardElevation] for the card.
+ * @param border composable lambda providing an optional [BorderStroke] for the card.
+ * @param backdrop whether the selected surface renderer draws the card backing.
  * @param backdropMaterial composable lambda providing the optional renderer-specific surface style
  *   for each card.
- * @param border composable lambda providing an optional [BorderStroke] for the card.
  * @param content composable content of the card body.
  */
 public fun GroupedLazyListScope.cardItem(
@@ -690,6 +693,7 @@ public fun GroupedLazyListScope.cardItem(
     colors: @Composable () -> CardColors = { CardColorsLowest },
     elevation: @Composable () -> CardElevation = { CardDefaults.cardElevation() },
     border: @Composable () -> BorderStroke? = { null },
+    backdrop: Boolean = true,
     backdropMaterial: @Composable () -> MaterialSurfaceStyle? = {
         LocalMaterialSurfaceRenderer.current.style(MaterialSurfaceRole.Surface)
     },
@@ -701,6 +705,7 @@ public fun GroupedLazyListScope.cardItem(
         colors = colors,
         elevation = elevation,
         border = border,
+        backdrop = backdrop,
         backdropMaterial = backdropMaterial,
     ) {
         item(key, contentType, modifier, content)
@@ -718,9 +723,10 @@ public fun GroupedLazyListScope.cardItem(
  *   [CardGroupShapePosition.Middle] for an inner card. Single-card groups use [shape] directly.
  * @param colors composable lambda returning the default [CardColors].
  * @param elevation composable lambda returning the default [CardElevation].
+ * @param border composable lambda returning an optional [BorderStroke].
+ * @param backdrop whether the selected surface renderer draws the card backing.
  * @param backdropMaterial composable lambda providing the optional renderer-specific surface style
  *   for each card.
- * @param border composable lambda returning an optional [BorderStroke].
  * @param content DSL block configuring the card group (items, header, etc.).
  */
 public fun GroupedLazyListScope.card(
@@ -730,6 +736,7 @@ public fun GroupedLazyListScope.card(
     colors: @Composable () -> CardColors = { CardColorsLowest },
     elevation: @Composable () -> CardElevation = { CardDefaults.cardElevation() },
     border: @Composable () -> BorderStroke? = { null },
+    backdrop: Boolean = true,
     backdropMaterial: @Composable () -> MaterialSurfaceStyle? = {
         LocalMaterialSurfaceRenderer.current.style(MaterialSurfaceRole.Surface)
     },
@@ -753,6 +760,7 @@ public fun GroupedLazyListScope.card(
             colors = colors,
             elevation = elevation,
             border = border,
+            backdrop = backdrop,
             backdropMaterial = backdropMaterial,
             items = snapshot.orderedItems(),
         ),
@@ -769,9 +777,10 @@ public fun GroupedLazyListScope.card(
  *   is supplied as the first argument.
  * @param colors function returning colors for each group element.
  * @param elevation function returning elevation for each group element.
+ * @param border function returning border for each group element.
+ * @param backdrop function returning whether the selected surface renderer draws each card backing.
  * @param backdropMaterial function providing the optional renderer-specific surface style for each
  *   group.
- * @param border function returning border for each group element.
  * @param content DSL block configuring each created [CardLazyGroup].
  */
 public inline fun <T> GroupedLazyListScope.cards(
@@ -784,6 +793,7 @@ public inline fun <T> GroupedLazyListScope.cards(
     crossinline colors: @Composable (T) -> CardColors = { CardColorsLowest },
     crossinline elevation: @Composable (T) -> CardElevation = { CardDefaults.cardElevation() },
     crossinline border: @Composable (T) -> BorderStroke? = { null },
+    backdrop: (T) -> Boolean = { true },
     crossinline backdropMaterial: @Composable (T) -> MaterialSurfaceStyle? = { null },
     crossinline content: CardLazyGroup.(T) -> Unit,
 ): Unit = groups.forEach { group ->
@@ -799,6 +809,7 @@ public inline fun <T> GroupedLazyListScope.cards(
         colors = { colors(group) },
         elevation = { elevation(group) },
         border = { border(group) },
+        backdrop = backdrop(group),
         backdropMaterial = { backdropMaterial(group) },
     ) {
         content(group)

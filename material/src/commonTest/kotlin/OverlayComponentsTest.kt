@@ -47,6 +47,7 @@ import top.ltfan.m3x.material.backdrop.backdropEffects
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.material.overlay.OverlayBottomSheet
 import top.ltfan.m3x.material.overlay.OverlayBottomSheetState
+import top.ltfan.m3x.material.overlay.OverlayBottomSheetValue
 import top.ltfan.m3x.material.overlay.OverlayDialog
 import top.ltfan.m3x.material.overlay.OverlayDialogProperties
 import top.ltfan.m3x.material.overlay.OverlayPlainTooltip
@@ -266,7 +267,13 @@ class OverlayComponentsTest {
                     MaterialTheme {
                         OverlayHost(OverlayHostState()) {
                             val state =
-                                rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                                rememberOverlayBottomSheetState(
+                                    enabledValues =
+                                        setOf(
+                                            OverlayBottomSheetValue.Hidden,
+                                            OverlayBottomSheetValue.Expanded,
+                                        ),
+                                )
                             sheetState = state
                             scope = rememberCoroutineScope()
                             OverlayBottomSheet(
@@ -302,7 +309,14 @@ class OverlayComponentsTest {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(OverlayHostState()) {
-                        val state = rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                        val state =
+                            rememberOverlayBottomSheetState(
+                                enabledValues =
+                                    setOf(
+                                        OverlayBottomSheetValue.Hidden,
+                                        OverlayBottomSheetValue.Expanded,
+                                    ),
+                            )
                         sheetState = state
                         scope = rememberCoroutineScope()
                         OverlayBottomSheet(

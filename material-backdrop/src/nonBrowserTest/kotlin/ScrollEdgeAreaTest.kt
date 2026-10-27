@@ -21,7 +21,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.BackdropMask
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
@@ -52,13 +52,12 @@ class ScrollEdgeAreaTest {
                             BackdropTopAppBar(
                                 {},
                                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                                // The demo's own mask: a copy of the page gradient, so the area the
-                                // bar
-                                // covers continues the page colours.
-                                mask =
-                                    BackdropMask(
-                                        // The demo's own mask: a copy of the page gradient, so the
-                                        // area the bar covers continues the page colours.
+                                // The demo's own fill: a copy of the page gradient, so the area the
+                                // bar covers continues the page colors.
+                                fill =
+                                    BackdropFill(
+                                        // The demo's own fill: a copy of the page gradient, so the
+                                        // area the bar covers continues the page colors.
                                         brush =
                                             object : ShaderBrush() {
                                                 override fun createShader(size: Size): Shader =
@@ -73,6 +72,7 @@ class ScrollEdgeAreaTest {
                                                     )
                                             },
                                     ),
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }
@@ -98,8 +98,7 @@ class ScrollEdgeAreaTest {
     @Test
     fun theBlurEndsWithoutAStepOfItsOwn() = runInitializedComposeUiTest {
         // A page with a hard edge under the bar: the blur turns that edge into a ramp, and a step
-        // in
-        // the ramp is where the blur changes how it normalizes near the covered area's end.
+        // in the ramp is where the blur changes how it normalizes near the covered area's end.
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme(colorScheme = lightColorScheme(surface = Color.White)) {
@@ -113,7 +112,8 @@ class ScrollEdgeAreaTest {
                             BackdropTopAppBar(
                                 {},
                                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                                mask = null,
+                                fill = null,
+                                scrollBehavior = scrolledAppBarBehavior(),
                             )
                         }
                     }

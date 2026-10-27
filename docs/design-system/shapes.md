@@ -88,13 +88,12 @@ other shape types change directly between states.
 
 Connected controls resolve outer corners from a corner-based full shape and preserve upstream
 inner corners. Their partial shapes use the theme factory. When full does not expose corner sizes,
-the factory derives the outside corners from the upstream relative corner sizes. Segmented rows
-retain their start/end rules and rectangular middle segments.
+the factory derives the outside corners from the upstream relative corner sizes.
 
 Custom drawing remains owned by Material: replacing a slider's default thumb does not replace its
 track path, tick drawing, or gesture/state implementation. Explicit custom thumbs and tracks pass
-through. Vertical default thumbs inherit orientation from their enclosing M3X slider; a standalone
-state-aware thumb can supply `isVertical` explicitly.
+through. Vertical controls pass their orientation to their default thumbs; standalone thumbs supply
+`isVertical` explicitly.
 
 Material owns time picker rendering and the interaction shapes of its AM/PM selector.
 

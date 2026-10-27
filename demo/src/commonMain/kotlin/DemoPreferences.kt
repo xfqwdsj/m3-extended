@@ -5,6 +5,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
 import top.ltfan.backdrop.highlight.HighlightStyle
+import top.ltfan.m3x.backdrop.ProgressiveBlurMode
 import top.ltfan.m3x.datastore.annotation.Store
 import top.ltfan.m3x.demo.generated.resources.Res
 import top.ltfan.m3x.demo.generated.resources.demo_accessibility
@@ -42,6 +43,8 @@ import top.ltfan.m3x.demo.generated.resources.demo_highlight_type
 import top.ltfan.m3x.demo.generated.resources.demo_increase_contrast
 import top.ltfan.m3x.demo.generated.resources.demo_inner_shadows
 import top.ltfan.m3x.demo.generated.resources.demo_large
+import top.ltfan.m3x.demo.generated.resources.demo_layered_blur_levels
+import top.ltfan.m3x.demo.generated.resources.demo_layered_blur_levels_description
 import top.ltfan.m3x.demo.generated.resources.demo_light
 import top.ltfan.m3x.demo.generated.resources.demo_link_composer
 import top.ltfan.m3x.demo.generated.resources.demo_link_composer_description
@@ -54,6 +57,12 @@ import top.ltfan.m3x.demo.generated.resources.demo_minimum_interval_between_back
 import top.ltfan.m3x.demo.generated.resources.demo_override_preset_blur_radii
 import top.ltfan.m3x.demo.generated.resources.demo_panel_blur_radius_dp
 import top.ltfan.m3x.demo.generated.resources.demo_plain
+import top.ltfan.m3x.demo.generated.resources.demo_progressive_alpha
+import top.ltfan.m3x.demo.generated.resources.demo_progressive_auto
+import top.ltfan.m3x.demo.generated.resources.demo_progressive_blur
+import top.ltfan.m3x.demo.generated.resources.demo_progressive_blur_description
+import top.ltfan.m3x.demo.generated.resources.demo_progressive_full
+import top.ltfan.m3x.demo.generated.resources.demo_progressive_layered
 import top.ltfan.m3x.demo.generated.resources.demo_reduce_motion
 import top.ltfan.m3x.demo.generated.resources.demo_reduce_motion_description
 import top.ltfan.m3x.demo.generated.resources.demo_reduce_transparency
@@ -81,6 +90,7 @@ import top.ltfan.m3x.settingspage.RangeBasedNumberInfo.Type.Slider
 import top.ltfan.m3x.settingspage.SettingsResetMode
 import top.ltfan.m3x.settingspage.SettingsResources
 import top.ltfan.m3x.settingspage.annotation.FiniteFloat
+import top.ltfan.m3x.settingspage.annotation.FiniteInt
 import top.ltfan.m3x.settingspage.annotation.SettingsItem
 import top.ltfan.m3x.settingspage.annotation.SettingsItemType
 import top.ltfan.m3x.settingspage.annotation.SettingsStore
@@ -123,6 +133,11 @@ data class DemoPreferences(
     data class Effects(
         @SettingsItem(BlurLabel::class) val blur: Boolean = true,
         @SettingsItem(BlurAnimationLabel::class) val blurAnimation: Boolean = true,
+        @SettingsItem(ProgressiveBlurLabel::class, dependsOn = ["blur"])
+        val progressiveBlur: DemoProgressiveBlurMode = DemoProgressiveBlurMode.Auto,
+        @SettingsItem(LayeredBlurLevelsLabel::class, dependsOn = ["blur"])
+        @FiniteInt(Slider, 2, 16, 1)
+        val layeredBlurLevels: Int = 8,
         @SettingsItem(LensLabel::class) val lens: Boolean = true,
         @SettingsItem(VibrancyLabel::class) val vibrancy: Boolean = true,
         @SettingsItem(HighlightLabel::class) val highlight: Boolean = true,
@@ -199,6 +214,22 @@ enum class DemoHighlightType(override val label: Resource<String>) : SettingsRes
             Plain -> color?.let(HighlightStyle::Solid) ?: HighlightStyle.Solid
         }
 }
+
+@Serializable
+enum class DemoProgressiveBlurMode(override val label: Resource<String>) : SettingsResources {
+    @SettingsValue Auto(demoResource(Res.string.demo_progressive_auto)),
+    @SettingsValue Full(demoResource(Res.string.demo_progressive_full)),
+    @SettingsValue Layered(demoResource(Res.string.demo_progressive_layered)),
+    @SettingsValue Alpha(demoResource(Res.string.demo_progressive_alpha)),
+}
+
+internal fun DemoPreferences.Effects.progressiveBlurMode(): ProgressiveBlurMode =
+    when (progressiveBlur) {
+        DemoProgressiveBlurMode.Auto -> ProgressiveBlurMode.Auto
+        DemoProgressiveBlurMode.Full -> ProgressiveBlurMode.Full
+        DemoProgressiveBlurMode.Layered -> ProgressiveBlurMode.Layered(layeredBlurLevels)
+        DemoProgressiveBlurMode.Alpha -> ProgressiveBlurMode.Alpha
+    }
 
 @Serializable
 enum class ThemeMode(override val label: Resource<String>) : SettingsResources {
@@ -438,4 +469,16 @@ object ReduceMotionLabel : SettingsResources {
 
 object LiveSlidersLabel : SettingsResources {
     override val label: Resource<String> = demoResource(Res.string.demo_live_slider_updates)
+}
+
+object ProgressiveBlurLabel : SettingsResources {
+    override val label: Resource<String> = demoResource(Res.string.demo_progressive_blur)
+    override val description: Resource<String> =
+        demoResource(Res.string.demo_progressive_blur_description)
+}
+
+object LayeredBlurLevelsLabel : SettingsResources {
+    override val label: Resource<String> = demoResource(Res.string.demo_layered_blur_levels)
+    override val description: Resource<String> =
+        demoResource(Res.string.demo_layered_blur_levels_description)
 }

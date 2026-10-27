@@ -1,7 +1,5 @@
 package top.ltfan.m3x.material.backdrop
 
-import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -12,55 +10,25 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.ltfan.backdrop.BackdropEdge
 import top.ltfan.backdrop.BackdropEffectScope
-import top.ltfan.backdrop.BackdropMask
-import top.ltfan.backdrop.backdrops.LayerBackdrop
-import top.ltfan.backdrop.effects.progressiveBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.m3x.backdrop.LocalBackdrop
+import top.ltfan.m3x.backdrop.ProgressiveBlurMode
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
-import top.ltfan.m3x.compose.animation.BackdropBlurAnimationEnabled
-import top.ltfan.m3x.compose.ui.visual.BackdropBlurEnabled
-import top.ltfan.m3x.compose.ui.visual.LocalBlurEnabled
-import top.ltfan.m3x.material.MaterialSurfaceRole
+import top.ltfan.m3x.backdrop.rememberStackedBackdropLayer
 import top.ltfan.m3x.material.backdrop.internal.LocalBackdropAppBarSurface
 import top.ltfan.m3x.material.backdrop.internal.M3xSingleRowTopAppBar
 import top.ltfan.m3x.material.backdrop.internal.M3xTwoRowsTopAppBar
-import top.ltfan.m3x.material.backdrop.theme.backdrop
-import top.ltfan.m3x.material.theme.extended
 
-/** Defaults shared by the four Backdrop top app bars. */
+/** Defaults shared by Backdrop top app bars. */
 public object BackdropAppBarDefaults {
-    /**
-     * Progressive blur of the theme's scroll-edge material, enabled by [LocalBlurEnabled]: [radius]
-     * defaults to that material's blur radius, so a bar that replaces the effect chain still
-     * follows the theme.
-     */
-    @Composable
-    public fun progressiveEffects(
-        radius: Dp = MaterialTheme.extended.backdrop.scrollEdge.blurRadius,
-    ): BackdropEffectScope.() -> Unit {
-        val blurEnabled = BackdropBlurEnabled
-        val ramp = MaterialTheme.extended.backdrop.scrollEdge
-        return if (blurEnabled) {
-            {
-                progressiveBlur(radius.toPx(), BackdropEdge.Top, ramp.ramp)
-            }
-        } else {
-            {}
-        }
-    }
-
     /** Transparent Material colors that leave the Backdrop surface visible. */
     @Composable
     public fun colors(): TopAppBarColors =
@@ -93,14 +61,12 @@ public object BackdropAppBarDefaults {
     }
 }
 
-/**
- * The spec a scroll edge appears with. It animates an effect rather than a position, so it takes
- * the motion scheme's effects spec, which settles without overshooting the strength the bar shows
- * at rest.
- */
+/** Adapts Material overlap state; a static container stays fully present. */
 @Composable
-internal fun scrollEdgePresenceSpec(): FiniteAnimationSpec<Float> =
-    MaterialTheme.motionScheme.defaultEffectsSpec()
+public fun rememberBackdropAppBarPresence(scrollBehavior: TopAppBarScrollBehavior?): State<Float> =
+    rememberScrollEdgePresence {
+        scrollBehavior.hasContentUnderBar()
+    }
 
 /**
  * Whether the content has moved under the bar.
@@ -109,60 +75,13 @@ internal fun scrollEdgePresenceSpec(): FiniteAnimationSpec<Float> =
  * publishes its height as the offset limit. The fraction tracks a collapsing bar and a pinned bar
  * whose content offset grows as content passes underneath.
  */
-private fun TopAppBarScrollBehavior?.hasContentUnderBar(): Boolean {
+public fun TopAppBarScrollBehavior?.hasContentUnderBar(): Boolean {
     if (this == null) return true
     return state.overlappedFraction > 0.01f
 }
 
-@Composable
-private fun Modifier.backdropAppBarSurface(
-    effects: (BackdropEffectScope.() -> Unit)?,
-    mask: BackdropMask?,
-    exportedBackdrop: LayerBackdrop,
-    edge: BackdropEdge,
-    scrollBehavior: TopAppBarScrollBehavior?,
-): Modifier {
-    val backdrop = MaterialTheme.extended.backdrop
-    val material = backdrop.scrollEdge
-    // A bar without a scroll behavior cannot tell that content moved under it, so its glass stays
-    // in place rather than fading out with nothing to bring it back.
-    val target by
-        remember(scrollBehavior) {
-            derivedStateOf { if (scrollBehavior.hasContentUnderBar()) 1f else 0f }
-        }
-    val presence =
-        animateFloatAsState(
-            targetValue = target,
-            animationSpec = scrollEdgePresenceSpec(),
-            label = "BackdropScrollEdge",
-        )
-    val animateBlur = BackdropBlurAnimationEnabled
-    val opticalPresence = if (animateBlur) presence else null
-    val appearance =
-        rememberMaterialAppearance(
-            MaterialSurfaceRole.ScrollEdge,
-            material = material,
-            effects = effects,
-            edge = edge,
-            presence = opticalPresence,
-            shape = RectangleShape,
-        )
-    // Finite blur motion changes radius and mask strength without fading the background layer.
-    // Its fallback keeps the material at full strength and fades only this background box.
-    val background =
-        if (animateBlur) this else graphicsLayer { alpha = presence.value.coerceIn(0f, 1f) }
-    return background.materialBackdropSurface(
-        appearance = appearance,
-        shape = RectangleShape,
-        exportedBackdrop = exportedBackdrop,
-        mask = mask,
-        edge = edge,
-        presence = opticalPresence,
-    )
-}
-
 /**
- * Small top app bar with progressive Backdrop blur, or the same progressive tint without a source.
+ * Small top app bar with a theme material background.
  *
  * App bars follow the
  * [Material 3 top app bar guidelines](https://m3.material.io/components/top-app-bar/overview).
@@ -181,7 +100,11 @@ private fun Modifier.backdropAppBarSurface(
  * @param scrollBehavior controls the app bar's scroll response and reports when content moves under
  *   it; when supplied, connect its nestedScrollConnection to the scrolling content
  * @param effects an optional replacement for the theme's scroll-edge optical effect chain
- * @param mask the progressive mask applied to the backdrop content behind the app bar
+ * @param fill the background fill, ramped only when [scrollBehavior] is supplied
+ * @param backdropEnabled whether the bar draws and exports its own material background
+ * @param blurEnabled whether built-in blur is allowed, subject to the master and accessibility
+ *   gates
+ * @param progressiveBlurMode the algorithm override, or null to inherit the enclosing selection
  */
 @Composable
 public fun BackdropTopAppBar(
@@ -198,9 +121,20 @@ public fun BackdropTopAppBar(
     colors: TopAppBarColors = BackdropAppBarDefaults.colors(),
     scrollBehavior: TopAppBarScrollBehavior? = null,
     effects: (BackdropEffectScope.() -> Unit)? = null,
-    mask: BackdropMask? = BackdropMask(),
+    fill: BackdropFill? = BackdropFill(),
+    backdropEnabled: Boolean = true,
+    blurEnabled: Boolean = true,
+    progressiveBlurMode: ProgressiveBlurMode? = null,
 ) {
-    ProvideBackdropTopAppBarLayout(edge, scrollBehavior, effects, mask) {
+    ProvideBackdropTopAppBarLayout(
+        edge,
+        scrollBehavior,
+        effects,
+        fill,
+        backdropEnabled,
+        blurEnabled,
+        progressiveBlurMode,
+    ) {
         M3xSingleRowTopAppBar(
             title = title,
             subtitle = subtitle ?: {},
@@ -219,61 +153,7 @@ public fun BackdropTopAppBar(
 }
 
 /**
- * Center-aligned small top app bar with progressive Backdrop blur, or the same progressive tint
- * without a source.
- *
- * @param title the title displayed in the app bar
- * @param modifier the [Modifier] applied to the app bar
- * @param subtitle optional text displayed below the title
- * @param navigationIcon the navigation icon displayed at the start of the app bar
- * @param actions the actions displayed at the end of the app bar
- * @param expandedHeight the expanded height of the app bar
- * @param contentPadding padding around the app bar content
- * @param windowInsets the window insets respected by the app bar
- * @param edge the edge used by the Backdrop surface and its effects
- * @param colors the colors used for app bar content
- * @param scrollBehavior controls the app bar's scroll response and reports when content moves under
- *   it; when supplied, connect its nestedScrollConnection to the scrolling content
- * @param effects an optional replacement for the theme's scroll-edge optical effect chain
- * @param mask the progressive mask applied to the backdrop content behind the app bar
- */
-@Composable
-public fun BackdropCenterAlignedTopAppBar(
-    title: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    subtitle: (@Composable () -> Unit)? = null,
-    navigationIcon: @Composable () -> Unit = {},
-    actions: @Composable RowScope.() -> Unit = {},
-    expandedHeight: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
-    contentPadding: PaddingValues = TopAppBarDefaults.ContentPadding,
-    windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
-    edge: BackdropEdge = BackdropEdge.Top,
-    colors: TopAppBarColors = BackdropAppBarDefaults.colors(),
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    effects: (BackdropEffectScope.() -> Unit)? = null,
-    mask: BackdropMask? = BackdropMask(),
-) {
-    ProvideBackdropTopAppBarLayout(edge, scrollBehavior, effects, mask) {
-        M3xSingleRowTopAppBar(
-            title = title,
-            subtitle = subtitle ?: {},
-            titleHorizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier,
-            navigationIcon = BackdropAppBarDefaults.navigation(navigationIcon),
-            actions = BackdropAppBarDefaults.actions(actions),
-            expandedHeight =
-                expandedHeight.appBarHeightOr(TopAppBarDefaults.TopAppBarExpandedHeight),
-            contentPadding = contentPadding,
-            windowInsets = windowInsets,
-            colors = colors,
-            scrollBehavior = scrollBehavior,
-        )
-    }
-}
-
-/**
- * Medium flexible top app bar with progressive Backdrop blur, or the same progressive tint without
- * a source.
+ * Medium flexible top app bar with a theme material background.
  *
  * @param title the title displayed in the app bar
  * @param modifier the [Modifier] applied to the app bar
@@ -289,7 +169,11 @@ public fun BackdropCenterAlignedTopAppBar(
  * @param scrollBehavior controls the app bar's scroll response and reports when content moves under
  *   it; when supplied, connect its nestedScrollConnection to the scrolling content
  * @param effects an optional replacement for the theme's scroll-edge optical effect chain
- * @param mask the progressive mask applied to the backdrop content behind the app bar
+ * @param fill the background fill, ramped only when [scrollBehavior] is supplied
+ * @param backdropEnabled whether the bar draws and exports its own material background
+ * @param blurEnabled whether built-in blur is allowed, subject to the master and accessibility
+ *   gates
+ * @param progressiveBlurMode the algorithm override, or null to inherit the enclosing selection
  */
 @Composable
 public fun BackdropMediumFlexibleTopAppBar(
@@ -308,9 +192,20 @@ public fun BackdropMediumFlexibleTopAppBar(
     colors: TopAppBarColors = BackdropAppBarDefaults.colors(),
     scrollBehavior: TopAppBarScrollBehavior? = null,
     effects: (BackdropEffectScope.() -> Unit)? = null,
-    mask: BackdropMask? = BackdropMask(),
+    fill: BackdropFill? = BackdropFill(),
+    backdropEnabled: Boolean = true,
+    blurEnabled: Boolean = true,
+    progressiveBlurMode: ProgressiveBlurMode? = null,
 ) {
-    ProvideBackdropTopAppBarLayout(edge, scrollBehavior, effects, mask) {
+    ProvideBackdropTopAppBarLayout(
+        edge,
+        scrollBehavior,
+        effects,
+        fill,
+        backdropEnabled,
+        blurEnabled,
+        progressiveBlurMode,
+    ) {
         M3xTwoRowsTopAppBar(
             titleTextStyle = MaterialTheme.typography.headlineMedium,
             subtitleTextStyle = MaterialTheme.typography.labelLarge,
@@ -336,8 +231,7 @@ public fun BackdropMediumFlexibleTopAppBar(
 }
 
 /**
- * Large flexible top app bar with progressive Backdrop blur, or the same progressive tint without a
- * source.
+ * Large flexible top app bar with a theme material background.
  *
  * @param title the title displayed in the app bar
  * @param modifier the [Modifier] applied to the app bar
@@ -353,7 +247,11 @@ public fun BackdropMediumFlexibleTopAppBar(
  * @param scrollBehavior controls the app bar's scroll response and reports when content moves under
  *   it; when supplied, connect its nestedScrollConnection to the scrolling content
  * @param effects an optional replacement for the theme's scroll-edge optical effect chain
- * @param mask the progressive mask applied to the backdrop content behind the app bar
+ * @param fill the background fill, ramped only when [scrollBehavior] is supplied
+ * @param backdropEnabled whether the bar draws and exports its own material background
+ * @param blurEnabled whether built-in blur is allowed, subject to the master and accessibility
+ *   gates
+ * @param progressiveBlurMode the algorithm override, or null to inherit the enclosing selection
  */
 @Composable
 public fun BackdropLargeFlexibleTopAppBar(
@@ -372,9 +270,20 @@ public fun BackdropLargeFlexibleTopAppBar(
     colors: TopAppBarColors = BackdropAppBarDefaults.colors(),
     scrollBehavior: TopAppBarScrollBehavior? = null,
     effects: (BackdropEffectScope.() -> Unit)? = null,
-    mask: BackdropMask? = BackdropMask(),
+    fill: BackdropFill? = BackdropFill(),
+    backdropEnabled: Boolean = true,
+    blurEnabled: Boolean = true,
+    progressiveBlurMode: ProgressiveBlurMode? = null,
 ) {
-    ProvideBackdropTopAppBarLayout(edge, scrollBehavior, effects, mask) {
+    ProvideBackdropTopAppBarLayout(
+        edge,
+        scrollBehavior,
+        effects,
+        fill,
+        backdropEnabled,
+        blurEnabled,
+        progressiveBlurMode,
+    ) {
         M3xTwoRowsTopAppBar(
             titleTextStyle = MaterialTheme.typography.displaySmall,
             subtitleTextStyle = MaterialTheme.typography.titleMedium,
@@ -405,15 +314,40 @@ private fun ProvideBackdropTopAppBarLayout(
     edge: BackdropEdge,
     scrollBehavior: TopAppBarScrollBehavior?,
     effects: (BackdropEffectScope.() -> Unit)?,
-    mask: BackdropMask?,
+    fill: BackdropFill?,
+    backdropEnabled: Boolean,
+    blurEnabled: Boolean,
+    progressiveBlurMode: ProgressiveBlurMode?,
     content: @Composable () -> Unit,
 ) {
+    if (!backdropEnabled) {
+        CompositionLocalProvider(LocalBackdropAppBarSurface provides Modifier, content = content)
+        return
+    }
     val page = LocalBackdrop.current
     val bar = rememberBackdropLayer()
-    val surface = Modifier.backdropAppBarSurface(effects, mask, bar.layer, edge, scrollBehavior)
+    val controlSource = rememberStackedBackdropLayer(listOfNotNull(page, bar))
+    val appearance =
+        rememberScrollEdgeAppearance(
+            visible = { scrollBehavior.hasContentUnderBar() },
+            effects = effects,
+            edge = edge,
+            progressive = scrollBehavior != null,
+            blurEnabled = blurEnabled,
+            progressiveBlurMode = progressiveBlurMode,
+        )
+    val surface =
+        Modifier.backdropScrollEdge(
+            appearance,
+            edge = edge,
+            exportedBackdrop = bar.layer,
+            fill = fill,
+            progressive = scrollBehavior != null,
+        )
     CompositionLocalProvider(
         LocalBackdropAppBarSurface provides surface,
-        LocalBackdrop provides if (page != null) bar else null,
+        LocalBackdrop provides
+            if (page != null && appearance.drawsBackground) controlSource else page,
         content = content,
     )
 }

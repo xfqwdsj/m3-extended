@@ -51,7 +51,7 @@ class FloatingBottomBarStackRebuildRenderingTest {
     private fun createScene(epoch: MutableIntState): ImageComposeScene {
         @Suppress("UNCHECKED_CAST")
         val epochLocal =
-            Class.forName("top.ltfan.backdrop.DrawBackdropModifierKt")
+            Class.forName("top.ltfan.backdrop.BackdropRenderStyleKt")
                 .getDeclaredMethod("getLocalBackdropRenderEpoch")
                 .invoke(null) as ProvidableCompositionLocal<Int>
         return ImageComposeScene(

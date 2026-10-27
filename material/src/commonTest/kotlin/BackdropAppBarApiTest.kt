@@ -8,6 +8,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertHeightIsEqualTo
@@ -18,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
-import top.ltfan.m3x.material.backdrop.BackdropCenterAlignedTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropLargeFlexibleTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropMediumFlexibleTopAppBar
 import top.ltfan.m3x.material.backdrop.BackdropTopAppBar
@@ -43,12 +43,13 @@ class BackdropAppBarApiTest {
                                     contentPadding = PaddingValues(horizontal = 12.dp),
                                 )
                             1 ->
-                                BackdropCenterAlignedTopAppBar(
+                                BackdropTopAppBar(
                                     title = { Text("Title") },
                                     subtitle = { Text("Subtitle") },
                                     modifier = Modifier.testTag("bar"),
                                     expandedHeight = Dp.Infinity,
                                     windowInsets = WindowInsets(0),
+                                    titleHorizontalAlignment = Alignment.CenterHorizontally,
                                 )
                             2 ->
                                 BackdropMediumFlexibleTopAppBar(

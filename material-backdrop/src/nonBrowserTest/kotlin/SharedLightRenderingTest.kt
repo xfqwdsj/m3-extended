@@ -33,6 +33,8 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropStyle
 import top.ltfan.backdrop.RuntimeShader
 import top.ltfan.backdrop.highlight.Highlight
@@ -41,6 +43,7 @@ import top.ltfan.backdrop.highlight.HighlightEmission
 import top.ltfan.backdrop.highlight.HighlightSample
 import top.ltfan.backdrop.highlight.HighlightStyle
 import top.ltfan.backdrop.interaction.InteractionLight
+import top.ltfan.backdrop.interaction.InteractionLighting
 import top.ltfan.backdrop.interaction.interactionLightSource
 import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
@@ -99,15 +102,20 @@ private fun assertImagesClose(first: PixelMap, second: PixelMap) {
 }
 
 class SharedLightRenderingTest {
-    private fun material(highlight: Highlight, interactive: Boolean = true) =
+    private fun material(
+        highlight: Highlight,
+        interactive: Boolean = true,
+        lighting: InteractionLighting = InteractionLighting.Config(),
+    ) =
         M3xBackdropMaterial(
             style =
-                BackdropStyle(
-                    effects = BackdropStyle.NoEffects,
-                    highlight = { highlight },
-                    shadow = { Shadow.None },
-                ),
-            blurRadius = 0.dp,
+                BackdropStyle.Default {
+                    fill = { BackdropFill(Color.Unspecified) }
+                    interactionLighting = { lighting }
+                    blur = { BackdropBlur.Uniform(0.dp) }
+                    this.highlight = { highlight }
+                    shadow = { Shadow.None }
+                },
             tintAlpha = 1f,
             adaptation = BackdropAdaptation.Fixed,
             interactiveLighting = interactive,
@@ -334,15 +342,23 @@ class SharedLightRenderingTest {
             ProvideM3xMaterialRendering {
                 val backdrop =
                     M3xBackdropTheme(
-                        control = material(Highlight.None, sourceEnabled),
-                        panel = material(Highlight.None, receiverEnabled),
+                        control =
+                            material(
+                                Highlight.None,
+                                sourceEnabled,
+                                InteractionLighting.Config(1f, 0f),
+                            ),
+                        panel =
+                            material(
+                                Highlight.None,
+                                receiverEnabled,
+                                InteractionLighting.Config(1f, 0f),
+                            ),
                         lighting =
                             M3xBackdropLighting(
                                 enabled = globalEnabled,
                                 color = Color.Red,
                                 radius = 160.dp,
-                                interiorAlpha = 1f,
-                                edgeAlpha = 0f,
                             ),
                     )
                 M3xMaterialTheme(backdrop = backdrop) {
@@ -479,7 +495,7 @@ class SharedLightRenderingTest {
                                         material(
                                             Highlight(
                                                 width = 2.dp,
-                                                direction = HighlightDirection.None,
+                                                direction = HighlightDirection.Uniform,
                                                 style = style,
                                             ),
                                             lighting,

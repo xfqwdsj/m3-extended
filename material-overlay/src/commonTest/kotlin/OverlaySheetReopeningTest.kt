@@ -35,7 +35,14 @@ class OverlaySheetReopeningTest {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(OverlayHostState()) {
-                        state = rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                        state =
+                            rememberOverlayBottomSheetState(
+                                enabledValues =
+                                    setOf(
+                                        OverlayBottomSheetValue.Hidden,
+                                        OverlayBottomSheetValue.Expanded,
+                                    ),
+                            )
                         OverlayBottomSheet(
                             onDismissRequest = { visible = false },
                             sheetState = state,
@@ -70,7 +77,14 @@ class OverlaySheetReopeningTest {
                     MaterialTheme {
                         handleLabel = OverlayStrings.bottomSheetDragHandleDescription()
                         OverlayHost(OverlayHostState()) {
-                            state = rememberOverlayBottomSheetState(skipPartiallyExpanded = true)
+                            state =
+                                rememberOverlayBottomSheetState(
+                                    enabledValues =
+                                        setOf(
+                                            OverlayBottomSheetValue.Hidden,
+                                            OverlayBottomSheetValue.Expanded,
+                                        ),
+                                )
                             OverlayBottomSheet(
                                 onDismissRequest = {
                                     dismissals++

@@ -18,7 +18,7 @@ accessibility and dismissal rules.
 thresholds, stiffness, damping and non-spring specifications.
 `MotionScheme.sharedBoundsSpec` chooses the Material role and physical rectangle tolerance.
 `rewindTransition` rewinds an existing seekable segment without replacing child timings.
-Foreground blur/fade helpers remain separate from app-bar background blur and mask transitions.
+Foreground blur/fade helpers remain separate from app-bar background blur and fill transitions.
 
 `FocusRequestingEffect` waits for an entrance to settle. Overlay mounting and input activation use
 `rememberOverlayFocusRequester`; these are different focus triggers and should not be substituted.

@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropStyle
 import top.ltfan.backdrop.highlight.Highlight
 import top.ltfan.backdrop.shadow.Shadow
@@ -62,12 +64,18 @@ class InversePanelRenderingTest {
                                                 .inversePanel
                                                 .copy(
                                                     style =
-                                                        BackdropStyle(
-                                                            effects = BackdropStyle.NoEffects,
-                                                            highlight = { Highlight.None },
-                                                            shadow = { Shadow.None },
-                                                        ),
-                                                    blurRadius = 0.dp,
+                                                        BackdropStyle.Default {
+                                                            fill = {
+                                                                BackdropFill(
+                                                                    Color.Unspecified,
+                                                                )
+                                                            }
+                                                            blur = {
+                                                                BackdropBlur.Uniform(0.dp)
+                                                            }
+                                                            highlight = { Highlight.None }
+                                                            shadow = { Shadow.None }
+                                                        },
                                                     interactiveLighting = false,
                                                 ),
                                         ) {

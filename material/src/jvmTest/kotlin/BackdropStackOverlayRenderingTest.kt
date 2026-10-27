@@ -18,8 +18,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import top.ltfan.backdrop.highlight.Highlight
-import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.LocalBackdrop
 import top.ltfan.m3x.backdrop.backdropSurface
@@ -61,10 +59,11 @@ class BackdropStackOverlayRenderingTest {
                                             .backdropSurface(
                                                 handle = handle,
                                                 shape = RectangleShape,
-                                                effects = {},
-                                                highlight = { Highlight.None },
-                                                shadow = { Shadow.None },
-                                                onDrawSurface = { drawRect(Color.Yellow) },
+                                                render = {
+                                                    source()
+                                                    clipSurface()
+                                                    paintSurface { drawRect(Color.Yellow) }
+                                                },
                                             ),
                                     )
                                 }
@@ -77,9 +76,6 @@ class BackdropStackOverlayRenderingTest {
                                                 .backdropSurface(
                                                     handle = handle,
                                                     shape = RectangleShape,
-                                                    effects = {},
-                                                    highlight = { Highlight.None },
-                                                    shadow = { Shadow.None },
                                                 ),
                                         )
                                     }

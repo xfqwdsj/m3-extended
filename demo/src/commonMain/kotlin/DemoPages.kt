@@ -257,7 +257,7 @@ internal fun ComponentsPage() {
                             FilterChip(
                                 count % 2 == 1,
                                 { count++ },
-                                demoText(Res.string.demo_animated_chip),
+                                label = { Text(demoText(Res.string.demo_animated_chip)) },
                             )
                             IconButtonWithTooltip(
                                 rememberVectorPainter(Icons.Default.Info),
@@ -381,6 +381,7 @@ internal fun ComponentsPage() {
 internal fun GlassPreview(
     modifier: Modifier = Modifier,
     hdrBackground: Boolean = false,
+    backgroundContent: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val backdrop = rememberBackdropLayer()
@@ -421,17 +422,19 @@ internal fun GlassPreview(
                             }
                         }
                     }
-                Column(Modifier.padding(16.dp)) {
-                    repeat(20) {
-                        Text(
-                            "CONTENT · COLOR · TYPOGRAPHY",
-                            color =
-                                if (it % 2 == 0) MaterialTheme.colorScheme.onSurface
-                                else MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.headlineSmall,
-                        )
+                if (backgroundContent != null) backgroundContent()
+                else
+                    Column(Modifier.padding(16.dp)) {
+                        repeat(20) {
+                            Text(
+                                "CONTENT · COLOR · TYPOGRAPHY",
+                                color =
+                                    if (it % 2 == 0) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.headlineSmall,
+                            )
+                        }
                     }
-                }
             }
             content()
         }
@@ -722,7 +725,11 @@ internal fun SettingsCatalogPage(store: MutableStore<FeatureSettings>, manual: M
             if (item.rendererId == "accent")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Accent.entries.forEach { accent ->
-                        FilterChip(draft == accent, { change(accent) }, accentLabel(accent))
+                        FilterChip(
+                            draft == accent,
+                            { change(accent) },
+                            label = { Text(accentLabel(accent)) },
+                        )
                     }
                 }
             else Text("${demoText(Res.string.demo_no_editor_registered_for)} ${item.rendererId}")

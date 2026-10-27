@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.RangeSliderState
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -127,7 +129,14 @@ internal fun RangeSliderSettingsRow(
         )
         if (validOrder && startMapping != null && endMapping != null && startType == endType) {
             RangeSlider(
-                value = startPosition..endPosition,
+                state =
+                    remember(startMapping.steps) {
+                            RangeSliderState(startPosition, endPosition, steps = startMapping.steps)
+                        }
+                        .apply {
+                            startValue = startPosition
+                            endValue = endPosition
+                        },
                 onValueChange = { next ->
                     if (!currentlyInteractive) return@RangeSlider
                     startDragging = true
@@ -145,7 +154,6 @@ internal fun RangeSliderSettingsRow(
                     }
                 },
                 enabled = interactive && item.enabled && !startMapping.isFixed,
-                steps = startMapping.steps,
                 modifier =
                     Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
                         stateDescription = "$previewStart – $previewEnd"
@@ -155,7 +163,13 @@ internal fun RangeSliderSettingsRow(
             if (startMapping != null) {
                 Text(labels.from.resolve(), modifier = Modifier.padding(horizontal = 16.dp))
                 Slider(
-                    value = startPosition,
+                    state =
+                        remember(startMapping.steps) {
+                                SliderState(startPosition, steps = startMapping.steps)
+                            }
+                            .apply {
+                                value = startPosition
+                            },
                     onValueChange = {
                         if (!currentlyInteractive) return@Slider
                         startDragging = true
@@ -170,7 +184,6 @@ internal fun RangeSliderSettingsRow(
                         }
                     },
                     enabled = interactive && item.enabled && !startMapping.isFixed,
-                    steps = startMapping.steps,
                     modifier =
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
                             stateDescription = previewStart.toString()
@@ -180,7 +193,13 @@ internal fun RangeSliderSettingsRow(
             if (endMapping != null) {
                 Text(labels.to.resolve(), modifier = Modifier.padding(horizontal = 16.dp))
                 Slider(
-                    value = endPosition,
+                    state =
+                        remember(endMapping.steps) {
+                                SliderState(endPosition, steps = endMapping.steps)
+                            }
+                            .apply {
+                                value = endPosition
+                            },
                     onValueChange = {
                         if (!currentlyInteractive) return@Slider
                         endDragging = true
@@ -195,7 +214,6 @@ internal fun RangeSliderSettingsRow(
                         }
                     },
                     enabled = interactive && item.enabled && !endMapping.isFixed,
-                    steps = endMapping.steps,
                     modifier =
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
                             stateDescription = previewEnd.toString()

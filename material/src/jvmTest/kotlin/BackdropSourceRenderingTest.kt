@@ -21,6 +21,8 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropStyle
 import top.ltfan.backdrop.highlight.Highlight
 import top.ltfan.backdrop.highlight.HighlightColorResponse
@@ -55,9 +57,6 @@ class BackdropSourceRenderingTest {
                                 .size(40.dp, 48.dp)
                                 .backdropSurface(
                                     shape = RectangleShape,
-                                    effects = {},
-                                    highlight = { Highlight.None },
-                                    shadow = { Shadow.None },
                                 ),
                         )
                     }
@@ -94,9 +93,10 @@ class BackdropSourceRenderingTest {
                                 material =
                                     M3xBackdropMaterial(
                                         style =
-                                            BackdropStyle(
-                                                effects = {},
-                                                shadow = { Shadow.None },
+                                            BackdropStyle.Default {
+                                                fill = { BackdropFill(Color.Unspecified) }
+                                                blur = { BackdropBlur.Uniform(0.dp) }
+                                                shadow = { Shadow.None }
                                                 highlight = {
                                                     Highlight(
                                                         width = 4.dp,
@@ -104,15 +104,14 @@ class BackdropSourceRenderingTest {
                                                             HighlightStyle.Solid(
                                                                 Color.White.copy(alpha = 0.5f),
                                                             ),
-                                                        direction = HighlightDirection.None,
+                                                        direction = HighlightDirection.Uniform,
                                                         colorResponse =
                                                             HighlightColorResponse(
                                                                 amount = if (enabled) 1f else 0f,
                                                             ),
                                                     )
-                                                },
-                                            ),
-                                        blurRadius = 0.dp,
+                                                }
+                                            },
                                         tintAlpha = 1f,
                                         adaptation = BackdropAdaptation.Fixed,
                                         interactiveLighting = true,

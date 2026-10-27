@@ -82,9 +82,6 @@ class ConnectedShapeFactoryTest {
                             ButtonGroupDefaults.connectedTrailingButtonShapes(shape = explicit)
                                 .shape,
                         )
-                        val base = SegmentedButtonDefaults.baseShape
-                        assertSame(base, SegmentedButtonDefaults.itemShape(0, 1, base))
-                        assertFalse(SegmentedButtonDefaults.itemShape(0, 3) is RoundedCornerShape)
                     }
                 }
             }

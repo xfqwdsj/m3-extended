@@ -40,7 +40,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.jetbrains.compose.resources.getString
 import top.ltfan.m3x.compose.test.runInitializedComposeUiTest
@@ -143,7 +142,19 @@ class DemoLayoutTest {
         assertEquals(-24f, behavior!!.state.heightOffset)
         runOnIdle { width.value = DemoLabWideBreakpoint - 1.dp }
         waitForIdle()
-        assertNull(behavior)
+        assertNotNull(behavior)
+        assertTrue(behavior!!.isPinned)
+        runOnIdle {
+            behavior!!
+                .nestedScrollConnection
+                .onPostScroll(
+                    Offset.Zero,
+                    Offset(0f, -24f),
+                    NestedScrollSource.UserInput,
+                )
+        }
+        assertEquals(0f, behavior!!.state.contentOffset)
+        assertEquals(0f, behavior!!.state.heightOffset)
         runOnIdle { width.value = DemoLabWideBreakpoint }
         waitForIdle()
         assertNotNull(behavior)

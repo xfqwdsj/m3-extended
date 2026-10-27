@@ -83,8 +83,6 @@ details in build configuration.
 - Run `./gradlew spotlessCheck`, then affected modules' builds/tests. Use `jvmTest` for KMP JVM tests
   and `test` for JVM-only processors. For documentation-only work, validate links, examples, and
   diff scope; distinguish those checks from code compilation and test execution.
-- Use `--no-build-cache --rerun-tasks` when fresh execution is required. Add
-  `--no-configuration-cache` when fresh configuration is specifically required.
 - After processor changes regenerate consumer output and review its diff; generated output is part
   of the contract.
 - Validate JS/Wasm/browser claims on those runners. Run the node/install setup before web tests;

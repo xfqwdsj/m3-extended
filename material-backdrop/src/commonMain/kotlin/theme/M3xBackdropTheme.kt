@@ -1,16 +1,18 @@
 package top.ltfan.m3x.material.backdrop.theme
 
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
+import top.ltfan.backdrop.BackdropLens
 import top.ltfan.backdrop.BackdropRamp
 import top.ltfan.backdrop.BackdropRampAnchors
+import top.ltfan.backdrop.BackdropRenderScope
 import top.ltfan.backdrop.BackdropStyle
-import top.ltfan.backdrop.effects.lens
-import top.ltfan.backdrop.effects.vibrancy
 import top.ltfan.backdrop.highlight.Highlight
+import top.ltfan.backdrop.interaction.InteractionLighting
 import top.ltfan.backdrop.shadow.InnerShadow
 import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
@@ -27,20 +29,23 @@ public enum class BackdropAdaptation {
 }
 
 /**
- * A complete material configuration. [style] supplies optical effects and decorations; blur is
- * applied before its effects. Explicit component effects replace the complete effect chain. [tint]
- * uses the component's Material color when unspecified. [dimmingAlpha] darkens rich media
- * underneath Clear glass. [adaptation] enables local background sampling when set to
+ * A complete material configuration. [style] supplies the parameterized optical defaults: blur,
+ * color controls, vibrancy, lens, fill, decorations, receiving light opacity, and page insets.
+ * Explicit component effects replace the complete optical chain. A null style fill brush selects
+ * Material tinting; an explicit transparent brush preserves the source without tint. [tint] uses
+ * the component's Material color when unspecified. [dimmingAlpha] darkens rich media underneath
+ * Clear glass. [adaptation] enables local background sampling when set to
  * [BackdropAdaptation.Background]. The default is [BackdropAdaptation.Fixed], which keeps the
  * supplied Material colors and skips appearance readback. [adaptiveContentColor] applies when
- * background adaptation is enabled. [ramp] shapes the progressive ramp of a scroll edge and is read
- * by no other role. Each adapted surface owns its local thumbnail and result; [BackdropHost]
+ * background adaptation is enabled. [ramp] shapes progressive blur when requested by a scroll edge
+ * or explicit surface resolution. [render] replaces the complete render graph when supplied; the
+ * surface then uses that declaration instead of the parameterized defaults and leaves appearance
+ * sampling to the caller. Each adapted surface owns its local thumbnail and result; [BackdropHost]
  * batches readbacks for those surfaces.
  */
 @Immutable
 public data class M3xBackdropMaterial(
     public val style: BackdropStyle = RegularControlStyle,
-    public val blurRadius: Dp = 4.dp,
     public val tint: Color = Color.Unspecified,
     public val tintAlpha: Float = 0.4f,
     /**
@@ -54,22 +59,24 @@ public data class M3xBackdropMaterial(
     /** Whether this role emits and receives shared interaction light. */
     public val interactiveLighting: Boolean = true,
     /**
-     * Curve, samples, and end intensities of the progressive ramp. The scroll edge blurs and masks
-     * with one sampled profile, so changing this moves both together.
+     * Default ramp for automatic progressive blur and caller-requested progressive filling.
+     * Explicit style blur and fill configurations retain their own ramps.
      */
     public val ramp: BackdropRamp = BackdropRamp(),
+    /**
+     * Optional complete render declaration. It replaces the built-in graph, including tint, fill,
+     * decorations, and appearance sampling. Surface insets still use [style], and the call site's
+     * background alpha applies to the completed background.
+     */
+    public val render: (BackdropRenderScope.() -> Unit)? = null,
 ) : MaterialSurfaceStyle
 
-/** Theme controls for source color and radius, plus receiving surface opacity. */
+/** Theme controls for emitted interaction light color, radius, and availability. */
 @Immutable
 public data class M3xBackdropLighting(
     public val enabled: Boolean = true,
     public val radius: Dp = 160.dp,
     public val color: Color = Color.White,
-    /** Opacity of the shared light across the receiving surface interior. */
-    public val interiorAlpha: Float = 0.15f,
-    /** Opacity of the shared light over the receiving surface contour. */
-    public val edgeAlpha: Float = 0.5f,
 )
 
 /**
@@ -82,7 +89,6 @@ public data class M3xBackdropTheme(
     public val panel: M3xBackdropMaterial =
         M3xBackdropMaterial(
             style = RegularPanelStyle,
-            blurRadius = 16.dp,
             tintAlpha = 0.6f,
         ),
 
@@ -94,7 +100,6 @@ public data class M3xBackdropTheme(
     public val surface: M3xBackdropMaterial =
         M3xBackdropMaterial(
             style = SurfaceStyle,
-            blurRadius = 0.dp,
             tintAlpha = 0.6f,
         ),
     /** Uses the component's inverse Material container and a stable supplied foreground. */
@@ -106,13 +111,12 @@ public data class M3xBackdropTheme(
             adaptiveContentColor = false,
         ),
     /**
-     * The scroll edge: a progressive blur and mask over the content that scrolls beneath a bar. The
-     * mask carries legibility, so the radius stays modest and the tint can stay translucent.
+     * The scroll edge: a progressive blur and fill over the content that scrolls beneath a bar. The
+     * fill carries legibility, so the radius stays modest and the tint can stay translucent.
      */
     public val scrollEdge: M3xBackdropMaterial =
         M3xBackdropMaterial(
             style = ScrollEdgeStyle,
-            blurRadius = 8.dp,
             tintAlpha = 0.6f,
             fallbackAlpha = 0.8f,
             interactiveLighting = false,
@@ -130,33 +134,35 @@ public data class M3xBackdropTheme(
         }
 }
 
-private val RegularControlStyle =
-    BackdropStyle(
-        effects = {
-            vibrancy()
-            if (shape is CornerBasedShape) lens(12.dp.toPx(), 24.dp.toPx())
-        },
-        shadow = { Shadow(radius = 16.dp) },
-    )
-private val RegularPanelStyle =
-    BackdropStyle(
-        effects = {
-            vibrancy()
-            if (shape is CornerBasedShape) lens(24.dp.toPx(), 24.dp.toPx(), depthEffect = true)
-        },
-    )
-private val SurfaceStyle =
-    RegularPanelStyle.copy(
-        effects = { vibrancy() },
-        highlight = { Highlight.None },
-        shadow = { Shadow.None },
-        innerShadow = { InnerShadow.None },
-    )
-private val ScrollEdgeStyle =
-    BackdropStyle(
-        highlight = { Highlight.None },
-        shadow = { Shadow.None },
-    )
+private val RegularControlStyle = BackdropStyle.Default {
+    fill = { BackdropFill(Color.Unspecified) }
+    blur = { BackdropBlur.Uniform(4.dp) }
+    vibrancy = { 1.5f }
+    lens = { BackdropLens(12.dp, 24.dp) }
+    interactionLighting = { InteractionLighting.Config() }
+    shadow = { Shadow(radius = 16.dp) }
+}
+private val RegularPanelStyle = BackdropStyle.Default {
+    fill = { BackdropFill(Color.Unspecified) }
+    blur = { BackdropBlur.Uniform(16.dp) }
+    vibrancy = { 1.5f }
+    lens = { BackdropLens(24.dp, 24.dp, depthEffect = true) }
+    interactionLighting = { InteractionLighting.Config() }
+}
+private val SurfaceStyle = RegularPanelStyle {
+    blur = { BackdropBlur.None }
+    lens = { BackdropLens.None }
+    highlight = { Highlight.None }
+    shadow = { Shadow.None }
+    innerShadow = { InnerShadow.None }
+}
+private val ScrollEdgeStyle = BackdropStyle.Default {
+    fill = { BackdropFill(Color.Unspecified) }
+    blur = { BackdropBlur.Uniform(8.dp) }
+    interactionLighting = { InteractionLighting.Config() }
+    highlight = { Highlight.None }
+    shadow = { Shadow.None }
+}
 
 /**
  * The ramp a scroll edge starts from: full strength over the part of a bar that shows its own

@@ -239,7 +239,7 @@ class BackdropRampTest {
 
     @Test
     fun brushPaintsTheRampAsAGradient() {
-        // The profile itself is asserted through the rendered mask; what matters here is that the
+        // The profile itself is asserted through the rendered fill; what matters here is that the
         // brush stays a gradient, so a ramp never collapses into a solid color.
         val brush = BackdropRamp(stops = 4).brush(Color.White, Offset.Zero, Offset(0f, 100f))
         assertTrue(brush is LinearGradient, "expected a gradient brush, got $brush")

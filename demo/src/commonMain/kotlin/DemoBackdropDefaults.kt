@@ -1,5 +1,8 @@
 package top.ltfan.m3x.demo
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import top.ltfan.backdrop.BackdropBlur
 import top.ltfan.backdrop.highlight.Highlight
 import top.ltfan.backdrop.highlight.HighlightDirection
 import top.ltfan.m3x.material.backdrop.BackdropPresets
@@ -7,7 +10,8 @@ import top.ltfan.m3x.material.backdrop.BackdropPresets
 /** Shared sources for the demo's adjustable Backdrop defaults. */
 internal object DemoBackdropDefaults {
     val highlight = Highlight.Default
-    val direction: HighlightDirection.Config = highlight.direction as HighlightDirection.Config
+    val direction: HighlightDirection.Incidence =
+        highlight.direction as HighlightDirection.Incidence
 
     const val BLUR_RADIUS = 4.0f
     const val REFRACTION_HEIGHT = 12.0f
@@ -31,10 +35,11 @@ internal object DemoBackdropDefaults {
     const val INTERIOR_ALPHA = 0.15f
     const val EDGE_ALPHA = 0.35f
 
-    val controlBlurRadius = BackdropPresets.GlassRegular.control.blurRadius.value
-    val panelBlurRadius = BackdropPresets.GlassRegular.panel.blurRadius.value
-    val surfaceBlurRadius = BackdropPresets.GlassRegular.surface.blurRadius.value
-    val scrollEdgeBlurRadius = BackdropPresets.GlassRegular.scrollEdge.blurRadius.value
+    val controlBlurRadius = BackdropPresets.GlassRegular.control.style.blur!!.invoke().radius.value
+    val panelBlurRadius = BackdropPresets.GlassRegular.panel.style.blur!!.invoke().radius.value
+    val surfaceBlurRadius = BackdropPresets.GlassRegular.surface.style.blur!!.invoke().radius.value
+    val scrollEdgeBlurRadius =
+        BackdropPresets.GlassRegular.scrollEdge.style.blur!!.invoke().radius.value
     const val SCROLL_EDGE_PLATEAU = 24.0f
     const val SCROLL_EDGE_FADE = 24.0f
     const val HDR_HEADROOM = 4.0f
@@ -45,3 +50,12 @@ internal object DemoBackdropDefaults {
     val hdrHighlightWhite =
         demoHdrWhite(HDR_HIGHLIGHT_WHITE_INTENSITY).copy(alpha = highlight.style.color.alpha)
 }
+
+internal val BackdropBlur.radius: Dp
+    get() =
+        when (this) {
+            BackdropBlur.None -> 0.dp
+            is BackdropBlur.Uniform -> radius
+            is BackdropBlur.Progressive -> radius
+            is BackdropBlur.LayeredProgressive -> radius
+        }

@@ -17,25 +17,15 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import top.ltfan.backdrop.Backdrop
-import top.ltfan.backdrop.BackdropDrawCallback
 import top.ltfan.backdrop.BackdropDrawScope
-import top.ltfan.backdrop.BackdropEffectDrawCallback
-import top.ltfan.backdrop.BackdropEffectScope
 import top.ltfan.backdrop.BackdropInsets
+import top.ltfan.backdrop.BackdropRenderScope
 import top.ltfan.backdrop.backdrops.LayerBackdrop
 import top.ltfan.backdrop.backdrops.layerBackdrop
 import top.ltfan.backdrop.backdrops.rememberLayerBackdrop
 import top.ltfan.backdrop.drawBackdrop
-import top.ltfan.backdrop.effects.blur
-import top.ltfan.backdrop.effects.vibrancy
-import top.ltfan.backdrop.highlight.Highlight
-import top.ltfan.backdrop.interaction.InteractionLighting
 import top.ltfan.backdrop.interaction.ProvideInteractionLighting
-import top.ltfan.backdrop.shadow.InnerShadow
-import top.ltfan.backdrop.shadow.Shadow
-import top.ltfan.m3x.compose.ui.visual.BackdropBlurEnabled
 
 /**
  * A captured backdrop layer that backdrop surfaces sample.
@@ -248,62 +238,33 @@ public fun Modifier.captureStackBackdrop(handle: BackdropLayerHandle): Modifier 
     layerBackdrop(handle.layer)
 
 /**
- * Draws the [handle] layer through [effects], clipped to [shape].
+ * Draws [handle] through a unified declaration, with inherited rendering defaults.
  *
- * Without a [handle] (and without an enclosing [BackdropHost]) this modifier adds no drawing.
- * Callers of this low-level API must draw their own ordinary background when no backdrop is
- * available; built-in M3X components do so.
+ * The default declaration uses the receiving Backdrop render style. Pass another declaration to
+ * select the source, effects, nested layers, fills, decorations, or an exported result in the order
+ * the surface needs. [backgroundAlpha] fades the completed background without affecting the
+ * caller's children. Without a [handle] (and without an enclosing [BackdropHost]) this modifier
+ * adds no drawing. Callers of this low-level API must draw their own ordinary background when no
+ * backdrop is available; built-in M3X components do so.
  */
 @Composable
 public fun Modifier.backdropSurface(
     handle: BackdropLayerHandle? = LocalBackdrop.current,
     shape: Shape,
-    effects: (BackdropEffectScope.() -> Unit)? = null,
-    highlight: (() -> Highlight)? = null,
-    shadow: (() -> Shadow)? = null,
-    innerShadow: (() -> InnerShadow)? = null,
+    backgroundAlpha: () -> Float = { 1f },
+    insets: (() -> BackdropInsets)? = null,
     layerBlock: (GraphicsLayerScope.() -> Unit)? = null,
     exportedBackdrop: LayerBackdrop? = null,
-    insets: (() -> BackdropInsets)? = null,
-    onDrawBehind: BackdropDrawCallback? = null,
-    onDrawBackdrop: BackdropEffectDrawCallback = { drawBackdrop, _ -> drawBackdrop() },
-    onDrawSurface: BackdropDrawCallback? = null,
-    onDrawFront: BackdropDrawCallback? = null,
-    interactionLighting: (() -> InteractionLighting)? = null,
+    render: (BackdropRenderScope.() -> Unit)? = null,
 ): Modifier {
     handle ?: return this
     return drawBackdrop(
         backdrop = handle.backdrop,
         shape = { shape },
-        effects = effects,
+        backgroundAlpha = backgroundAlpha,
         insets = insets,
-        highlight = highlight,
-        shadow = shadow,
-        innerShadow = innerShadow,
         layerBlock = layerBlock,
         exportedBackdrop = exportedBackdrop,
-        onDrawBehind = onDrawBehind,
-        onDrawBackdrop = onDrawBackdrop,
-        onDrawSurface = onDrawSurface,
-        onDrawFront = onDrawFront,
-        interactionLighting = interactionLighting,
+        render = render,
     )
 }
-
-/** The default values of the backdrop surfaces. */
-public object BackdropDefaults {
-    /**
-     * The default effects of a backdrop surface: a vibrancy tint and, while [BackdropBlurEnabled]
-     * is true, a blur.
-     */
-    public val effects: BackdropEffectScope.() -> Unit
-        @Composable
-        get() = if (BackdropBlurEnabled) BlurredBackdropEffects else PlainBackdropEffects
-}
-
-private val BlurredBackdropEffects: BackdropEffectScope.() -> Unit = {
-    vibrancy()
-    blur(8.dp.toPx())
-}
-
-private val PlainBackdropEffects: BackdropEffectScope.() -> Unit = { vibrancy() }

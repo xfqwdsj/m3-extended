@@ -34,8 +34,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.TestResult
+import top.ltfan.backdrop.BackdropBlur
+import top.ltfan.backdrop.BackdropFill
 import top.ltfan.backdrop.BackdropStyle
 import top.ltfan.backdrop.highlight.Highlight
+import top.ltfan.backdrop.interaction.InteractionLighting
 import top.ltfan.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
@@ -52,6 +55,69 @@ import top.ltfan.m3x.material.item
 
 class FloatingBottomBarRenderingTest {
     @Test
+    fun selectedIndicatorSamplesTheBarsStyledBlur() = runInitializedComposeUiTest {
+        setContent {
+            ProvideM3xMaterialRendering {
+                MaterialTheme {
+                    val source = rememberBackdropLayer()
+                    BackdropHost(source) {
+                        Box(Modifier.size(360.dp, 180.dp).testTag("blurRoot")) {
+                            Canvas(Modifier.fillMaxSize().captureBackdrop(source)) {
+                                for (x in 0 until size.width.toInt()) {
+                                    drawRect(
+                                        if (x % 2 == 0) Color.Black else Color.White,
+                                        Offset(x.toFloat(), 0f),
+                                        Size(1f, size.height),
+                                    )
+                                }
+                            }
+                            ProvideBackdropMaterial(
+                                MaterialSurfaceRole.Control,
+                                M3xBackdropMaterial(
+                                    style =
+                                        BackdropStyle.Default {
+                                            interactionLighting = { InteractionLighting.Config() }
+                                            fill = { BackdropFill(Color.Unspecified) }
+                                            blur = { BackdropBlur.Uniform(12.dp) }
+                                            highlight = { Highlight.None }
+                                            shadow = { Shadow.None }
+                                        },
+                                    tintAlpha = 0f,
+                                    adaptation = BackdropAdaptation.Fixed,
+                                    adaptiveContentColor = false,
+                                    interactiveLighting = false,
+                                ),
+                            ) {
+                                FloatingBottomBar(
+                                    0,
+                                    {},
+                                    Modifier.align(Alignment.Center).testTag("blurBar"),
+                                    indicatorEffects = backdropIndicatorEffects {},
+                                ) {
+                                    item { Box(Modifier.size(80.dp, 40.dp)) }
+                                    item { Box(Modifier.size(80.dp, 40.dp)) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        mainClock.advanceTimeBy(500)
+        val pixels = onNodeWithTag("blurRoot").captureToImage().toPixelMap()
+        val bounds = onNodeWithTag("blurBar").fetchSemanticsNode().boundsInRoot
+        val centerX = (bounds.left + bounds.width / 4f).toInt()
+        val centerY = bounds.center.y.toInt()
+        val selected = (centerX - 8..centerX + 8).map { pixels[it, centerY].red }
+        val raw = (centerX - 8..centerX + 8).map { pixels[it, 5].red }
+        assertTrue(raw.max() - raw.min() > 0.9f, "The page retains its pixel stripes")
+        assertTrue(
+            selected.max() - selected.min() < 0.1f,
+            "The selected indicator must sample the processed bar instead of sharp page stripes: $selected",
+        )
+    }
+
+    @Test
     fun enlargedIndicatorSamplesThePageAboveAndBelowTheTabs() = runInitializedComposeUiTest {
         mainClock.autoAdvance = false
         setContent {
@@ -65,14 +131,15 @@ class FloatingBottomBarRenderingTest {
                                 MaterialSurfaceRole.Control,
                                 M3xBackdropMaterial(
                                     style =
-                                        BackdropStyle(
-                                            effects = {},
-                                            highlight = { Highlight.None },
-                                            shadow = { Shadow.None },
-                                        ),
+                                        BackdropStyle.Default {
+                                            interactionLighting = { InteractionLighting.Config() }
+                                            fill = { BackdropFill(Color.Unspecified) }
+                                            blur = { BackdropBlur.Uniform(0.dp) }
+                                            highlight = { Highlight.None }
+                                            shadow = { Shadow.None }
+                                        },
                                     tint = Color.Gray,
                                     tintAlpha = 1f,
-                                    blurRadius = 0.dp,
                                     adaptation = BackdropAdaptation.Fixed,
                                     adaptiveContentColor = false,
                                     interactiveLighting = false,
@@ -428,12 +495,13 @@ class FloatingBottomBarRenderingTest {
                                 MaterialSurfaceRole.Control,
                                 M3xBackdropMaterial(
                                     style =
-                                        BackdropStyle(
-                                            effects = BackdropStyle.NoEffects,
-                                            highlight = { Highlight.None },
-                                            shadow = { Shadow.None },
-                                        ),
-                                    blurRadius = 0.dp,
+                                        BackdropStyle.Default {
+                                            interactionLighting = { InteractionLighting.Config() }
+                                            fill = { BackdropFill(Color.Unspecified) }
+                                            blur = { BackdropBlur.Uniform(0.dp) }
+                                            highlight = { Highlight.None }
+                                            shadow = { Shadow.None }
+                                        },
                                     tintAlpha = 0f,
                                     adaptation = BackdropAdaptation.Fixed,
                                     adaptiveContentColor = false,
@@ -510,12 +578,13 @@ class FloatingBottomBarRenderingTest {
                                 MaterialSurfaceRole.Control,
                                 M3xBackdropMaterial(
                                     style =
-                                        BackdropStyle(
-                                            effects = BackdropStyle.NoEffects,
-                                            highlight = { Highlight.None },
-                                            shadow = { Shadow.None },
-                                        ),
-                                    blurRadius = 0.dp,
+                                        BackdropStyle.Default {
+                                            interactionLighting = { InteractionLighting.Config() }
+                                            fill = { BackdropFill(Color.Unspecified) }
+                                            blur = { BackdropBlur.Uniform(0.dp) }
+                                            highlight = { Highlight.None }
+                                            shadow = { Shadow.None }
+                                        },
                                     tintAlpha = 0.12f,
                                     adaptation = BackdropAdaptation.Fixed,
                                     adaptiveContentColor = false,

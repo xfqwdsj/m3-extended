@@ -151,7 +151,11 @@ class OverlayPredictiveBackTest {
                                         Panel.Sheet -> {
                                             sheet =
                                                 rememberOverlayBottomSheetState(
-                                                    skipPartiallyExpanded = true,
+                                                    enabledValues =
+                                                        setOf(
+                                                            OverlayBottomSheetValue.Hidden,
+                                                            OverlayBottomSheetValue.Expanded,
+                                                        ),
                                                 )
                                             if (sharedState != null)
                                                 BottomSheetSharedAnchor(sharedState, sheet) {
@@ -498,7 +502,13 @@ class OverlayPredictiveBackTest {
                             localSharedTransitionScope {
                                 sheet =
                                     rememberOverlayBottomSheetState(
-                                        skipPartiallyExpanded = veto,
+                                        enabledValues =
+                                            if (veto)
+                                                setOf(
+                                                    OverlayBottomSheetValue.Hidden,
+                                                    OverlayBottomSheetValue.Expanded,
+                                                )
+                                            else OverlayBottomSheetValue.entries.toSet(),
                                         confirmValueChange = {
                                             !veto || it != OverlayBottomSheetValue.Hidden
                                         },
