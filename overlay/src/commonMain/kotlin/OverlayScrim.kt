@@ -148,6 +148,8 @@ internal fun Modifier.overlayPointerInput(
                             continue
                         }
                         val insideContent = bounds.containsContent(change.position)
+                        // Android represents cancellation as an already-consumed release.
+                        val releaseConsumed = change.isConsumed
                         if (consumePointerInputOutside && startedOutside) {
                             change.consume()
                         }
@@ -155,6 +157,7 @@ internal fun Modifier.overlayPointerInput(
                             dismissEnabled &&
                                 gestureCanDismiss &&
                                 !insideContent &&
+                                !releaseConsumed &&
                                 !triggered &&
                                 trigger == OverlayDismissTrigger.Release
                         ) {
