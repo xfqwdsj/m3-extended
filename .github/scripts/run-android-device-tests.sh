@@ -11,6 +11,9 @@ port=5554
 log="$RUNNER_TEMP/android-emulator.log"
 
 "$tools/sdkmanager" --install emulator "$image"
+# Keep avdmanager and emulator on the same AVD lookup path.
+ANDROID_AVD_HOME=$(mktemp -d "$RUNNER_TEMP/android-avd.XXXXXX")
+export ANDROID_AVD_HOME
 "$tools/avdmanager" create avd --name "$avd" --package "$image" --device "$profile" <<< no
 "$adb" start-server
 
