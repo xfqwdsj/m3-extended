@@ -23,10 +23,10 @@ Foreground blur/fade helpers remain separate from app-bar background blur and fi
 `FocusRequestingEffect` waits for an entrance to settle. Overlay mounting and input activation use
 `rememberOverlayFocusRequester`; these are different focus triggers and should not be substituted.
 
-Sources: [Flow bridge](../runtime/src/commonMain/kotlin/FlowAsMutableState.kt),
-[spring threshold](../animation-core/src/commonMain/kotlin/VisibilityThreshold.kt),
-[rewind](../animation/src/commonMain/kotlin/RewindTransition.kt), and
-[overlay focus](../overlay/src/commonMain/kotlin/OverlayInternals.kt).
+Sources: [Flow bridge](../modules/runtime/src/commonMain/kotlin/FlowAsMutableState.kt),
+[spring threshold](../modules/animation-core/src/commonMain/kotlin/VisibilityThreshold.kt),
+[rewind](../modules/animation/src/commonMain/kotlin/RewindTransition.kt), and
+[overlay focus](../modules/overlay/src/commonMain/kotlin/OverlayInternals.kt).
 
 ## Layout and gestures
 
@@ -38,10 +38,10 @@ release and cancellation. `DampedDragState` coordinates a bounded value, press r
 using caller-supplied specifications and callbacks. Floating-bar tab selection, thresholds, scale
 ratios and effects remain decisions of the consuming component.
 
-Sources: [grouped lists](../foundation/src/commonMain/kotlin/GroupedLazyList.kt),
-[lookahead size](../foundation/src/commonMain/kotlin/KeepSizeWhenLookingAhead.kt),
-[gesture observation](../foundation/src/commonMain/kotlin/gestures/DragGestureInspector.kt), and
-[drag state](../foundation/src/commonMain/kotlin/gestures/DampedDragState.kt).
+Sources: [grouped lists](../modules/foundation/src/commonMain/kotlin/GroupedLazyList.kt),
+[lookahead size](../modules/foundation/src/commonMain/kotlin/KeepSizeWhenLookingAhead.kt),
+[gesture observation](../modules/foundation/src/commonMain/kotlin/gestures/DragGestureInspector.kt), and
+[drag state](../modules/foundation/src/commonMain/kotlin/gestures/DampedDragState.kt).
 
 ## Custom presentation and rendering
 
@@ -67,10 +67,10 @@ gesture implementation. Renderers observe progress through callbacks so frame-le
 remain frame-level reads. `ProvideFloatingBottomBarTabScale` scopes the additional captured tab layer
 without changing the visible row's layout.
 
-Sources: [unstyled presentation](../overlay/src/commonMain/kotlin/Overlay.kt),
-[Material caller environment](../material-overlay/src/commonMain/kotlin/HostedOverlay.kt),
-[surface SPI](../material/src/commonMain/kotlin/MaterialSurface.kt), and
-[Backdrop implementation](../material-backdrop/src/commonMain/kotlin/BackdropMaterialRenderer.kt).
+Sources: [unstyled presentation](../modules/overlay/src/commonMain/kotlin/Overlay.kt),
+[Material caller environment](../modules/material-overlay/src/commonMain/kotlin/HostedOverlay.kt),
+[surface SPI](../modules/material/src/commonMain/kotlin/MaterialSurface.kt), and
+[Backdrop implementation](../modules/material-backdrop/src/commonMain/kotlin/BackdropMaterialRenderer.kt).
 
 ## Custom settings renderers
 
@@ -87,6 +87,6 @@ introducing a background collector. `jsonStoreCodec` accepts the
 application's serializer and JSON configuration; file paths and backend coordination remain owned by
 the application and store host.
 
-Sources: [number mapping](../settings-page-core/src/commonMain/kotlin/NumberSliderMapping.kt),
-[editor errors](../settings-page-compose/src/commonMain/kotlin/SettingsPresentationError.kt), and
-[DataStore adapter](../settings-page-datastore/src/commonMain/kotlin/SettingsPersistence.kt).
+Sources: [number mapping](../modules/settings-page-core/src/commonMain/kotlin/NumberSliderMapping.kt),
+[editor errors](../modules/settings-page-compose/src/commonMain/kotlin/SettingsPresentationError.kt), and
+[DataStore adapter](../modules/settings-page-datastore/src/commonMain/kotlin/SettingsPersistence.kt).

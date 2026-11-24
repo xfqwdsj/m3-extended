@@ -13,7 +13,7 @@ locally published sibling libraries to resolve alongside the remote repositories
 
 ## Preserve generation dependencies
 
-In `foundation` and `material`, `kspCommonMainKotlinMetadata` produces DSL collectors. The generated
+In `foundation`, `material`, and `backdrop`, `kspCommonMainKotlinMetadata` produces DSL collectors. The generated
 metadata directory is a common source directory. Other KSP tasks, Kotlin compilations, and source
 JAR tasks depend on that producer so every consumer sees those symbols.
 
@@ -21,8 +21,8 @@ JAR tasks depend on that producer so every consumer sees those symbols.
 producer dependency for compilation, downstream KSP, and source JARs. A processor change requires
 regenerating consumer output and comparing the generated files, not only testing the processor.
 
-Sources: [core wiring](../foundation/build.gradle.kts), [Material wiring](../material/build.gradle.kts),
-and [demo wiring](../demo/build.gradle.kts).
+Sources: [core wiring](../modules/foundation/build.gradle.kts), [Material wiring](../modules/material/build.gradle.kts),
+and [demo wiring](../modules/demo/build.gradle.kts).
 
 ## Check formatting and affected behavior
 
@@ -46,7 +46,7 @@ report separately whatever code checks actually ran.
 
 ## Test targets
 
-Daily verification uses `./gradlew :verify`: formatting, JVM and processor tests, release automation and the generated build contract. At key validation points,
+Daily verification with `./gradlew :verify` checks formatting, JVM and processor tests, release automation, and the generated build contract. At key validation points,
 run `./gradlew :verifyManaged` for Gradle Managed Devices or `:verifyConnected` for attached devices.
 `./gradlew :verifyManaged` is the CI entry point; `:verifyTargets` also runs local Web and Apple tests.
 
@@ -67,7 +67,9 @@ pixel expectations depend on them.
 Module Android targets own instrumentation runners and GMD definitions. AGP creates and tears down
 the managed device. Compose-enabled Android targets enable `androidResources` so AGP registers
 the test asset output. CI enables KVM and uses Xvfb for JVM rendering tests. Reports include JVM and
-Android results. Demo packaging remains in release and Pages workflows.
+Android results. Demo packaging remains in release and Pages workflows. The shared benchmark scenarios have JVM
+correctness tests in this pass. JMH timing and Android Macrobenchmark run through their dedicated
+[benchmark entry points](benchmarks.md).
 
 Browser tests use Kotlin's default headless Chrome runner and require a local Chrome installation.
 Prepare the Web toolchain before local browser verification:
@@ -89,7 +91,7 @@ Run `./gradlew kotlinUpgradeYarnLock` after Web dependency changes and review
 | JS | `./gradlew :demo-web:jsBrowserDevelopmentRun` |
 | Wasm | `./gradlew :demo-web:wasmJsBrowserDevelopmentRun` |
 | Experimental macOS Native | `./gradlew :demo-macos:runDebugExecutableMacosArm64` |
-| iOS | Open `demo-ios/iosApp/M3xDemo.xcodeproj`, run `M3xDemo` |
+| iOS | Open `modules/demo-ios/iosApp/M3xDemo.xcodeproj`, run `M3xDemo` |
 
 The iOS launcher uses direct framework integration and supports iPad multiple windows. Device
 builds need a Development Team; simulator builds do not require signing. Inspect its deployment
@@ -101,10 +103,10 @@ accessors and assets reach the application together.
 
 | Target | Task | Output |
 | --- | --- | --- |
-| Android optimized APK | `./gradlew :demo-android:packageReleaseArtifacts` | `demo-android/build/release-assets/` |
-| Desktop | `./gradlew :demo-desktop:packageReleaseArtifacts` | `demo-desktop/build/release-assets/` |
-| macOS Native | `./gradlew :demo-macos:packageReleaseArtifacts` | `demo-macos/build/release-assets/` (archive of the `.app`) |
-| Pages site | `./gradlew :demo-web:pagesDistribution` | `demo-web/build/pages/` |
+| Android optimized APK | `./gradlew :demo-android:packageReleaseArtifacts` | `modules/demo-android/build/release-assets/` |
+| Desktop | `./gradlew :demo-desktop:packageReleaseArtifacts` | `modules/demo-desktop/build/release-assets/` |
+| macOS Native | `./gradlew :demo-macos:packageReleaseArtifacts` | `modules/demo-macos/build/release-assets/` (archive of the `.app`) |
+| Pages site | `./gradlew :demo-web:pagesDistribution` | `modules/demo-web/build/pages/` |
 
 Each `packageReleaseArtifacts` task synchronizes only its current outputs into its module's
 `build/release-assets/`, removing stale staged files. CI uploads these files without renaming them.
@@ -120,7 +122,7 @@ The `optimized` Android build type enables R8 full mode, code and resource shrin
 resource shrinking, and `proguard-android-optimize.txt` while retaining debug signing. CI uses its
 runner's debug keystore; installing an APK signed by a different debug key requires uninstalling the
 previous app. Add keeps for reflection that library consumer rules cannot see to
-`demo-android/proguard-rules.pro`.
+`modules/demo-android/proguard-rules.pro`.
 
 The desktop task produces a ProGuard-shrunk fat jar, a portable archive, and the host
 installer or dmg in one directory. The release ProGuard pass does not run bytecode optimization
@@ -137,20 +139,25 @@ The [pages workflow](../.github/workflows/pages.yml) builds and deploys the Wasm
 to `main`. The [publishing workflow](../.github/workflows/publish.yml) uploads demo artifacts to the
 release assets, excluding the website; each matrix job builds only formats supported by its host.
 
-## Inspect publication before releasing
+## Choose regression coverage
 
-Published modules configure Maven Central and GitHub Packages, POM metadata, Dokka source links,
-and signing in their own build scripts. Inspect a module's metadata with
-`generatePomFileForKotlinMultiplatformPublication` and read `build/publications/` in that module.
-Use `:publishLocal` for local integration. Remote entry points `:publishCentral` and
-`:publishPackages` require `-PreleaseTag=<tag>`, a matching version and a clean checkout at the tag. The
-[publishing workflow](../.github/workflows/publish.yml) supplies credentials and signing mode.
-Publication, committing, and pushing require the session's explicit authorization.
+Keep assertions at the boundary where a failure is observable. Test math and sampling bounds
+directly. Use recorded output for compositing, and use intermediate frames for retained drawing
+and invalidation. Graph and layer counts quantify owned work. Time, native memory, and display
+behavior need their respective measurements.
 
-Prepare an editable release draft with the manual draft workflow. Generated notes seed the draft;
-resuming it preserves edits. Publishing requires successful push Test CI for the exact release
-commit. GitHub Packages attempts independent uploads with `--continue`; any failure blocks Central.
-Demo artifacts build from the same verified commit.
+Backdrop shaders that need a graphics backend use the shared numeric contracts and platform
+adapters. The F16 path checks output coverage before interpreting shader numerics. Android's
+host captures its graphics layer before opaque window blending for device HDR readback.
+See [rendering architecture](backdrop/rendering-architecture.md) for ownership and invalidation
+boundaries. For public Compose compiler stability, verify inference in a separate consumer
+module using compiler reports alongside the annotated contract.
+
+## Prepare for publication
+
+Follow [M3X releases](releases.md) to select groups, set versions, prepare the draft and publish
+verified artifacts. The [benchmark guide](benchmarks.md) covers correctness and measurement
+entry points. Publication, committing, and pushing require explicit authorization.
 
 ## Build and release tasks
 
@@ -165,8 +172,10 @@ This table is generated from root task declarations. Run `./gradlew :updateBuild
 | `./gradlew :verifyWeb` | Runs shared non-UI browser tests. |
 | `./gradlew :verifyConnected` | Runs JVM verification and connected Android tests. |
 | `./gradlew :verifyManaged` | Runs JVM verification and Android managed-device tests. |
-| `./gradlew :verifyRelease` | Checks the release tag, clean checkout and library artifacts. |
+| `./gradlew :verifyRelease` | Checks the release tag, clean checkout and selected publication groups. |
 | `./gradlew :publishLocal` | Runs verification and publishes artifacts to Maven Local. |
-| `./gradlew :publishCentral` | Verifies the release and publishes to Maven Central. |
-| `./gradlew :publishPackages` | Verifies the release and publishes to GitHub Packages. |
+| `./gradlew :publishCentral` | Publishes the selected groups to Maven Central after release verification. |
+| `./gradlew :publishPackages` | Publishes the selected groups to GitHub Packages after release verification. |
+| `./gradlew :benchmark` | Measures JVM time and managed allocation. |
+| `./gradlew :benchmarkList` | Lists JMH-discovered workloads and parameter values. |
 <!-- build-contract:end -->

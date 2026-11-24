@@ -4,7 +4,8 @@ M3X separates reusable Compose foundations, design-system contracts, implementat
 A module's boundary follows its abstraction and dependency direction. Concrete APIs illustrate those
 boundaries; they do not define an exhaustive or final feature set.
 
-[settings.gradle.kts](../settings.gradle.kts) declares the modules. Each module owns its targets,
+[settings.gradle.kts](../settings.gradle.kts) declares the Gradle projects and maps their directories
+under [modules/](../modules). Each module owns its targets,
 source sets, direct dependencies, generation and publication configuration. The
 [README module table](../README.md#modules) is the overview for choosing dependencies.
 
@@ -20,18 +21,20 @@ Integration with a separately owned framework belongs at an explicit dependency 
 `ui-platform-private` is an opt-in platform integration; public UI infrastructure does not depend on
 private platform providers. Dependencies introduced by upstream Compose remain owned by upstream.
 
-Sources: [runtime](../runtime/build.gradle.kts), [UI](../ui/build.gradle.kts),
-[animation foundations](../animation-core/build.gradle.kts),
-[UI animation](../animation/build.gradle.kts), [foundation](../foundation/build.gradle.kts),
-[Material integration](../material3/build.gradle.kts), and
-[NavigationEvent integration](../navigation-event/build.gradle.kts).
+Sources: [runtime](../modules/runtime/build.gradle.kts), [UI](../modules/ui/build.gradle.kts),
+[animation foundations](../modules/animation-core/build.gradle.kts),
+[UI animation](../modules/animation/build.gradle.kts), [foundation](../modules/foundation/build.gradle.kts),
+[Material integration](../modules/material3/build.gradle.kts), and
+[NavigationEvent integration](../modules/navigation-event/build.gradle.kts).
 
 ## Presentation and rendering
 
-`overlay` is the design-independent presentation layer. `backdrop` integrates Backdrop with Compose
-UI independently of Material and overlay presentation. `overlay-backdrop` joins those layers through
-the host's extension contract. Design-specific components and rendering adapters consume these
-foundations rather than introducing parallel host ownership.
+`shape` owns double-precision path segments, closed contours, and their Compose Path and SVG
+output. `capsule` uses those segments to generate continuous rounded shapes. `overlay` is the
+design-independent presentation layer. `backdrop` contains the Compose rendering kernel, source capture and effect
+graph independently of Material and overlay presentation. `overlay-backdrop` joins the overlay and
+Backdrop layers through the host's extension contract. Design-specific components and rendering
+adapters consume these foundations rather than introducing parallel host ownership.
 
 Applications own the enclosing hosts. Components consume those hosts, and adapters participate in
 their lifecycle. The integration must preserve the host's ordering, input and transition contracts.
@@ -39,9 +42,9 @@ their lifecycle. The integration must preserve the host's ordering, input and tr
 [extension contracts](extension-contracts.md#custom-presentation-and-rendering) describe the concrete
 APIs and behavior.
 
-Sources: [overlay layer](../overlay/build.gradle.kts),
-[Backdrop integration](../backdrop/build.gradle.kts), and
-[host adapter](../overlay-backdrop/build.gradle.kts).
+Sources: [contour](../modules/shape/build.gradle.kts), [continuous shapes](../modules/capsule/build.gradle.kts),
+[overlay layer](../modules/overlay/build.gradle.kts), [Backdrop rendering](../modules/backdrop/build.gradle.kts), and
+[host adapter](../modules/overlay-backdrop/build.gradle.kts).
 
 ## Design system and optional integrations
 
@@ -51,23 +54,27 @@ Backdrop integration, overlay layer, Capsule and private platform providers.
 
 `material-overlay` integrates Material components with the presentation layer. `material-backdrop`
 integrates Material rendering with Backdrop. Renderer-specific configuration remains with its
-integration, while base design contracts remain usable independently.
+integration, while base design contracts remain usable independently. For rendering changes, keep coordinate
+mapping and optical effects in `backdrop`, overlay ordering in `overlay`, and Material appearance
+policy in `material-backdrop`. Keep reusable geometry in `shape` and Capsule-specific contour
+generation in `capsule`. The adapters are the places to join these contracts.
 
-`material-theming` integrates M3X and Material theme configuration. `material-theming-capsule` adds
-Capsule integration. `material-bundle` composes the design system and its integrations into the
-complete application entry point. Consumers can choose this composition or select independent layers.
-Private platform integration remains an explicit application choice.
+`material-theming` integrates M3X and Material theme configuration. `material-theming-capsule`
+adapts the native Capsule implementation to M3X shape roles. `material-bundle` composes the design
+system and its integrations into the complete application entry point. Consumers can choose this
+composition or select independent layers. Private platform integration remains an explicit
+application choice.
 
 The [theme contracts](design-system/theme.md) specify defaults and inheritance. The
 [material contracts](design-system/materials.md) specify rendering behavior. These contracts belong to
 the APIs implementing them, rather than narrowing the scope of a shared module.
 
-Sources: [theme contracts](../material-theme/build.gradle.kts),
-[components](../material/build.gradle.kts), [Material presentation](../material-overlay/build.gradle.kts),
-[Material rendering integration](../material-backdrop/build.gradle.kts),
-[theming](../material-theming/build.gradle.kts),
-[Capsule integration](../material-theming-capsule/build.gradle.kts), and
-[complete composition](../material-bundle/build.gradle.kts).
+Sources: [theme contracts](../modules/material-theme/build.gradle.kts),
+[components](../modules/material/build.gradle.kts), [Material presentation](../modules/material-overlay/build.gradle.kts),
+[Material rendering integration](../modules/material-backdrop/build.gradle.kts),
+[theming](../modules/material-theming/build.gradle.kts),
+[Capsule integration](../modules/material-theming-capsule/build.gradle.kts), and
+[complete composition](../modules/material-bundle/build.gradle.kts).
 
 ## Resources
 
@@ -89,11 +96,11 @@ The [settings guide](settings.md), [persistence guide](persistence.md) and
 [extension contracts](extension-contracts.md#custom-settings-renderers) describe API-level ownership
 and integration requirements.
 
-Sources: [resource abstractions](../resource-core/build.gradle.kts),
-[Compose resources](../resource-compose/build.gradle.kts),
-[settings contracts](../settings-page-core/build.gradle.kts),
-[settings persistence integration](../settings-page-datastore/build.gradle.kts), and
-[persistence foundations](../datastore-core/build.gradle.kts).
+Sources: [resource abstractions](../modules/resource-core/build.gradle.kts),
+[Compose resources](../modules/resource-compose/build.gradle.kts),
+[settings contracts](../modules/settings-page-core/build.gradle.kts),
+[settings persistence integration](../modules/settings-page-datastore/build.gradle.kts), and
+[persistence foundations](../modules/datastore-core/build.gradle.kts).
 
 ## Tooling
 
@@ -104,8 +111,10 @@ source inclusion. See [development](development.md#preserve-generation-dependenc
 
 Compose UI interaction tests share JVM and Android device source sets; pixel and deterministic
 frame tests run on JVM. Tests live with the layer they verify. Integration tests may depend on the complete composition without adding it to a lower
-layer's production dependencies. Runner-specific constraints belong in
-[development](development.md#test-targets).
+layer's production dependencies. Benchmark suites consume published-facing APIs in the
+[test and measurement projects](benchmarks.md), with no production dependency on the harness.
+[Development](development.md#test-targets) covers runner selection. The [release groups](releases.md)
+follow the same dependency boundaries.
 
 ## Demo and platform applications
 
@@ -119,7 +128,8 @@ Kotlin packages follow module ownership. Android namespaces match their module's
 root. Each Kotlin source root omits the longest common prefix of its package declarations and retains
 only subpackage suffix directories. Tests use their module's package root.
 
-Material integration packages distinguish `material.overlay`, `material.backdrop`, `material.bundle`
-and `material.theming.capsule` under `top.ltfan.m3x`. Platform entry points use `demo.android`,
+Package roots distinguish `backdrop`, `capsule` and `compose.shape`, while Material integration
+packages distinguish `material.overlay`, `material.backdrop`, `material.bundle` and
+`material.theming.capsule` under `top.ltfan.m3x`. Platform entry points use `demo.android`,
 `demo.desktop`, `demo.ios`, `demo.macos` and `demo.web`. These package boundaries keep ownership
 explicit as the implementations grow.

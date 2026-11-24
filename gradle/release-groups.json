@@ -1,0 +1,37 @@
+{
+  "publish": ["ui", "backdrop", "shapes", "resource", "datastore", "settings", "compiler"],
+  "groups": {
+    "ui": {
+      "version": "0.1.0-alpha02",
+      "modules": [
+        "animation", "animation-core", "foundation", "material", "material3", "material-backdrop",
+        "material-bundle", "material-overlay", "material-theme", "material-theming", "material-theming-capsule", "navigation-event",
+        "overlay", "overlay-backdrop", "runtime", "settings-page-material", "ui", "ui-platform-private"
+      ]
+    },
+    "backdrop": {
+      "version": "0.1.0-alpha02",
+      "modules": ["backdrop"]
+    },
+    "shapes": {
+      "version": "0.1.0-alpha02",
+      "modules": ["shape", "capsule"]
+    },
+    "resource": {
+      "version": "0.1.0-alpha02",
+      "modules": ["resource-core", "resource-compose"]
+    },
+    "datastore": {
+      "version": "0.1.0-alpha02",
+      "modules": ["datastore-core", "datastore-compose", "datastore-processor", "datastore-serialization"]
+    },
+    "settings": {
+      "version": "0.1.0-alpha02",
+      "modules": ["settings-page-core", "settings-page-compose", "settings-page-datastore", "settings-page-processor"]
+    },
+    "compiler": {
+      "version": "0.1.0-alpha02",
+      "modules": ["processor-support"]
+    }
+  }
+}

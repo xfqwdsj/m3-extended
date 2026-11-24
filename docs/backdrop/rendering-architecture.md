@@ -1,0 +1,277 @@
+# Rendering architecture
+
+Backdrop separates source acquisition, effect resolution, and surface presentation. Keeping these
+contracts distinct lets one recorded source serve several receivers with different sampling needs
+and boundary policies.
+
+## Follow a frame
+
+A source supplies pixels for the receiver's request. The receiver resolves its visual producers
+and propagates sampling requirements backwards through the effect chain before recording. Deferred
+effect construction then uses those resolved bounds, and presentation combines the processed source
+with the component's own drawing.
+
+The concrete draw and export ordering is in [Sources and surfaces](sources-and-surfaces.md).
+The sampling coordinate contract is in [Effects and sampling](effects-and-sampling.md).
+
+A unified declaration describes ordered image operations and optional fixed surface phases.
+Styled surfaces resolve `BackdropStyle` fields at their use position and apply fixed optical and
+presentation phases. A `surface { }` declaration retains caller-selected optical order within its
+surface phases. Lowering shares associative SrcOver drawing with a single consumer; sampled dependencies,
+destination-dependent operations and explicit isolation retain image boundaries. Sampling geometry is resolved before
+placement configures surface isolation. Actual measurement resolves size-dependent bounds before
+enclosing isolation layers are placed. Global position changes update source mapping without resolving
+optics. Measured size changes retain image and fixed-surface declarations that did not read
+`size` while declaring their structure. Nested scopes share the current measured size; effect and
+drawing callbacks receive that updated geometry. Declaration-time `size` reads rebuild the graph
+on resizing, preserving size-dependent branches and captured constants. Density, layout direction,
+shape and producer changes invalidate the declaration.
+Background alpha below one uses one output covering source, shadow and background drawings.
+Custom `BackdropDecoration` renderers share receiver resource ownership and invocation-scoped input
+views with graph rendering. Their declared bounds contribute to placement outsets.
+
+`BackdropRenderStyle` supplies the root declaration and insets. `surface { }` uses the same image
+operations at any nesting level, so it shares effect, primitive and resource lifecycle machinery.
+Reachable process slots own effect contexts whose shader caches support uniform updates across
+resolutions. A changed source under an existing shader key replaces that shader.
+
+For structural variants, each renderer generates source on a cache miss and reuses the mutable
+shader for uniform updates. Variant keys contain only the inputs that change the generated source.
+Omitting a process slot or detaching releases its cache. Display refresh preserves shader caches
+and invalidates recorded layers.
+
+Skiko compiles each fixed built-in program on first use. Each owner key, source slot, and analytic
+SDF bake receives its own builder. Android creates those mutable shaders directly from source.
+
+Production AGSL starts at the left margin and uses two spaces per block level. Named declarations
+hold fixed text. Parameterized templates assemble fragments with explicit line breaks.
+Layered progressive blur retains its branch layers and records each branch in surface coordinates
+over the band where it contributes, including its sampling room. It retains gradient weights
+across radius updates and reuses layers for levels that remain active when the ramp changes.
+Composite paints are retained; SrcOver layer draws with alpha 1 bypass the extra save-layer
+operation. Shadow renderers retain native paint configuration and immutable inner-blur effects
+across geometry-only recordings. Color and radius changes update the affected resources;
+refresh and release clear their retained configuration.
+
+Contour shader variants are retained by structural signature. Geometry and visual uniforms update
+with each recording and each selection of a retained variant.
+Contour primitives retain snapshot-observed outlines by shape, size, layout direction and density.
+The `ContourShape` contract supplies ordered lines, arcs and cubic Béziers. The Capsule module
+provides structured contours from its existing outline geometry.
+Optical parameter changes retain the flattened contour; shape snapshot reads still invalidate it.
+Curve subdivision accumulates coordinates in primitive float storage, preserving segment order
+and the pixel flatness tolerance while avoiding per-coordinate boxing during resizing.
+Highlighter searches with at least 32 segment slots use contiguous groups and their enclosing
+bounds. A group whose distance lower bound cannot improve the selected boundary skips its
+segment tests. The same grouping applies during signed distance field baking.
+Remaining segments retain declaration order and the nearest-boundary tolerance;
+the full contour remains available for outward-normal fallback. Group bounds share geometry
+lifetime and refresh when padded uniform capacity changes.
+
+Angular highlight profiles store ordered interval channels and precomputed uniform arrays.
+Both domains are relative to the configured direction: shortest unsigned separation or a directed
+clockwise turn. Profiles share closed-endpoint tolerance; the shader corrects native atan
+approximation before testing intervals. Hard cuts use relative signed-angle evaluation
+to retain precision near parallel normals. Each response uses the nearest-contour geometry.
+
+## Keep ownership local
+
+Recording belongs to the source producer; processing and presentation resources belong to their
+consuming modifier nodes. Image-composition scopes share graph ownership; only the root receiver
+scope selects foreground and exported outputs. DSL receiver boundaries keep nested declarations
+from accidentally targeting an outer output. A node releases its layers and dependent caches when
+its rendering role ends. Shared interaction state belongs to the provider and input owners that define its lifetime.
+Receivers observe window-local light presence separately from drawing inputs. An empty window
+selects the image preceding interior lighting, leaving its lighting nodes unreachable. Retaining
+declaration positions preserves subsequent primitive renderers and their owned caches; only
+reachable lighting nodes receive rendering resources. Interior lighting checks the finite support
+of each light against affine receiver bounds before creating or binding its runtime shader. Corner
+bounds include coordinate-rounding room; perspective receivers retain the general field path.
+Movement updates this coverage check while retaining shader and primitive identity. Zero-intensity
+lights whose support overlaps the receiver remain configured. Presence changes resolve the declaration;
+source movement, intensity and membership changes within a nonempty window update recording
+without resolving the effect chain.
+Caller-supplied resources retain caller ownership across library refreshes.
+
+[BackdropSourceRenderer](../../modules/backdrop/src/commonMain/kotlin/internal/BackdropSourceRenderer.kt)
+keeps boundary resources per receiver. Sharing a backdrop therefore does not share the receiver's
+boundary policy or temporary sampling buffers. Export domains describe visible output in layer
+pixels, rounded outward after storage translation. They exclude unused sampling padding; buffer
+allocation and source-domain bounds serve separate contracts.
+
+[BackdropRenderer](../../modules/backdrop/src/commonMain/kotlin/BackdropRenderer.kt) owns
+intermediate images and primitive renderers per receiver. Resolution traverses only reachable
+images, propagates all input requests backwards, and constructs deferred effects after the final
+storage extension is known. Each reachable transform retains an inverse matrix, refreshed and
+validated during forward domain resolution and reused for backward sampling requests. Unused
+transform slots and renderer closure release those matrices.
+Source domains and sampling requests have separate bounds. Surface
+clipping bounds its upstream request by the extended outline, retaining one pixel of antialiasing room.
+Graph recording evaluates the current outline before reusing owned rounded-path geometry. Generic outlines
+retain their fill rule when rebuilt for extended coverage.
+A wider shadow branch still contributes its complete output bounds to graph storage without
+forcing the clipped material's filters to sample that entire branch. Identity processing stages
+and SrcOver draws with alpha 1 over a transparent base reuse their input storage;
+resolution still observes their declarations and retains their complete sampling and coverage.
+Adjacent native filters share one recording when each intermediate has a single consumer and
+its sampling can be represented by the backend. On Android, a neighboring-pixel custom effect
+or runtime shader retains a GPU image of its predecessor. The executor lowers effect stages
+into retained recording passes within and across effect blocks; pointwise stages and native
+Gaussian filters still compose where safe. Pass input recordings round sampling requests outward
+to complete texels, independently of visible output clipping and finite source domains. Resizing
+or changing uniforms reuses compatible pass layers; omission, refresh and closure release them.
+Resolution reuses pass descriptors, fusion lists and input-retention flags. Each receiver retains
+native blur filters and their sampling contracts by positive-radius declaration position. Equal
+radius and tile policy reuse a filter; changed parameters replace it, and unused trailing slots
+are released. Native filter composition is reused while both child effect identities remain
+unchanged. Effect producers and deferred factories still run in their observing phases on each
+resolution, preserving snapshot dependencies and geometry-dependent effects.
+An exclusively consumed source records directly into that filtered layer. Independent foreground,
+export and primitive readers retain their own shared images; fusion preserves every declared
+sampling request and effect observation.
+Within a graph recording, each shared image records once; presentation and export share it.
+Each reachable node retains its latest successful output key and version. A reusable node compares
+its own declaration, resolved request/storage, native pass identities, direct dependency versions and
+observed drawing inputs. Dirty versions propagate only through consuming nodes. A managed
+`LayerBackdrop` publishes a source revision after successful recording, replacement, clearing and
+detachment, so equal bounds or object identity never imply equal pixels.
+Background, foreground and export retain independent snapshot observations in their drawing order,
+so reused recordings keep their dependencies when opacity or child content changes. Position,
+geometry, interaction membership and resource refreshes also invalidate recording. A visibility
+transition prepares the active outputs and releases unused source-boundary resources.
+Background alpha one presents the selected graph layer directly. Fractional background alpha
+applies once through a receiver-owned presentation layer; returning to one releases that layer.
+The selected export image is prepared before export recording, preserving the same graph-image
+sharing across background and export.
+Ordinary intermediate layers store the outward-rounded pixels requested from that node, with
+surface-clip storage limited to its outline bounds and antialiasing room. Storage origins and sizes
+resolve with the graph; integer placement preserves surface-local drawing coordinates. Native effect
+layers retain the shared filter storage origin so their sampling coordinates remain consistent. Draw-scope and brush
+sizes remain the surface size independently of intermediate storage dimensions.
+Geometry wrappers and SrcOver composites use automatic compositing while retaining recorded
+clipping. Paint defaults to offscreen isolation and exposes a compositing strategy for callers
+whose drawing can compose directly into its consumer. Custom drawing, masks and primitives retain
+offscreen isolation for destination blending; native effects also require offscreen rendering.
+
+[ProcessedBackdropFrame](../../modules/backdrop/src/commonMain/kotlin/ProcessedBackdropFrame.kt) carries
+same-draw graph and interaction information for primitives. It is invalidated before replacing its
+underlying resources. Every intermediate uses the native rendering path, keeping intermediate pixels
+in graphics resources.
+
+Effect packages declare graph primitives through scope extensions. Public primitive registration
+validates graph ownership and delegates execution to the receiver. Each primitive declares a
+finite output domain and independent input sampling. Typed per-receiver renderers prepare after
+all storage requests resolve; borrowed input views draw dependencies without exposing mutable
+graph layers. Empty image domains contribute no visible extent. Display refresh drops transient
+layers while preserving shader caches; omission, incompatible renderer keys and detach release
+the renderer and its resource owner. [Custom primitives](custom-primitives.md) defines this contract.
+
+Public deferred factories use `BackdropEffectContext` to read the final geometry and active stage
+input. The context exposes `Density` and scopes shader keys by stage position. Each stage looks up
+its shaders in the receiver's effect cache.
+
+## Invalidate at the phase that consumes state
+
+Declaration and resolution observers schedule placement invalidation. Placement coalesces both,
+rebuilds an invalid declaration first, then resolves its effect parameters and updates isolation
+bounds before drawing. This order also covers state shared by algorithm selection and its
+parameters, independently of snapshot observer notification order. Drawing performs the same
+pending-work check when needed. Changing between layered and filter blur changes topology;
+parameter animation within a selected algorithm retains the graph. The topology selector is a
+retained derived state whose equality separates structural from parameter dependencies.
+
+Visual producers are observed by drawing or effect resolution. Explicit producers avoid reading
+replaced style defaults, and inherited producers resolve locals at the modifier's use position.
+Position-only updates invalidate coordinate-dependent source sampling; changes to size, density,
+font scale, layout direction, or observed geometry inputs resolve the graph before drawing.
+Sampling extension is resolved before isolation placement so recording and isolation use consistent origins.
+
+Surface isolation captures size, density, and layout direction during measurement, then configures
+its retained layer during placement. Observed layer properties and render epochs invalidate
+placement, allowing group-alpha changes without remeasuring a parent. Skiko isolation filters use
+the expanded buffer coordinates: the surface origin lies at the left and top recording margins,
+and the filter covers both margins on each axis.
+[EpochResourceOwner](../../modules/backdrop/src/commonMain/kotlin/internal/EpochResourceOwner.kt) creates a
+replacement before releasing the previous resource. A `LayerBackdrop` retains identity across
+owned-layer refreshes, and consumers observe replacement/recording state before early returns so
+an initially empty or detached source can become visible on a later recording.
+
+## Resolve the nearest contour
+
+Rectangles and rounded rectangles with circular corners use analytic bounds and radius uniforms.
+Other outlines use cached flattened boundary geometry, while the original fill-rule-aware outline
+clip preserves holes, concavities, and disconnected regions. Elliptical or unsuitable rounded
+outlines keep the generic path.
+
+Contour geometry can certify a central rectangle containing no boundary. Generic paths use
+the bounds of their flattened segments, including holes and disconnected contours. Analytic
+rectangles and circular rounded rectangles use the diagonal inset of the largest corner when
+the platform merges environment-lit tiles. The renderer shrinks the certificate by the maximum
+band width and antialiasing room and rounds inward to pixel boundaries. Shapes without a usable
+interior retain one complete output tile.
+
+Independently recorded tiles retain one pixel of neighboring storage for presentation interpolation.
+Disjoint output clips partition those edges while the original outline owns outer-edge antialiasing.
+Shader origins translate tile coordinates into surface coordinates. For multiple environment-lit
+tiles, Skiko records one live environment input layer and merges cropped native filter outputs
+before presentation. The crops share the source pixels at replay time, after the source has
+recorded its content.
+HWUI binds the environment through each tile's RenderEffect. Receivers reuse compatible layers and
+release unused ones when the layout contracts. Shader signatures and geometry storage remain
+independent of tile layout.
+
+Basic highlights use a clipped uniform stroke. When the platform supports environment-lit contours,
+resolution observes the highlight type and blur radius to select the environment input. Stroke
+color and gain, width and opacity remain drawing parameters.
+
+Generic shaders retain power-of-two segment storage and pass the active segment count as a
+uniform. Segment, group and containment traversal stop at that count, including partially filled
+groups. Active count changes reuse the shader program while the remaining shader signature
+stays unchanged.
+Highlight passes bound the search by the maximum directional band width plus antialiasing and
+coordinate-tolerance margins. Segment and
+group bounds reject candidates beyond that limit before a nearest candidate exists; pixels
+outside the limit skip containment probes. The search retains enough extra distance room for
+a chain of near-ties in declaration order. Unbounded geometry queries retain the complete search.
+Once a nearest candidate exists, a segment's axis-aligned distance lower bound can reject
+candidates beyond that distance plus a float guard.
+Remaining candidates retain declaration order and the nearest-boundary tie tolerance. Storage
+padding stays outside active traversal; degenerate active segments are skipped, preserving
+nearest-boundary and containment results. Geometry caches segment orientation only when its
+normal probe is separated from every boundary segment; uncertain segments retain the
+containment probe at draw time. These conditions matter for thin features and nearby contours.
+When every segment has a certified normal and the complete receiving surface lies within
+the certificate coordinate domain, the shader variant uses retained signs directly. Its cache
+signature includes this specialization, so changes in geometry or surface size select the matching
+variant. Other generic contours retain containment classification.
+Transparent interior rejection belongs to output geometry, keeping it outside shader traversal.
+The containment loop keeps uniform participation and gates crossing work within each iteration,
+preserving per-pixel execution masks when certified and uncertified segments share a pixel group.
+Segment and group rejection also gate work within the traversal body. The nearest-boundary
+function returns after normal classification; the distance limit gates containment work while
+the caller rejects responses outside the visible band.
+
+Larger contours build a temporary group-bound index while generating orientation certificates.
+It rejects disjoint segment groups and containment groups outside the query's vertical range.
+Small contours use direct scans; the resulting certificate persists with geometry while its
+construction index is released.
+
+Each covered pixel uses its nearest boundary position and outward normal to evaluate one shading
+response. Direction strength and direction-scaled width are independent. The visible band uses a
+fixed inner-distance smoothstep. Exclusions mask that nearest normal. The environment image is
+blurred once by a native Gaussian and sampled in place; the fixed color contribution and the environment
+contribution are combined in linear extended-sRGB before premultiplied output. Platforms without
+runtime shaders use a native inner stroke with the configured width and color.
+
+Follow [HighlightRenderer](../../modules/backdrop/src/commonMain/kotlin/highlight/HighlightRenderer.kt),
+[HighlightBoundaryGeometry](../../modules/backdrop/src/commonMain/kotlin/highlight/HighlightBoundaryGeometry.kt),
+and [FlattenedBoundaryGeometry](../../modules/backdrop/src/commonMain/kotlin/internal/FlattenedBoundaryGeometry.kt)
+when changing this path. [Styles and decorations](styles-and-decorations.md) covers the public parameters, and [Backdrop integration](../backdrops.md#configure-contour-highlight-preparation) describes SDF preparation.
+
+## Platform adapters
+
+Common code owns rendering contracts and orchestration. Platform adapters supply native rendering
+operations and resource-refresh signals. The source-set hierarchy and target coverage belong to the
+[module build](../../modules/backdrop/build.gradle.kts); platform behavior and fallback boundaries are described
+in [Platforms and HDR](platforms-and-hdr.md). Validate display behavior at the platform boundary as
+well as testing the shared calculations.

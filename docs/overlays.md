@@ -36,9 +36,9 @@ remaining a pointer target, including over the former panel area.
 `ProvideLocalSharedTransitionScope`; hosted modal editors still need an overlay host.
 Use the public shared-bounds and anchor helpers to coordinate endpoints.
 
-Sources: [host and lifetime](../overlay/src/commonMain/kotlin/Overlay.kt),
-[shared bounds](../material-overlay/src/commonMain/kotlin/SharedTransitionBounds.kt), and
-[anchors](../material-overlay/src/commonMain/kotlin/SharedTransitionAnchor.kt).
+Sources: [host and lifetime](../modules/overlay/src/commonMain/kotlin/Overlay.kt),
+[shared bounds](../modules/material-overlay/src/commonMain/kotlin/SharedTransitionBounds.kt), and
+[anchors](../modules/material-overlay/src/commonMain/kotlin/SharedTransitionAnchor.kt).
 
 ## Dismissal contract
 
@@ -57,9 +57,9 @@ Dismissible panels expose an accessible Dismiss action. A sheet also exposes a l
 scrim action when outside dismissal is enabled. These use the same component close paths. Plain,
 non-focusable tooltips pass through outside input and expose no Dismiss action.
 
-Source: [scrim/input handling](../overlay/src/commonMain/kotlin/OverlayScrim.kt).
-Regressions: [dismissal paths](../material-overlay/src/composeTest/kotlin/OverlayDismissBehaviorTest.kt) and
-[input lifetime](../overlay/src/jvmTest/kotlin/OverlayInputLifetimeTest.kt).
+Source: [scrim/input handling](../modules/overlay/src/commonMain/kotlin/OverlayScrim.kt).
+Regressions: [dismissal paths](../modules/material-overlay/src/composeTest/kotlin/OverlayDismissBehaviorTest.kt) and
+[input lifetime](../modules/overlay/src/jvmTest/kotlin/OverlayInputLifetimeTest.kt).
 
 Back gestures use NavigationEvent at overlay priority. The topmost visible entry that accepts Back
 receives that gesture's events through completion or cancellation. A newer semantic target takes
@@ -92,13 +92,13 @@ their own identity when another item opens. One presentation scrim follows the r
 content remains composed until its animations finish. Shared anchors borrow their panel's inverse
 visibility instead of maintaining another seekable state.
 
-Regression: [predictive Back](../overlay/src/jvmTest/kotlin/OverlayPredictiveBackTest.kt).
+Regression: [predictive Back](../modules/overlay/src/jvmTest/kotlin/OverlayPredictiveBackTest.kt).
 Native timeline regression:
-[unequal child durations](../overlay/src/jvmTest/kotlin/OverlayTimelineTest.kt).
+[unequal child durations](../modules/overlay/src/jvmTest/kotlin/OverlayTimelineTest.kt).
 Gesture ownership regression:
-[interruption and terminal playback](../overlay/src/jvmTest/kotlin/OverlayGestureTakeoverTest.kt).
+[interruption and terminal playback](../modules/overlay/src/jvmTest/kotlin/OverlayGestureTakeoverTest.kt).
 Settings regression:
-[cancellation, completion and reopening](../settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
+[cancellation, completion and reopening](../modules/settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
 
 ## Compose a hosted surface
 

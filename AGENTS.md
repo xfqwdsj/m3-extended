@@ -10,7 +10,8 @@ foundations also support non-UI use.
 - [Design-system contracts](docs/design-system/README.md) specify consumer-visible behavior.
 - [Architecture](docs/architecture.md) explains dependency and host ownership boundaries.
 - [Development](docs/development.md) documents generation, build wiring, verification, and release tasks.
-- `settings.gradle.kts` declares modules; each module's `build.gradle.kts` owns its configuration.
+- `settings.gradle.kts` declares Gradle project paths and maps them under `modules/`. Each module
+  owns its configuration in its `build.gradle.kts`.
 
 Keep this file focused on persistent modification rules. Put behavior explanations in the relevant
 guide and link their source/tests. Describe module responsibilities through stable abstractions and

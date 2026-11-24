@@ -1,0 +1,128 @@
+package top.ltfan.m3x.capsule.continuities
+
+import androidx.annotation.FloatRange
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.util.fastCoerceAtLeast
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+import top.ltfan.m3x.compose.shape.PathSegment.Cubic
+import top.ltfan.m3x.compose.shape.Point
+import top.ltfan.m3x.compose.shape.lerp
+
+@Immutable
+public data class G2ContinuityProfile(
+    @param:FloatRange(from = 0.0) val extendedFraction: Double,
+    @param:FloatRange(from = 0.0, to = 1.0) val arcFraction: Double,
+    @param:FloatRange(from = 0.0) val bezierCurvatureScale: Double,
+    @param:FloatRange(from = 0.0, fromInclusive = false) val arcCurvatureScale: Double,
+) {
+
+    private var _bezier: Cubic? = null
+    internal val bezier: Cubic
+        get() = _bezier ?: createBaseBezier().also { _bezier = it }
+
+    private fun createBaseBezier(): Cubic {
+        val arcRadians = PI * 0.5 * arcFraction
+        val bezierRadians = (PI * 0.5 - arcRadians) * 0.5
+        val sin = sin(bezierRadians)
+        val cos = cos(bezierRadians)
+
+        return if (bezierCurvatureScale == 1.0 && arcCurvatureScale == 1.0) {
+            val halfTan = sin / (1.0 + cos)
+            Cubic(
+                Point(-extendedFraction, 0.0),
+                Point((1.0 - 1.5 / (1.0 + cos)) * halfTan, 0.0),
+                Point(halfTan, 0.0),
+                Point(sin, 1.0 - cos),
+            )
+        } else {
+            val radiusScale = 1.0 / arcCurvatureScale
+            val arcCenter =
+                Point(0.0, 1.0) + Point(1.0 / sqrt(2.0), -1.0 / sqrt(2.0)) * (1.0 - radiusScale)
+            val arcStartPoint = arcCenter + Point(sin, -cos) * radiusScale
+            generateG2ContinuousBezierWithZeroStartCurvature(
+                start = Point(-extendedFraction, 0.0),
+                end = arcStartPoint,
+                startTangent = Point(1.0, 0.0),
+                endTangent = Point(cos, sin),
+                endCurvature = bezierCurvatureScale,
+            )
+        }
+    }
+
+    public companion object {
+
+        public val RoundedRectangle: G2ContinuityProfile =
+            G2ContinuityProfile(
+                extendedFraction = 0.5286651,
+                arcFraction = 5.0 / 9.0,
+                bezierCurvatureScale = 1.0732051,
+                arcCurvatureScale = 1.0732051,
+            )
+
+        public val Capsule: G2ContinuityProfile =
+            G2ContinuityProfile(
+                extendedFraction = 0.5286651 * 0.75,
+                arcFraction = 0.0,
+                bezierCurvatureScale = 1.0,
+                arcCurvatureScale = 1.0,
+            )
+
+        public val G1Equivalent: G2ContinuityProfile =
+            G2ContinuityProfile(
+                extendedFraction = 0.0,
+                arcFraction = 1.0,
+                bezierCurvatureScale = 1.0,
+                arcCurvatureScale = 1.0,
+            )
+    }
+}
+
+public fun lerp(
+    start: G2ContinuityProfile,
+    stop: G2ContinuityProfile,
+    fraction: Double,
+): G2ContinuityProfile {
+    return G2ContinuityProfile(
+        extendedFraction = lerp(start.extendedFraction, stop.extendedFraction, fraction),
+        arcFraction = lerp(start.arcFraction, stop.arcFraction, fraction),
+        bezierCurvatureScale =
+            lerp(start.bezierCurvatureScale, stop.bezierCurvatureScale, fraction),
+        arcCurvatureScale = lerp(start.arcCurvatureScale, stop.arcCurvatureScale, fraction),
+    )
+}
+
+private fun generateG2ContinuousBezierWithZeroStartCurvature(
+    start: Point,
+    end: Point,
+    startTangent: Point,
+    endTangent: Point,
+    endCurvature: Double,
+): Cubic {
+    val a2 = 1.5 * endCurvature
+    val b = startTangent.x * endTangent.y - startTangent.y * endTangent.x
+    val dx = end.x - start.x
+    val dy = end.y - start.y
+    val c1 = -dy * startTangent.x + dx * startTangent.y
+    val c2 = dy * endTangent.x - dx * endTangent.y
+
+    val lambda0 = -c2 / b - a2 * c1 * c1 / b / b / b
+    val lambda3 = -c1 / b
+
+    val p1 =
+        start +
+            Point(
+                (lambda0 * startTangent.x).fastCoerceAtLeast(0.0),
+                (lambda0 * startTangent.y).fastCoerceAtLeast(0.0),
+            )
+    val p2 =
+        end -
+            Point(
+                (lambda3 * endTangent.x).fastCoerceAtLeast(0.0),
+                (lambda3 * endTangent.y).fastCoerceAtLeast(0.0),
+            )
+
+    return Cubic(start, p1, p2, end)
+}

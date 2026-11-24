@@ -11,8 +11,8 @@ options, visibility, and numeric bounds. Observable getters make those changes v
 `Resource<T>` labels keep the tree toolkit-independent. Use `resource-compose` adapters to resolve
 Compose strings and painters at rendering time. See [resource boundaries](architecture.md#resources).
 
-Source: [tree and item contracts](../settings-page-core/src/commonMain/kotlin/Settings.kt).
-Example: [handwritten demo tree](../demo/src/commonMain/kotlin/ManualSettingsTree.kt).
+Source: [tree and item contracts](../modules/settings-page-core/src/commonMain/kotlin/Settings.kt).
+Example: [handwritten demo tree](../modules/demo/src/commonMain/kotlin/ManualSettingsTree.kt).
 
 ## Generate editable descriptions
 
@@ -30,9 +30,9 @@ repository demo's common-metadata generation wiring when generating shared sourc
 requires an accessible no-argument model constructor. Material rows expose reset by long press or
 secondary click only for eligible visible, enabled items.
 
-Sources: [annotations](../settings-page-core/src/commonMain/kotlin/annotation/Annotation.kt),
-[property validation](../settings-page-processor/src/main/kotlin/EditableSettingsProperty.kt), and
-[generation](../settings-page-processor/src/main/kotlin/SettingsStoreFileGenerator.kt).
+Sources: [annotations](../modules/settings-page-core/src/commonMain/kotlin/annotation/Annotation.kt),
+[property validation](../modules/settings-page-processor/src/main/kotlin/EditableSettingsProperty.kt), and
+[generation](../modules/settings-page-processor/src/main/kotlin/SettingsStoreFileGenerator.kt).
 
 ## Mount the page inside the application theme and host
 
@@ -77,11 +77,11 @@ Discrete stops must correspond to distinct, evenly spaced raw values on the targ
 of 4096 intervals. Selector/Wheel numeric hints currently render as a discrete Slider where valid,
 or a NumberStepper otherwise, preserving model bounds and step validation.
 
-Sources: [number validation](../settings-page-core/src/commonMain/kotlin/SettingsNumbers.kt),
-[slider mapping](../settings-page-core/src/commonMain/kotlin/NumberSliderMapping.kt), and
-[draft sessions](../settings-page-compose/src/commonMain/kotlin/SettingsEditSession.kt).
-Regressions: [numeric semantics](../settings-page-core/src/commonTest/kotlin/SettingsNumbersTest.kt)
-and [mapping](../settings-page-core/src/commonTest/kotlin/NumberSliderMappingTest.kt).
+Sources: [number validation](../modules/settings-page-core/src/commonMain/kotlin/SettingsNumbers.kt),
+[slider mapping](../modules/settings-page-core/src/commonMain/kotlin/NumberSliderMapping.kt), and
+[draft sessions](../modules/settings-page-compose/src/commonMain/kotlin/SettingsEditSession.kt).
+Regressions: [numeric semantics](../modules/settings-page-core/src/commonTest/kotlin/SettingsNumbersTest.kt)
+and [mapping](../modules/settings-page-core/src/commonTest/kotlin/NumberSliderMappingTest.kt).
 
 ## Own error presentation and recovery
 
@@ -110,10 +110,10 @@ Column {
 The reusable row, item editor, number/range editor, and stepper accept a root `Modifier`. Action
 callbacks precede optional arguments; use named arguments for callbacks and modifiers.
 
-Sources: [structured errors](../settings-page-compose/src/commonMain/kotlin/SettingsPresentationError.kt)
-and [commit path](../settings-page-core/src/commonMain/kotlin/SettingsCommit.kt).
-Regressions: [commit validation](../settings-page-core/src/commonTest/kotlin/SettingsCommitTest.kt)
-and [Material editors](../settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt).
+Sources: [structured errors](../modules/settings-page-compose/src/commonMain/kotlin/SettingsPresentationError.kt)
+and [commit path](../modules/settings-page-core/src/commonMain/kotlin/SettingsCommit.kt).
+Regressions: [commit validation](../modules/settings-page-core/src/commonTest/kotlin/SettingsCommitTest.kt)
+and [Material editors](../modules/settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt).
 
 ## Persistence adapter and custom renderers
 

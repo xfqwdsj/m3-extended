@@ -1,0 +1,53 @@
+package top.ltfan.m3x.backdrop
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+
+/**
+ * Minimum interval between HDR layer refreshes, 200 milliseconds by default. Updates are throttled;
+ * the latest pending display ratio is delivered when the current interval ends.
+ *
+ * The value must be finite and non-negative; [BackdropHdrScope] throws [IllegalArgumentException]
+ * otherwise. Provide it at a stable boundary: changing this static composition local recomposes its
+ * subtree.
+ */
+public val LocalBackdropHdrRefreshInterval: ProvidableCompositionLocal<Duration> =
+    staticCompositionLocalOf {
+        200.milliseconds
+    }
+
+/**
+ * The display HDR/SDR ratio sampled by this scope, and 1 while the display reports no headroom. The
+ * scope updates it at most once per [LocalBackdropHdrRefreshInterval]; the system animates the
+ * per-window ratio separately.
+ */
+public val LocalBackdropHdrHeadroom: ProvidableCompositionLocal<Float> = compositionLocalOf { 1f }
+
+/**
+ * Refreshes Backdrop-owned rendering resources when Android's display HDR headroom changes. The
+ * composition and interaction state are independent of this resource refresh. Enable HDR on the
+ * Android Window separately. Platforms without the display callback retain their usual rendering
+ * behavior. Externally supplied GraphicsLayers and ancestor effects belong to their callers.
+ */
+@Composable
+public fun BackdropHdrScope(content: @Composable () -> Unit) {
+    val interval = LocalBackdropHdrRefreshInterval.current
+    require(interval.isFinite() && interval >= ZERO) {
+        "HDR refresh interval must be finite and nonnegative"
+    }
+    val state = rememberBackdropHdrState(interval)
+    CompositionLocalProvider(
+        LocalBackdropRenderEpoch provides state.epoch,
+        LocalBackdropHdrHeadroom provides state.headroom,
+        content = content,
+    )
+}
+
+internal data class BackdropHdrState(val epoch: Int = 0, val headroom: Float = 1f)
+
+@Composable internal expect fun rememberBackdropHdrState(interval: Duration): BackdropHdrState

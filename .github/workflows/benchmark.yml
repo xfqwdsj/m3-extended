@@ -1,0 +1,203 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit or tag to measure (blank selects the workflow commit).
+        required: false
+        type: string
+      baseline-ref:
+        description: Optional commit, branch, or tag to measure alongside the candidate.
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+      release-id:
+        required: false
+        type: number
+        default: 0
+      release-tag:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      GRADLE_ENCRYPTION_KEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Backdrop JVM time and allocation
+    runs-on: ubuntu-latest
+    outputs:
+      report: ${{ steps.report.outputs.markdown }}
+      skip-release-notes: ${{ steps.baseline.outputs.skip-release-notes }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release-id > 0 && inputs.ref || github.sha }}
+          persist-credentials: false
+      - name: Select comparison baseline
+        id: baseline
+        uses: actions/github-script@v9
+        env:
+          REQUESTED_BASELINE: ${{ inputs.baseline-ref }}
+          RELEASE_ID: ${{ inputs.release-id }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+          RELEASE_COMMIT: ${{ inputs.ref }}
+        with:
+          script: |
+            if (Number(process.env.RELEASE_ID) > 0) {
+              const { pathToFileURL } = await import('node:url');
+              const { releaseBaseline, skipsBenchmarks } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/.github/scripts/benchmarks.mjs`).href);
+              const { data } = await github.rest.repos.getRelease({ ...context.repo, release_id: Number(process.env.RELEASE_ID) });
+              if (data.tag_name !== process.env.RELEASE_TAG) throw new Error('The release tag changed during the workflow.');
+              if (skipsBenchmarks(data.body)) {
+                core.setOutput('skip', 'Benchmarks skipped by the release author.');
+                core.setOutput('skip-release-notes', 'true');
+                return;
+              }
+              const repoUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}`;
+              const baseline = releaseBaseline(data.body, repoUrl, data.tag_name, process.env.RELEASE_COMMIT);
+              if (baseline) core.setOutput('ref', baseline);
+              else core.setOutput('skip', 'Benchmarks skipped because the release has no usable Full Changelog comparison link.');
+            } else {
+              core.setOutput('ref', (process.env.REQUESTED_BASELINE ?? '').trim());
+            }
+      - uses: actions/checkout@v7
+        if: steps.baseline.outputs.skip == ''
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        if: steps.baseline.outputs.ref != ''
+        with:
+          ref: ${{ steps.baseline.outputs.ref }}
+          path: baseline
+          persist-credentials: false
+      - name: Check benchmark availability
+        id: plan
+        env:
+          SKIP_REASON: ${{ steps.baseline.outputs.skip }}
+          BASELINE_REF: ${{ steps.baseline.outputs.ref }}
+        run: |
+          if [[ -n "$SKIP_REASON" ]]; then
+            echo "skip=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+          elif [[ ! -f candidate/modules/benchmarks/backdrop/jvm/build.gradle.kts ]]; then
+            echo "skip=The candidate revision has no Backdrop JVM benchmark harness." >> "$GITHUB_OUTPUT"
+          elif [[ -n "$BASELINE_REF" && ! -f baseline/modules/benchmarks/backdrop/jvm/build.gradle.kts ]]; then
+            echo "skip=Benchmarks skipped because the baseline revision has no Backdrop JVM benchmark harness." >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: ./.github/actions/setup-build
+        if: steps.plan.outputs.run == 'true'
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Record environment and discover workloads
+        if: steps.plan.outputs.run == 'true'
+        run: |
+          mkdir -p benchmark-environment
+          java -version 2> benchmark-environment/java.txt
+          uname -a > benchmark-environment/system.txt
+          lscpu > benchmark-environment/cpu.txt
+          record_revision() {
+            local worktree="$1" output="$2"
+            mkdir -p "$output"
+            git -C "$worktree" rev-parse HEAD > "$output/commit.txt"
+            git -C "$worktree" rev-parse HEAD:modules/benchmarks/backdrop > "$output/harness.txt"
+            test -z "$(git -C "$worktree" status --porcelain --untracked-files=no)"
+            (cd "$worktree" && ./gradlew :benchmarkList --console=plain) > "$output/workloads.txt"
+          }
+          record_revision candidate benchmark-environment
+          if [[ -d baseline ]]; then
+            record_revision baseline benchmark-environment/baseline
+          fi
+      - name: Run JVM benchmarks on the same runner
+        if: steps.plan.outputs.run == 'true'
+        run: |
+          if [[ -d baseline ]]; then
+            (cd baseline && ./gradlew :benchmark -PbenchmarkSmoke=false)
+          fi
+          (cd candidate && ./gradlew :benchmark -PbenchmarkSmoke=false)
+      - name: Generate benchmark reports
+        id: report
+        uses: actions/github-script@v9
+        env:
+          BASELINE_REF: ${{ steps.baseline.outputs.ref }}
+          SKIP_REASON: ${{ steps.plan.outputs.skip }}
+        with:
+          script: |
+            const { readFileSync, writeFileSync } = await import('node:fs');
+            const { pathToFileURL } = await import('node:url');
+            const { benchmarkReports } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/.github/scripts/benchmarks.mjs`).href);
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            if (process.env.SKIP_REASON) {
+              const message = `*${process.env.SKIP_REASON}* [Workflow details](${run}).`;
+              core.setOutput('markdown', message);
+              await core.summary.addRaw(message).write();
+              return;
+            }
+            const readRevision = (worktree, environment) => ({
+              results: JSON.parse(readFileSync(`${worktree}/modules/benchmarks/backdrop/jvm/build/reports/benchmarks/allocation/jvmBenchmark.json`, 'utf8')),
+              listing: readFileSync(`${environment}/workloads.txt`, 'utf8'),
+              commit: readFileSync(`${environment}/commit.txt`, 'utf8').trim(),
+              harness: readFileSync(`${environment}/harness.txt`, 'utf8').trim(),
+            });
+            const candidate = readRevision('candidate', 'benchmark-environment');
+            const baseline = process.env.BASELINE_REF
+              ? { ...readRevision('baseline', 'benchmark-environment/baseline'), ref: process.env.BASELINE_REF }
+              : undefined;
+            const { summary, release } = benchmarkReports(candidate.results, candidate.listing, {
+              commit: candidate.commit, runUrl: run, baseline,
+              harnessChanged: baseline && baseline.harness !== candidate.harness,
+            });
+            writeFileSync('benchmark-environment/performance.md', summary + '\n');
+            core.setOutput('markdown', release);
+            await core.summary.addRaw(summary).write();
+      - name: Upload benchmark results and environment
+        if: always() && steps.plan.outputs.run == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: backdrop-jvm-benchmarks
+          path: |
+            candidate/modules/benchmarks/backdrop/jvm/build/reports/benchmarks/**
+            baseline/modules/benchmarks/backdrop/jvm/build/reports/benchmarks/**
+            benchmark-environment/**
+          overwrite: true
+          retention-days: 90
+
+  release-notes:
+    name: Update release benchmarks
+    needs: benchmark
+    if: ${{ always() && inputs.release-id > 0 && needs.benchmark.outputs.skip-release-notes != 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      - uses: actions/github-script@v9
+        env:
+          RELEASE_ID: ${{ inputs.release-id }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+          BENCHMARK_STATUS: ${{ needs.benchmark.result }}
+          BENCHMARK_REPORT: ${{ needs.benchmark.outputs.report }}
+        with:
+          script: |
+            const { pathToFileURL } = await import('node:url');
+            const { updatePerformance } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/.github/scripts/benchmarks.mjs`).href);
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const content = process.env.BENCHMARK_STATUS === 'success' && process.env.BENCHMARK_REPORT
+              ? process.env.BENCHMARK_REPORT
+              : `Benchmark execution did not complete. [Workflow details and available artifacts](${run}).`;
+            await updatePerformance(github, context.repo, Number(process.env.RELEASE_ID), content, process.env.RELEASE_TAG);

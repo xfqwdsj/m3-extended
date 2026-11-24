@@ -19,7 +19,7 @@ fills also determine the room used for their ramp.
 Cards select the theme's `surface` material as their default backing even though their shared
 appearance path is parameterized as a panel.
 
-Source: [roles and baseline materials](../../material-backdrop/src/commonMain/kotlin/theme/M3xBackdropTheme.kt).
+Source: [roles and baseline materials](../../modules/material-backdrop/src/commonMain/kotlin/theme/M3xBackdropTheme.kt).
 
 ## M2. Effect precedence
 
@@ -60,10 +60,10 @@ radius; an explicit native progressive configuration selects its own algorithm a
 Use style fields for theme optics, a component's explicit `effects` for a complete optical-chain
 replacement, and `render` for a custom graph. Lens processing applies to corner-based shapes.
 
-Source: [appearance resolution](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Regression: [receiving style inheritance](../../material-bundle/src/jvmTest/kotlin/BackdropThemeRenderingTest.kt),
-[native algorithms](../../material-backdrop/src/jvmTest/kotlin/BackdropStyleAlgorithmsTest.kt), and
-[style filling](../../material-backdrop/src/jvmTest/kotlin/BackdropSurfaceRenderTest.kt).
+Source: [appearance resolution](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
+Regression: [receiving style inheritance](../../modules/material-bundle/src/jvmTest/kotlin/BackdropThemeRenderingTest.kt),
+[native algorithms](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropStyleAlgorithmsTest.kt), and
+[style filling](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropSurfaceRenderTest.kt).
 
 ## M3. Material colors remain the base
 
@@ -79,8 +79,8 @@ Background adaptation changes foreground only when the material also enables
 `adaptiveContentColor` and a sample is available. It selects black/white using the local appearance
 and hysteresis. Reading theme brightness alone is insufficient to describe an adapted surface.
 
-Source: [surface color resolution](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Regression: [inverse panels](../../material/src/jvmTest/kotlin/InversePanelRenderingTest.kt).
+Source: [surface color resolution](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
+Regression: [inverse panels](../../modules/material/src/jvmTest/kotlin/InversePanelRenderingTest.kt).
 
 ## M4. Source absence is a supported appearance
 
@@ -94,10 +94,10 @@ Explicit fill opacity still controls an explicitly configured fill. Reduced tran
 ordinary role tint opaque and flattens progressive filling. Increased contrast resolves the final
 foreground and container together and uses an opaque fallback when the source is unknown.
 
-Sources: [low-level surface](../../backdrop/src/commonMain/kotlin/Backdrop.kt) and
-[built-in fallback](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Regressions: [rendered fallback](../../material-backdrop/src/jvmTest/kotlin/BackdropFallbackRenderingTest.kt)
-and [overlay fallback](../../overlay/src/composeTest/kotlin/OverlayFallbackTest.kt).
+Sources: [low-level surface](../../modules/backdrop/src/commonMain/kotlin/Backdrop.kt) and
+[built-in fallback](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
+Regressions: [rendered fallback](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropFallbackRenderingTest.kt)
+and [overlay fallback](../../modules/overlay/src/composeTest/kotlin/OverlayFallbackTest.kt).
 
 ## M5. Background adaptation is local and opt-in
 
@@ -107,9 +107,9 @@ without reduced transparency. Each adapted surface owns its thumbnail and result
 batches readbacks. One surface's result does not represent the whole page or another surface.
 The sampler's initial fallback keeps supplied content colors usable before a result arrives.
 
-Source: [appearance state and batching](../../backdrop/src/commonMain/kotlin/BackdropAppearance.kt).
-Regressions: [appearance resolution](../../backdrop/src/commonTest/kotlin/BackdropAppearanceTest.kt)
-and [batched readback](../../backdrop/src/jvmTest/kotlin/BackdropAppearanceBatchTest.kt).
+Source: [appearance state and batching](../../modules/backdrop/src/commonMain/kotlin/BackdropAppearance.kt).
+Regressions: [appearance resolution](../../modules/backdrop/src/commonTest/kotlin/BackdropAppearanceTest.kt)
+and [batched readback](../../modules/backdrop/src/jvmTest/kotlin/BackdropAppearanceBatchTest.kt).
 
 ## M6. Progressive blur and fill are coordinated inputs
 
@@ -155,10 +155,10 @@ fallback, and reduced transparency retains opaque backing even with `Full`. With
 support, the approximation modes use material tint fallback. Explicit effects and complete render
 graphs retain their own processing policy.
 
-Regressions: [public surfaces and algorithms](../../material-backdrop/src/jvmTest/kotlin/PublicBackdropSurfaceTest.kt),
-[fill behavior](../../material-backdrop/src/jvmTest/kotlin/BackdropFillTest.kt),
-[fill brush](../../material-backdrop/src/jvmTest/kotlin/BackdropFillBrushTest.kt), and
-[scroll-edge room](../../material-backdrop/src/jvmTest/kotlin/ScrollEdgeAreaTest.kt).
+Regressions: [public surfaces and algorithms](../../modules/material-backdrop/src/jvmTest/kotlin/PublicBackdropSurfaceTest.kt),
+[fill behavior](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropFillTest.kt),
+[fill brush](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropFillBrushTest.kt), and
+[scroll-edge room](../../modules/material-backdrop/src/jvmTest/kotlin/ScrollEdgeAreaTest.kt).
 
 ## M7. Presets select optics independently of theme content
 
@@ -168,7 +168,7 @@ adaptation and stable theme foregrounds. Customize with `copy` from the selected
 that the application does not override retain that preset's values.
 
 The exact optical tuning is owned by
-[BackdropPresets](../../material-backdrop/src/commonMain/kotlin/BackdropPresets.kt) and the
-[role definitions](../../material-backdrop/src/commonMain/kotlin/theme/M3xBackdropTheme.kt).
-Regressions: [preset stability](../../material-theming/src/commonTest/kotlin/BackdropPresetTest.kt) and
-[runtime replacement](../../material-theming/src/composeTest/kotlin/BackdropThemeTest.kt).
+[BackdropPresets](../../modules/material-backdrop/src/commonMain/kotlin/BackdropPresets.kt) and the
+[role definitions](../../modules/material-backdrop/src/commonMain/kotlin/theme/M3xBackdropTheme.kt).
+Regressions: [preset stability](../../modules/material-theming/src/commonTest/kotlin/BackdropPresetTest.kt) and
+[runtime replacement](../../modules/material-theming/src/composeTest/kotlin/BackdropThemeTest.kt).

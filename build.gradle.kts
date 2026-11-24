@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
@@ -15,7 +17,43 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.kotlinx.benchmark) apply false
     alias(libs.plugins.spotless)
+}
+
+val releaseGroupsConfig =
+    providers.fileContents(layout.projectDirectory.file("gradle/release-groups.json")).asText
+val releaseGroups = JsonSlurper().parseText(releaseGroupsConfig.get()) as Map<*, *>
+val groups = releaseGroups["groups"] as Map<*, *>
+val selectedGroups = releaseGroups["publish"] as List<*>
+
+require(
+    selectedGroups.isNotEmpty() &&
+        selectedGroups.size == selectedGroups.toSet().size &&
+        selectedGroups.all { it in groups },
+) {
+    "Select one or more distinct, declared publication groups in gradle/release-groups.json."
+}
+
+val bomPath = ":m3x-bom"
+val moduleVersions = mutableMapOf(bomPath to version.toString())
+val releaseModules = mutableSetOf(bomPath)
+
+groups.forEach { (group, groupConfig) ->
+    val config = groupConfig as Map<*, *>
+    val version = config["version"] as String
+    val modules = config["modules"] as List<*>
+    require(version.matches(Regex("[0-9][0-9A-Za-z.-]*")) && modules.isNotEmpty()) {
+        "Publication group $group requires a version and at least one module."
+    }
+    modules.forEach { name ->
+        val path = ":${name as String}"
+        require(findProject(path) != null && moduleVersions.put(path, version) == null) {
+            "Publication module $path must exist and belong to exactly one group."
+        }
+        if (group in selectedGroups) releaseModules += path
+    }
 }
 
 val commands =
@@ -26,26 +64,36 @@ val commands =
         "verifyTargets" to
             ("Runs JVM verification and local Web and Apple tests." to
                 listOf("verify", "verifyWeb", "verifyApple")),
-        "verifyApple" to ("Runs Apple target tests." to emptyList<String>()),
-        "verifyWeb" to ("Runs shared non-UI browser tests." to emptyList<String>()),
+        "verifyApple" to ("Runs Apple target tests." to emptyList()),
+        "verifyWeb" to ("Runs shared non-UI browser tests." to emptyList()),
         "verifyConnected" to
             ("Runs JVM verification and connected Android tests." to listOf("verify")),
         "verifyManaged" to
             ("Runs JVM verification and Android managed-device tests." to listOf("verify")),
         "verifyRelease" to
-            ("Checks the release tag, clean checkout and library artifacts." to
+            ("Checks the release tag, clean checkout and selected publication groups." to
                 listOf("checkReleaseVersion", "checkReleaseTree")),
         "publishLocal" to
             ("Runs verification and publishes artifacts to Maven Local." to listOf("verify")),
         "publishCentral" to
-            ("Verifies the release and publishes to Maven Central." to listOf("verifyRelease")),
+            ("Publishes the selected groups to Maven Central after release verification." to
+                listOf("verifyRelease")),
         "publishPackages" to
-            ("Verifies the release and publishes to GitHub Packages." to listOf("verifyRelease")),
+            ("Publishes the selected groups to GitHub Packages after release verification." to
+                listOf("verifyRelease")),
+        "benchmark" to
+            ("Measures JVM time and managed allocation." to
+                listOf(":benchmarks:backdrop:jvm:jvmAllocationBenchmark")),
+        "benchmarkList" to
+            ("Lists JMH-discovered workloads and parameter values." to
+                listOf(":benchmarks:backdrop:jvm:listWorkloads")),
     )
 
 commands.forEach { (name, contract) ->
     tasks.register(name) {
-        group = if (name.startsWith("publish")) "publishing" else "verification"
+        group =
+            if (name.startsWith("publish")) "publishing"
+            else if (name.startsWith("benchmark")) "benchmark" else "verification"
         description = contract.first
         dependsOn(contract.second)
     }
@@ -56,6 +104,9 @@ val verify = tasks.named("verify")
 verify.configure { dependsOn("spotlessCheck") }
 
 subprojects {
+    val publishedVersion = moduleVersions[path]
+    if (publishedVersion != null) version = publishedVersion
+    val selectedForRelease = path in releaseModules
     plugins.withId("com.diffplug.spotless") {
         val formatting = tasks.named("spotlessCheck")
         verify.configure { dependsOn(formatting) }
@@ -95,11 +146,30 @@ subprojects {
         }
     }
     plugins.withId("com.vanniktech.maven.publish") {
+        requireNotNull(publishedVersion) { "Assign $path to a publication group." }
         rootProject.tasks.named("checkReleaseTree").configure {
             mustRunAfter(moduleTasks.named("assemble"))
         }
-        rootProject.tasks.named("verifyRelease").configure {
-            dependsOn(moduleTasks.named("assemble"))
+        if (selectedForRelease) {
+            rootProject.tasks.named("verifyRelease").configure {
+                dependsOn(moduleTasks.named("assemble"))
+            }
+            if (path != bomPath) {
+                val bomUploads = project(bomPath).tasks.withType<PublishToMavenRepository>()
+                mapOf(
+                        "ToGitHubPackagesRepository" to
+                            "publishAllPublicationsToGitHubPackagesRepository",
+                        "ToMavenCentralRepository" to
+                            "publishAllPublicationsToMavenCentralRepository",
+                    )
+                    .forEach { (suffix, libraryUpload) ->
+                        bomUploads
+                            .matching { it.name.endsWith(suffix) }
+                            .configureEach {
+                                dependsOn(moduleTasks.matching { it.name == libraryUpload })
+                            }
+                    }
+            }
         }
         mapOf(
                 "publishLocal" to "publishToMavenLocal",
@@ -107,25 +177,34 @@ subprojects {
                 "publishPackages" to "publishAllPublicationsToGitHubPackagesRepository",
             )
             .forEach { (entry, publication) ->
-                rootProject.tasks.named(entry).configure {
-                    dependsOn(moduleTasks.matching { it.name == publication })
+                if (entry == "publishLocal" || selectedForRelease) {
+                    rootProject.tasks.named(entry).configure {
+                        dependsOn(moduleTasks.matching { it.name == publication })
+                    }
+                }
+            }
+        tasks
+            .matching { it.name.startsWith("publish") }
+            .configureEach {
+                if (name.endsWith("ToMavenLocal")) {
+                    dependsOn(verify)
+                } else {
+                    dependsOn(rootProject.tasks.named("verifyRelease"))
+                    onlyIf("the module is in a selected publication group") { selectedForRelease }
                 }
             }
     }
-    tasks
-        .matching { it.name.startsWith("publish") }
-        .configureEach {
-            dependsOn(
-                if (name.endsWith("ToMavenLocal")) verify
-                else rootProject.tasks.named("verifyRelease"),
-            )
+    afterEvaluate {
+        require(publishedVersion == null || plugins.hasPlugin("com.vanniktech.maven.publish")) {
+            "$path belongs to a publication group and must configure publishing."
         }
+    }
 }
 
 tasks.register<Exec>("checkReleaseAutomation") {
     group = "verification"
-    description = "Tests release drafts, version checks and the passing-CI gate."
-    args("--test", ".github/scripts/release.test.mjs")
+    description = "Tests release drafts, publication gates and benchmark reporting."
+    args("--test", ".github/scripts/release.test.mjs", ".github/scripts/benchmarks.test.mjs")
 }
 
 plugins.withType<NodeJsRootPlugin> {
@@ -137,19 +216,19 @@ plugins.withType<NodeJsRootPlugin> {
 }
 
 val releaseTag = providers.gradleProperty("releaseTag")
-val libraryVersion = providers.gradleProperty("version")
+val releaseVersion = providers.gradleProperty("version")
 
 tasks.register("checkReleaseVersion") {
     val tagInput = releaseTag
-    val versionInput = libraryVersion
+    val versionInput = releaseVersion
     group = "verification"
     description = "Checks that releaseTag matches the publication version."
     inputs.property("releaseTag", tagInput.orElse(""))
-    inputs.property("libraryVersion", versionInput)
+    inputs.property("releaseVersion", versionInput)
     doLast {
         val tag = tagInput.orNull ?: error("Supply -PreleaseTag=<tag> for a release operation.")
         require(tag.removePrefix("v") == versionInput.get()) {
-            "The release tag must match the version in gradle.properties."
+            "The release tag must match the M3X release version in gradle.properties."
         }
     }
 }

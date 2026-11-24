@@ -11,9 +11,9 @@ One name in a host belongs to one definition instance. Repeated requests share t
 and mutable state. A different definition with the same name is rejected even if its model type
 matches. Keep definitions stable, and avoid simultaneous hosts owning the same file.
 
-Source: [definitions and storage](../datastore-core/src/commonMain/kotlin/StoreDefinition.kt) and
-[host ownership](../datastore-core/src/commonMain/kotlin/StoreHost.kt).
-Regression: [host identity and lifecycle](../datastore-core/src/commonTest/kotlin/StoreHostTest.kt).
+Source: [definitions and storage](../modules/datastore-core/src/commonMain/kotlin/StoreDefinition.kt) and
+[host ownership](../modules/datastore-core/src/commonMain/kotlin/StoreHost.kt).
+Regression: [host identity and lifecycle](../modules/datastore-core/src/commonTest/kotlin/StoreHostTest.kt).
 
 ## Choose the observation adapter
 
@@ -25,8 +25,8 @@ Use `storeHost(scope, file)` or `mutableStateStore` from `datastore-compose` whe
 `FlowStore` accepts a Flow and writer for controlled integrations and tests. Its presence does not
 make non-AndroidX backends part of the supported persistence foundation.
 
-Sources: [adapters](../datastore-core/src/commonMain/kotlin/Store.kt) and
-[snapshot observation](../datastore-compose/src/commonMain/kotlin/SnapshotStore.kt).
+Sources: [adapters](../modules/datastore-core/src/commonMain/kotlin/Store.kt) and
+[snapshot observation](../modules/datastore-compose/src/commonMain/kotlin/SnapshotStore.kt).
 
 ## Treat local acceptance and saved state separately
 
@@ -50,8 +50,8 @@ Before creating a replacement host, call `closeAndJoin()` so the original DataSt
 resources. `close()` cancels without waiting. A settings commit's `AcceptedLocally` result refers to
 the write queue; status reports asynchronous persistence failures.
 
-Source: [optimistic writes](../datastore-core/src/commonMain/kotlin/MutableStore.kt).
-Regression: [queue, read/write failures, and rebasing](../datastore-core/src/commonTest/kotlin/MutableStoreTest.kt).
+Source: [optimistic writes](../modules/datastore-core/src/commonMain/kotlin/MutableStore.kt).
+Regression: [queue, read/write failures, and rebasing](../modules/datastore-core/src/commonTest/kotlin/MutableStoreTest.kt).
 
 ## Generate model bindings
 
@@ -64,7 +64,7 @@ factory and optional derivation provider are explicit annotation inputs.
 transformation can create a writable delegate with a selected getter. These model delegates differ
 from the settings describer's validated UI commit path.
 
-Sources: [annotations](../datastore-core/src/commonMain/kotlin/annotation/Annotation.kt),
-[generator](../datastore-processor/src/main/kotlin/generator/StoreFileGenerator.kt), and
-[demo model](../demo/src/commonMain/kotlin/DemoPreferences.kt).
-Regression: [generated files](../datastore-processor/src/test/kotlin/StoreFileGeneratorTest.kt).
+Sources: [annotations](../modules/datastore-core/src/commonMain/kotlin/annotation/Annotation.kt),
+[generator](../modules/datastore-processor/src/main/kotlin/generator/StoreFileGenerator.kt), and
+[demo model](../modules/demo/src/commonMain/kotlin/DemoPreferences.kt).
+Regression: [generated files](../modules/datastore-processor/src/test/kotlin/StoreFileGeneratorTest.kt).

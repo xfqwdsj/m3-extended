@@ -34,7 +34,9 @@ test('drafts use generated notes and the requested target without creating a tag
   assert.equal(draft.draft, true);
   assert.equal(draft.prerelease, true);
   assert.equal(draft.target_commitish, 'main');
-  assert.equal(draft.body, 'Generated changes\n\n**Full Changelog**: link');
+  assert.match(draft.body, /^Generated changes\n/);
+  assert.match(draft.body, /## Benchmarks/);
+  assert.match(draft.body, /\*\*Full Changelog\*\*: link\n$/);
   assert.equal(api.calls[0][1].previous_tag_name, 'v1.2.2');
   assert.deepEqual(api.calls.map(([name]) => name), ['notes', 'create']);
 });

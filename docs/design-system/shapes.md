@@ -21,9 +21,9 @@ radius metadata. Converting a custom preset does not invent measurement metadata
 uses per-corner physical measurements. The finite roles follow layout direction; physical container
 corners retain their screen positions in both LTR and RTL.
 
-Source: [shape values and conversion](../../material-theme/src/commonMain/kotlin/M3xShapes.kt).
-Regressions: [preset contracts](../../material-theming/src/commonTest/kotlin/ShapePresetTest.kt) and
-[rendered geometry](../../material-theming/src/composeTest/kotlin/ShapeRenderingTest.kt).
+Source: [shape values and conversion](../../modules/material-theme/src/commonMain/kotlin/M3xShapes.kt).
+Regressions: [preset contracts](../../modules/material-theming/src/commonTest/kotlin/ShapePresetTest.kt) and
+[rendered geometry](../../modules/material-theming/src/composeTest/kotlin/ShapeRenderingTest.kt).
 
 ## S2. Factories preserve the role model
 
@@ -36,7 +36,18 @@ For a nested container-like surface, inset each physical radius by its correspon
 padding and clamp at zero. This is a composition rule for nested containers; standard Material
 components retain their upstream sizing rules.
 
-Source: [Capsule factory and preset helpers](../../material-theming/src/commonMain/kotlin/Shape.kt).
+Source: [Capsule factory and preset helpers](../../modules/material-theming-capsule/src/commonMain/kotlin/CapsuleShapes.kt).
+
+`ContourShape` is an optional structured extension of Compose `Shape`. It reports ordered closed
+loops made from lines, circular arcs, and cubic Béziers, or returns null when the shape has no
+structured form. Logical and physical continuous rounded rectangles implement this contract.
+Backdrop uses the contour for optimized boundary work and falls back to the shape's ordinary
+`Outline` when no contour is available.
+
+Source: [contour geometry](../../modules/shape/src/commonMain/kotlin/ContourShape.kt) and
+[Capsule contours](../../modules/capsule/src/commonMain/kotlin/Contour.kt).
+Regressions: [shape contours](../../modules/capsule/src/commonTest/kotlin/ContourTest.kt) and
+[highlight geometry](../../modules/backdrop/src/jvmTest/kotlin/ContourShapeTest.kt).
 
 ## S3. Adaptation chooses one measurement source
 
@@ -57,8 +68,8 @@ with their hooks. A null hook selects the public platform reader; a hook returni
 reports unknown. Optional Apple probes live in `ui-platform-private`; native macOS hosts
 provide their `NSWindow` through `ProvideWindowCornerRadii`.
 
-Source: [public measurement hooks](../../ui/src/commonMain/kotlin/layout/CornerRadii.kt)
-and [adaptive policy](../../material-theme/src/commonMain/kotlin/M3xCornerRadii.kt).
+Source: [public measurement hooks](../../modules/ui/src/commonMain/kotlin/layout/CornerRadii.kt)
+and [adaptive policy](../../modules/material-theme/src/commonMain/kotlin/M3xCornerRadii.kt).
 
 ## S4. Unknown, invalid, and zero values have distinct meanings
 
@@ -72,7 +83,7 @@ The fallback argument must be finite and positive.
 corners, including true zero and asymmetry, independently of that scale clamp. Apple measurements
 convert host points using backing scale and Compose density, without font scale.
 
-Regression: [radius policy, invalid values, asymmetry, and scale](../../material-theme/src/commonTest/kotlin/M3xCornerRadiiTest.kt).
+Regression: [radius policy, invalid values, asymmetry, and scale](../../modules/material-theme/src/commonTest/kotlin/M3xCornerRadiiTest.kt).
 
 ## S5. Interactive shapes keep Material state behavior
 
@@ -98,10 +109,10 @@ through. Vertical controls pass their orientation to their default thumbs; stand
 
 Material owns time picker rendering and the interaction shapes of its AM/PM selector.
 
-Source: [component defaults](../../material/src/commonMain/kotlin/ToggleButton.kt).
-Regressions: [inheritance and overrides](../../material/src/composeTest/kotlin/ThemeShapeDefaultsTest.kt),
-[connected geometry](../../material/src/composeTest/kotlin/ConnectedShapeFactoryTest.kt), and
-[rendered slots](../../material/src/jvmTest/kotlin/ThemeShapeSlotIntegrationTest.kt).
+Source: [component defaults](../../modules/material/src/commonMain/kotlin/ToggleButton.kt).
+Regressions: [inheritance and overrides](../../modules/material/src/composeTest/kotlin/ThemeShapeDefaultsTest.kt),
+[connected geometry](../../modules/material/src/composeTest/kotlin/ConnectedShapeFactoryTest.kt), and
+[rendered slots](../../modules/material/src/jvmTest/kotlin/ThemeShapeSlotIntegrationTest.kt).
 
 ## S6. Grouped cards preserve the outer silhouette
 
@@ -111,6 +122,6 @@ direction. For a base shape outside `CornerBasedShape`, `CardGroupShapeFallback`
 position: without it, outer cards keep the base shape and middle cards use `RectangleShape`.
 `LocalCardShape` exposes the resolved card shape to descendants, including shared-transition content.
 
-Source: [group shape contract](../../material/src/commonMain/kotlin/CardLazyGroup.kt).
-Regressions: [fallback](../../material/src/commonTest/kotlin/CardGroupShapeFallbackTest.kt) and
-[continuous grouped geometry](../../material/src/composeTest/kotlin/CardGroupShapeSkiaTest.kt).
+Source: [group shape contract](../../modules/material/src/commonMain/kotlin/CardLazyGroup.kt).
+Regressions: [fallback](../../modules/material/src/commonTest/kotlin/CardGroupShapeFallbackTest.kt) and
+[continuous grouped geometry](../../modules/material/src/composeTest/kotlin/CardGroupShapeSkiaTest.kt).

@@ -1,9 +1,10 @@
+import { performanceNotes } from './benchmarks.mjs';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export function checkVersion(tag, properties) {
   const version = /^version\s*=\s*(\S+)\s*$/m.exec(properties)?.[1];
   if (!version || tag.replace(/^v/, '') !== version) {
-    throw new Error('The release tag must match the version in gradle.properties.');
+    throw new Error('The release tag must match the M3X release version in gradle.properties.');
   }
   return version;
 }
@@ -35,7 +36,7 @@ export async function prepareDraft(github, repo, tag, previousTag, target, prope
   const version = checkVersion(tag, properties);
   const releases = await github.paginate(github.rest.repos.listReleases, { ...repo, per_page: 100 });
   if (releases.some(release => release.tag_name.replace(/^v/, '') === version && release.tag_name !== tag)) {
-    throw new Error('This artifact version already has a release under another tag.');
+    throw new Error('This M3X version already has a release under another tag.');
   }
   const existing = releases.find(release => release.tag_name === tag);
   if (existing) {
@@ -48,7 +49,7 @@ export async function prepareDraft(github, repo, tag, previousTag, target, prope
   });
   const { data } = await github.rest.repos.createRelease({
     ...repo, tag_name: tag, target_commitish: target, name: notes.name,
-    draft: true, prerelease: version.includes('-'), body: notes.body,
+    draft: true, prerelease: version.includes('-'), body: performanceNotes(notes.body),
   });
   return data;
 }

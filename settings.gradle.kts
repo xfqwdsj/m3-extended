@@ -38,12 +38,14 @@ include(
     ":material3",
 )
 
-// Overlay and Backdrop infrastructure.
-include(
-    ":overlay",
-    ":backdrop",
-    ":overlay-backdrop",
-)
+// Structured contours and continuous rounded shapes.
+include(":shape", ":capsule")
+
+// Backdrop rendering.
+include(":backdrop")
+
+// Overlay presentation and its Backdrop adapter.
+include(":overlay", ":overlay-backdrop")
 
 // Material components, theming, and the integrated bundle.
 include(
@@ -84,6 +86,9 @@ include(
     ":processor-support",
 )
 
+// Dependency version alignment.
+include(":m3x-bom")
+
 // Demo application and platform launchers.
 include(
     ":demo",
@@ -93,3 +98,20 @@ include(
     ":demo-macos",
     ":demo-ios",
 )
+
+// Benchmark harnesses.
+include(
+    ":benchmarks:backdrop:scenarios",
+    ":benchmarks:backdrop:jvm",
+    ":benchmarks:backdrop:android-app",
+    ":benchmarks:backdrop:android-macro",
+)
+
+fun placeModules(parent: ProjectDescriptor, directory: File) {
+    parent.children.forEach { module ->
+        module.projectDir = directory.resolve(module.name)
+        placeModules(module, module.projectDir)
+    }
+}
+
+placeModules(rootProject, file("modules"))

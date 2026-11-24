@@ -12,7 +12,7 @@ Expressive integration contract.
 owner. Without a provider it returns baseline extension values; installing runtime providers and
 rendering hosts remains the application's responsibility.
 
-Source: [extension values](../../material-theme/src/commonMain/kotlin/M3xThemeExtensions.kt).
+Source: [extension values](../../modules/material-theme/src/commonMain/kotlin/M3xThemeExtensions.kt).
 
 ## T2. The optional theme establishes a complete root
 
@@ -28,8 +28,8 @@ is supplied.
 The theme supplies the control material's default Backdrop style and joins the shared interaction
 lighting scope. Actual pixels still require a captured source supplied by `BackdropHost`.
 
-Source: [M3xMaterialTheme](../../material-bundle/src/commonMain/kotlin/M3xMaterialTheme.kt).
-Regression: [root and nested themes](../../material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt).
+Source: [M3xMaterialTheme](../../modules/material-bundle/src/commonMain/kotlin/M3xMaterialTheme.kt).
+Regression: [root and nested themes](../../modules/material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt).
 
 ## T3. Nested themes inherit by input domain
 
@@ -50,8 +50,8 @@ radius metadata intact. Reconstruct the current complete preset with
 `MaterialTheme.extended.shapes.toM3xShapes(MaterialTheme.shapes)` when an API needs `M3xShapes`.
 Changing the backdrop preset preserves inherited shapes and independent accessibility preferences.
 
-Regression: [theme resolution](../../material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt)
-and [preference inheritance](../../material-theming/src/composeTest/kotlin/AccessibilityThemeTest.kt).
+Regression: [theme resolution](../../modules/material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt)
+and [preference inheritance](../../modules/material-theming/src/composeTest/kotlin/AccessibilityThemeTest.kt).
 
 ## T4. Overrides have an explicit scope
 
@@ -96,6 +96,6 @@ val complete = MaterialTheme.extended.shapes.toM3xShapes(MaterialTheme.shapes)
 ```
 
 These are composable-body alternatives with application content and imports omitted.
-Source: [theme-core dependencies](../../material-theme/build.gradle.kts),
-[optional theming dependencies](../../material-theming/build.gradle.kts), and
-[component dependencies](../../material/build.gradle.kts).
+Source: [theme-core dependencies](../../modules/material-theme/build.gradle.kts),
+[optional theming dependencies](../../modules/material-theming/build.gradle.kts), and
+[component dependencies](../../modules/material/build.gradle.kts).

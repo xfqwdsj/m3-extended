@@ -22,11 +22,11 @@ breakpoint changes reset offsets.
 `BackdropTopAppBarControl` groups a navigation icon or actions in a single capsule material. Paired
 M3X top bars allow control shadows outside their rows while clipping title content.
 
-Sources: [bars](../../material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt),
-[control surface](../../material-backdrop/src/commonMain/kotlin/BackdropTopAppBarControl.kt), and
-[demo layout](../../demo/src/commonMain/kotlin/DemoApp.kt).
-Regressions: [scroll presence](../../material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt)
-and [measured demo layout](../../demo/src/jvmTest/kotlin/DemoLayoutTest.kt).
+Sources: [bars](../../modules/material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt),
+[control surface](../../modules/material-backdrop/src/commonMain/kotlin/BackdropTopAppBarControl.kt), and
+[demo layout](../../modules/demo/src/commonMain/kotlin/DemoApp.kt).
+Regressions: [scroll presence](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt)
+and [measured demo layout](../../modules/demo/src/jvmTest/kotlin/DemoLayoutTest.kt).
 
 ## C2. Floating navigation sizes to its tabs
 
@@ -35,9 +35,9 @@ to the caller; selection requests use `onTabSelected`. Each tab is at least `tab
 (76 dp by default). Setting it to zero permits pure content sizing. Label length does not set
 unrelated tabs' proportions. The bar uses current Material motion and the library blur preference.
 
-Source: [floating bar](../../material/src/commonMain/kotlin/FloatingBottomBar.kt).
-Regressions: [sizing](../../material-backdrop/src/composeTest/kotlin/FloatingBottomBarSizingTest.kt) and
-[interaction/layout](../../material-backdrop/src/jvmTest/kotlin/FloatingBottomBarTest.kt).
+Source: [floating bar](../../modules/material/src/commonMain/kotlin/FloatingBottomBar.kt).
+Regressions: [sizing](../../modules/material-backdrop/src/composeTest/kotlin/FloatingBottomBarSizingTest.kt) and
+[interaction/layout](../../modules/material-backdrop/src/jvmTest/kotlin/FloatingBottomBarTest.kt).
 
 ## C3. Card appearance combines one backing with Material elevation
 
@@ -46,8 +46,8 @@ Set `backdrop = false` to use direct card colors; `backdropMaterial` replaces it
 Grouped cards keep a continuous backing appearance and trim only the group's internal corners.
 The resolved `LocalCardShape` is available for descendants that need to clip shared content.
 
-Sources: [card](../../material/src/commonMain/kotlin/Card.kt) and
-[grouped cards](../../material/src/commonMain/kotlin/CardLazyGroup.kt).
+Sources: [card](../../modules/material/src/commonMain/kotlin/Card.kt) and
+[grouped cards](../../modules/material/src/commonMain/kotlin/CardLazyGroup.kt).
 Shape contract: [S6](shapes.md#s6-grouped-cards-preserve-the-outer-silhouette).
 
 ## C4. Overlay ordering, lifetime, and input belong to a host
@@ -72,10 +72,10 @@ partial anchor at the expanded position; growing a sheet from those converged an
 full expansion. State-change vetoes remain caller-owned.
 See [gesture integration](../overlays.md#dismissal-contract).
 
-Source: [overlay host](../../overlay/src/commonMain/kotlin/Overlay.kt).
-Regressions: [visibility](../../overlay/src/jvmTest/kotlin/OverlayVisibilityProviderTest.kt),
-[dismissal](../../material-overlay/src/composeTest/kotlin/OverlayDismissBehaviorTest.kt), and
-[sheet reopening](../../material-overlay/src/composeTest/kotlin/OverlaySheetReopeningTest.kt).
+Source: [overlay host](../../modules/overlay/src/commonMain/kotlin/Overlay.kt).
+Regressions: [visibility](../../modules/overlay/src/jvmTest/kotlin/OverlayVisibilityProviderTest.kt),
+[dismissal](../../modules/material-overlay/src/composeTest/kotlin/OverlayDismissBehaviorTest.kt), and
+[sheet reopening](../../modules/material-overlay/src/composeTest/kotlin/OverlaySheetReopeningTest.kt).
 
 ## C5. List structure uses the public DSL
 
@@ -84,10 +84,10 @@ Regressions: [visibility](../../overlay/src/jvmTest/kotlin/OverlayVisibilityProv
 Generated collectors own low-level registration. A card group has one header slot: the latest header
 call wins and that header renders before ordinary entries. Keep item keys stable and unique.
 
-Sources: [generic list](../../foundation/src/commonMain/kotlin/GroupedLazyList.kt) and
-[Material helpers](../../material/src/commonMain/kotlin/layout/GroupedLazyList.kt).
-Regressions: [generic DSL](../../foundation/src/commonTest/kotlin/GroupedLazyListDslTest.kt) and
-[card DSL](../../material/src/commonTest/kotlin/CardLazyGroupDslTest.kt).
+Sources: [generic list](../../modules/foundation/src/commonMain/kotlin/GroupedLazyList.kt) and
+[Material helpers](../../modules/material/src/commonMain/kotlin/layout/GroupedLazyList.kt).
+Regressions: [generic DSL](../../modules/foundation/src/commonTest/kotlin/GroupedLazyListDslTest.kt) and
+[card DSL](../../modules/material/src/commonTest/kotlin/CardLazyGroupDslTest.kt).
 
 ## C6. Settings separate immediate edits from modal transactions
 
@@ -102,10 +102,10 @@ with their surroundings; reduced motion disables that sharing. Rows and retained
 visibility from one editor transition, with each item ID preserving its content identity. The page
 consumes the enclosing theme and overlay host.
 
-Source: [settings UI](../../settings-page-material/src/commonMain/kotlin/CardSettings.kt).
+Source: [settings UI](../../modules/settings-page-material/src/commonMain/kotlin/CardSettings.kt).
 Details: [settings guide](../settings.md).
-Regressions: [settings interaction](../../settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt)
-and [rendering transitions](../../settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
+Regressions: [settings interaction](../../modules/settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt)
+and [rendering transitions](../../modules/settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
 
 ## C7. Expressive controls retain Material interaction ownership
 
@@ -127,11 +127,11 @@ Material action, checkbox, or radio semantics and content slots, while the enclo
 continues to own presentation and dismissal. Top bars expose subtitle and alignment inputs; flexible
 bars choose their default expanded height from the subtitle's presence.
 
-Sources: [toggle buttons](../../material/src/commonMain/kotlin/ToggleButton.kt),
-[sliders](../../material/src/commonMain/kotlin/Slider.kt),
-[search](../../material/src/commonMain/kotlin/SearchBar.kt), and
-[menu items](../../material-overlay/src/commonMain/kotlin/OverlayMenu.kt).
-Regressions: [size and icon slots](../../material/src/composeTest/kotlin/ToggleButtonSizeTest.kt),
-[slider ownership](../../material/src/composeTest/kotlin/SliderCallbackTest.kt),
-[menu semantics](../../material/src/composeTest/kotlin/OverlayMenuItemSemanticsTest.kt), and
-[top-bar inputs](../../material/src/composeTest/kotlin/BackdropAppBarApiTest.kt).
+Sources: [toggle buttons](../../modules/material/src/commonMain/kotlin/ToggleButton.kt),
+[sliders](../../modules/material/src/commonMain/kotlin/Slider.kt),
+[search](../../modules/material/src/commonMain/kotlin/SearchBar.kt), and
+[menu items](../../modules/material-overlay/src/commonMain/kotlin/OverlayMenu.kt).
+Regressions: [size and icon slots](../../modules/material/src/composeTest/kotlin/ToggleButtonSizeTest.kt),
+[slider ownership](../../modules/material/src/composeTest/kotlin/SliderCallbackTest.kt),
+[menu semantics](../../modules/material/src/composeTest/kotlin/OverlayMenuItemSemanticsTest.kt), and
+[top-bar inputs](../../modules/material/src/composeTest/kotlin/BackdropAppBarApiTest.kt).

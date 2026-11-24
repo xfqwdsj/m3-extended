@@ -8,8 +8,8 @@ unknown values as null; System resolves only a known true value to enabled. Expl
 supersede the observed system value for policy resolution. Platform animation timing remains subject
 to the limits described in A5. A backdrop preset change preserves these preferences.
 
-Source: [resolution](../../ui/src/commonMain/kotlin/accessibility/AccessibilityPreferences.kt).
-Regression: [preference resolution](../../ui/src/commonTest/kotlin/AccessibilityPreferencesTest.kt).
+Source: [resolution](../../modules/ui/src/commonMain/kotlin/accessibility/AccessibilityPreferences.kt).
+Regression: [preference resolution](../../modules/ui/src/commonTest/kotlin/AccessibilityPreferencesTest.kt).
 
 ## A2. Runtime observation belongs to a dynamic provider
 
@@ -24,12 +24,12 @@ exposes the resolved values to custom policies. Dynamic locals track readers; st
 extensions retain configuration. Increased contrast also updates the native Material color scheme.
 
 Platform readers preserve unknown values when the host cannot report a setting. The
-[platform implementations](../../ui/src) own availability checks and observation
+[platform implementations](../../modules/ui/src) own availability checks and observation
 lifetimes.
 
-Regressions: [observation](../../ui/src/composeTest/kotlin/AccessibilityTest.kt),
-[theme recomposition and inheritance](../../material-theming/src/composeTest/kotlin/AccessibilityThemeTest.kt),
-and [surface response](../../material-backdrop/src/composeTest/kotlin/AccessibilityAppearanceTest.kt).
+Regressions: [observation](../../modules/ui/src/composeTest/kotlin/AccessibilityTest.kt),
+[theme recomposition and inheritance](../../modules/material-theming/src/composeTest/kotlin/AccessibilityThemeTest.kt),
+and [surface response](../../modules/material-backdrop/src/composeTest/kotlin/AccessibilityAppearanceTest.kt).
 
 ## A3. Reduced transparency changes appearance
 
@@ -57,10 +57,10 @@ Built-in materials evaluate their final tint and foreground together. With a kno
 opacity covers the full SDR backdrop range; unknown sampling and source-free drawing use an opaque
 fallback. Reduced transparency independently requires opacity and disables optical adaptation.
 
-Sources: [semantic colors](../../material3/src/commonMain/kotlin/Contrast.kt) and
-[material appearance](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Algorithm provenance: [ported Material Color Utilities sources](../../ui/src/commonMain/kotlin/color/Contrast.kt).
-Regression: [color families](../../material3/src/commonTest/kotlin/ContrastTest.kt).
+Sources: [semantic colors](../../modules/material3/src/commonMain/kotlin/Contrast.kt) and
+[material appearance](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
+Algorithm provenance: [ported Material Color Utilities sources](../../modules/ui/src/commonMain/kotlin/color/Contrast.kt).
+Regression: [color families](../../modules/material3/src/commonTest/kotlin/ContrastTest.kt).
 
 ## A5. Policy chooses motion; the scheme supplies its timing
 
@@ -94,10 +94,10 @@ thresholds and non-spring specifications remain authoritative. Existing opacity 
 remain unchanged.
 Nested M3X themes inherit the current scheme; an explicit `motionScheme` supplies the replacement.
 
-Sources: [typed motion thresholds](../../material3/src/commonMain/kotlin/SharedBoundsMotion.kt) and
-[corner progress tolerance](../../material-overlay/src/commonMain/kotlin/MenuTransitionShape.kt).
-Regressions: [theme inheritance](../../material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt)
-and [corner motion](../../material-overlay/src/jvmTest/kotlin/MenuTransitionShapeTest.kt).
+Sources: [typed motion thresholds](../../modules/material3/src/commonMain/kotlin/SharedBoundsMotion.kt) and
+[corner progress tolerance](../../modules/material-overlay/src/commonMain/kotlin/MenuTransitionShape.kt).
+Regressions: [theme inheritance](../../modules/material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt)
+and [corner motion](../../modules/material-overlay/src/jvmTest/kotlin/MenuTransitionShapeTest.kt).
 
 Animations use Compose's native transitions, animation state helpers, and coroutine scopes.
 `ProvideAccessibility` resolves settings; it does not override animation duration scales.
@@ -107,9 +107,9 @@ its system animator-duration scale. When the platform disables animation this wa
 Reduce motion switch is ineffective at restoring motion, and replacement fades may finish
 immediately. The library cannot perfectly restore animation behavior on these platforms.
 
-Sources: [effective policy](../../ui/src/commonMain/kotlin/accessibility/AccessibilityPolicy.kt)
-and [native visibility integration](../../animation/src/commonMain/kotlin/BlurAnimation.kt).
-Regression: [effective policy combinations](../../animation/src/jvmTest/kotlin/AccessibilityPolicyTest.kt).
+Sources: [effective policy](../../modules/ui/src/commonMain/kotlin/accessibility/AccessibilityPolicy.kt)
+and [native visibility integration](../../modules/animation/src/commonMain/kotlin/BlurAnimation.kt).
+Regression: [effective policy combinations](../../modules/animation/src/jvmTest/kotlin/AccessibilityPolicyTest.kt).
 
 ## Shared interaction light
 
@@ -129,9 +129,9 @@ A shared `InteractionSource` supplies synthetic press and focus lighting; absent
 chain observes focus and keyboard activation. Reducing motion shortens release rather than
 inventing a different material role.
 
-Source: [source and receiver wiring](../../material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
-Regressions: [input lighting](../../material/src/jvmTest/kotlin/InteractionLightTest.kt) and
-[shared-light rendering](../../material-backdrop/src/jvmTest/kotlin/SharedLightRenderingTest.kt).
+Source: [source and receiver wiring](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
+Regressions: [input lighting](../../modules/material/src/jvmTest/kotlin/InteractionLightTest.kt) and
+[shared-light rendering](../../modules/material-backdrop/src/jvmTest/kotlin/SharedLightRenderingTest.kt).
 
 ## A6. Entrance and exit blur follows component ownership
 
@@ -175,16 +175,16 @@ A zero radius preserves fading without a render effect. Theme inheritance follow
 composed until it finishes. Custom transitions supply spatial motion or explicitly take over
 opacity with `fade = false` to avoid multiplying fades.
 
-Sources: [optical helpers](../../animation/src/commonMain/kotlin/BlurAnimation.kt),
-[host integration](../../material-overlay/src/commonMain/kotlin/OverlayBlur.kt), and
-[bounded background motion](../../material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt).
-Regressions: [optical ownership](../../material/src/jvmTest/kotlin/BlurTransitionTest.kt),
-[container rendering](../../material/src/jvmTest/kotlin/ContainerBlurRenderingTest.kt),
-[shared crossfading](../../material/src/jvmTest/kotlin/SharedContainerFadeTest.kt),
-[shared motion specs](../../material/src/jvmTest/kotlin/SharedMotionSchemeTest.kt),
-[press and release continuity](../../material-backdrop/src/jvmTest/kotlin/FloatingBottomBarMotionTest.kt),
-[editor integration](../../settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt), and
-[bounded background fallback](../../material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt).
+Sources: [optical helpers](../../modules/animation/src/commonMain/kotlin/BlurAnimation.kt),
+[host integration](../../modules/material-overlay/src/commonMain/kotlin/OverlayBlur.kt), and
+[bounded background motion](../../modules/material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt).
+Regressions: [optical ownership](../../modules/material/src/jvmTest/kotlin/BlurTransitionTest.kt),
+[container rendering](../../modules/material/src/jvmTest/kotlin/ContainerBlurRenderingTest.kt),
+[shared crossfading](../../modules/material/src/jvmTest/kotlin/SharedContainerFadeTest.kt),
+[shared motion specs](../../modules/material/src/jvmTest/kotlin/SharedMotionSchemeTest.kt),
+[press and release continuity](../../modules/material-backdrop/src/jvmTest/kotlin/FloatingBottomBarMotionTest.kt),
+[editor integration](../../modules/settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt), and
+[bounded background fallback](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt).
 
 ## Platform interpretation
 

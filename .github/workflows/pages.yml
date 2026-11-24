@@ -41,7 +41,7 @@ jobs:
         id: deployment
         uses: actions/upload-pages-artifact@v5
         with:
-          path: demo-web/build/pages
+          path: modules/demo-web/build/pages
 
   deploy:
     name: Deploy to GitHub Pages

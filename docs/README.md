@@ -30,5 +30,7 @@ tuning remain owned by source.
 
 [Architecture](architecture.md) explains layers, dependency direction and integration ownership.
 [Extension contracts](extension-contracts.md) describe public API extension contracts.
-[Development](development.md) covers generation, verification, publication, and platform launchers.
+[Development](development.md) covers generation, verification, and platform launchers.
+[Benchmarks](benchmarks.md) describes measurement suites, and [M3X releases](releases.md) defines
+publication groups and the release workflow.
 [AGENTS.md](../AGENTS.md) contains the rules for repository changes.
