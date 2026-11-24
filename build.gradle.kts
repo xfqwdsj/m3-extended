@@ -319,8 +319,12 @@ tasks.register("checkBuildDocs") {
 }
 
 spotless {
+    kotlin {
+        target("build-logic/src/**/*.kt")
+        ktfmt().kotlinlangStyle()
+    }
     kotlinGradle {
-        target("*.gradle.kts", "gradle/*.gradle.kts")
+        target("*.gradle.kts", "gradle/*.gradle.kts", "build-logic/*.gradle.kts")
         ktfmt().kotlinlangStyle()
     }
 }

@@ -77,10 +77,24 @@ internal class DownsampledProgressiveBlurRenderingTest {
     }
 
     @Test
-    fun downsampledShaderMatchesFullAcrossRampsEdgesAndTransparentInput() = runRenderTest {
+    fun downsampledShaderMatchesFullAcrossTranslucentTopRamps() =
+        assertTranslucentRampsMatchFull(BackdropEdge.Top)
+
+    @Test
+    fun downsampledShaderMatchesFullAcrossTranslucentBottomRamps() =
+        assertTranslucentRampsMatchFull(BackdropEdge.Bottom)
+
+    @Test
+    fun downsampledShaderMatchesFullAcrossTranslucentStartRamps() =
+        assertTranslucentRampsMatchFull(BackdropEdge.Start)
+
+    @Test
+    fun downsampledShaderMatchesFullAcrossTranslucentEndRamps() =
+        assertTranslucentRampsMatchFull(BackdropEdge.End)
+
+    private fun assertTranslucentRampsMatchFull(edge: BackdropEdge) = runRenderTest {
         val failures = mutableListOf<String>()
         val direction = mutableStateOf(LayoutDirection.Ltr)
-        val edge = mutableStateOf(BackdropEdge.Top)
         val start = mutableFloatStateOf(0f)
         val end = mutableFloatStateOf(1f)
         val mode = mutableIntStateOf(0)
@@ -99,33 +113,30 @@ internal class DownsampledProgressiveBlurRenderingTest {
                                 to = end.floatValue,
                             )
                         if (mode.intValue == 0) {
-                            effects { progressiveBlur(128f, edge.value, ramp) }
+                            effects { progressiveBlur(128f, edge, ramp) }
                         } else {
-                            progressiveBlur(128f, edge.value, ramp, ProgressiveBlurMode.Full)
+                            progressiveBlur(128f, edge, ramp, ProgressiveBlurMode.Full)
                         }
                     },
                 )
             }
         }
         for (nextDirection in LayoutDirection.entries) {
-            for (nextEdge in BackdropEdge.entries) {
-                for ((from, to) in listOf(.125f to 1f, 1f to .125f)) {
-                    runOnIdle {
-                        direction.value = nextDirection
-                        edge.value = nextEdge
-                        start.floatValue = from
-                        end.floatValue = to
-                        mode.intValue = 0
-                    }
-                    val reference = onNodeWithTag("downsample-ramp").captureToImage().toPixelMap()
-                    runOnIdle { mode.intValue = 1 }
-                    val actual = onNodeWithTag("downsample-ramp").captureToImage().toPixelMap()
-                    val error = difference(reference, actual)
-                    if (error[0] >= .03f || error[1] >= .35f || error[2] >= .50f) {
-                        failures +=
-                            "direction=$nextDirection edge=$nextEdge ramp=$from..$to " +
-                                "error=${error.toList()}"
-                    }
+            for ((from, to) in listOf(.125f to 1f, 1f to .125f)) {
+                runOnIdle {
+                    direction.value = nextDirection
+                    start.floatValue = from
+                    end.floatValue = to
+                    mode.intValue = 0
+                }
+                val reference = onNodeWithTag("downsample-ramp").captureToImage().toPixelMap()
+                runOnIdle { mode.intValue = 1 }
+                val actual = onNodeWithTag("downsample-ramp").captureToImage().toPixelMap()
+                val error = difference(reference, actual)
+                if (error[0] >= .03f || error[1] >= .35f || error[2] >= .50f) {
+                    failures +=
+                        "direction=$nextDirection edge=$edge ramp=$from..$to " +
+                            "error=${error.toList()}"
                 }
             }
         }

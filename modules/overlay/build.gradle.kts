@@ -1,4 +1,3 @@
-import com.android.build.api.dsl.ManagedVirtualDevice
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
@@ -10,6 +9,7 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.androidKmpLibrary)
+    id("top.ltfan.m3x.android-test-device")
     alias(libs.plugins.spotless)
     alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
@@ -42,14 +42,7 @@ kotlin {
         }
             .configure {
                 instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-                managedDevices {
-                    localDevices.create("pixel6Api37") {
-                        device = "Pixel 6"
-                        apiLevel = 37
-                        systemImageSource = "google_apis"
-                        pageAlignment = ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
-                    }
-                }
+                managedDevices { androidTestDevice.configure(this) }
             }
         minSdk = 21
         compilations.configureEach {

@@ -64,13 +64,15 @@ available locally through `:verifyWeb` and `:verifyApple`; CI runs only JVM and 
 Android, Web or Apple behavior. Rendering tests explicitly supply accessibility preferences where
 pixel expectations depend on them.
 
-Module Android targets own instrumentation runners and GMD definitions. AGP creates and tears down
-the managed device. Compose-enabled Android targets enable `androidResources` so AGP registers
-the test asset output. CI runs `:verify` under Xvfb in the JVM job and packages Android test APKs
-before running `allDevicesAndroidDeviceTest` in the Android job. The Android job enables KVM and
-uses one Gradle worker and one managed device for the device test phase. Each job uploads its own
-reports. The shared benchmark scenarios have JVM correctness tests. JMH timing and Android
-Macrobenchmark run through their dedicated [benchmark entry points](benchmarks.md).
+Module Android targets, including Macrobenchmark, declare their instrumentation runners and apply
+`top.ltfan.m3x.android-test-device` from the `build-logic` included build. They register a managed
+device from the shared [Android test device profile](../gradle/android-test-device.json). AGP
+creates and tears down the managed device. Compose-enabled Android targets enable
+`androidResources` so AGP registers the test asset output. CI runs `:verify` under Xvfb in the JVM
+job and packages Android test APKs before starting one KVM-accelerated emulator from the same
+profile. `connectedAndroidDeviceTest` runs each module's tests in turn on that emulator. Each job
+uploads its own reports. The shared benchmark scenarios have JVM correctness tests. JMH timing and
+Android Macrobenchmark run through their dedicated [benchmark entry points](benchmarks.md).
 
 Browser tests use Kotlin's default headless Chrome runner and require a local Chrome installation.
 Prepare the Web toolchain before local browser verification:

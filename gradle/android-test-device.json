@@ -1,0 +1,7 @@
+{
+  "name": "pixel6Api37",
+  "hardwareProfile": "Pixel 6",
+  "avdProfile": "pixel_6",
+  "systemImageApi": "37.0",
+  "systemImageSource": "google_apis"
+}

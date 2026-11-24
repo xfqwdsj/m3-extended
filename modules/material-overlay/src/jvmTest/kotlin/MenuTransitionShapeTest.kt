@@ -102,17 +102,17 @@ class MenuTransitionShapeTest {
         )
         runOnIdle { visible = false }
         mainClock.advanceTimeByFrame()
-        val reversed = animated!!.radius()
+        val reversed = animated.radius()
         assertTrue(
             abs(reversed - opening) < 1f,
             "Reversal must preserve the current radius",
         )
         mainClock.advanceTimeBy(256)
-        assertTrue(animated!!.radius() > reversed, "Closing must return toward the button radius")
+        assertTrue(animated.radius() > reversed, "Closing must return toward the button radius")
         mainClock.advanceTimeBy(1_100)
         runOnIdle { visible = true }
         mainClock.advanceTimeBy(1_100)
-        assertEquals(4f, animated!!.radius())
+        assertEquals(4f, animated.radius())
     }
 
     @Test
@@ -208,10 +208,10 @@ class MenuTransitionShapeTest {
         mainClock.advanceTimeBy(256)
         assertTrue(panelShape!!.radius() in 20f..24f)
         mainClock.advanceTimeBy(1_100)
-        assertEquals(4f, panelShape!!.radius())
+        assertEquals(4f, panelShape.radius())
         runOnIdle { expanded = false }
         mainClock.advanceTimeBy(256)
-        assertTrue(panelShape!!.radius() in 8f..12f)
+        assertTrue(panelShape.radius() in 8f..12f)
     }
 
     private fun Shape.radius(direction: LayoutDirection = LayoutDirection.Ltr): Float =

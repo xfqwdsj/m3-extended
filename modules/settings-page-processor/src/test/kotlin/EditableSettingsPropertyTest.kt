@@ -102,7 +102,7 @@ class EditableSettingsPropertyTest {
             val error = result.errors.single { it.declaration == property }
             assertTrue(error.message.contains(path), error.message)
             assertTrue(error.message.contains("primary constructor"), error.message)
-            assertTrue(error.location?.filePath?.endsWith("Models.kt") == true, error.toString())
+            assertEquals(true, error.location?.filePath?.endsWith("Models.kt"), error.toString())
             val line = result.source.lines()[error.location!!.lineNumber - 1]
             assertTrue(line.contains(property), "Diagnostic must point to the property: $line")
         }

@@ -80,10 +80,7 @@ jobs:
           sudo udevadm settle
           test -r /dev/kvm && test -w /dev/kvm
       - name: Run Android device tests
-        run: |
-          bash .github/scripts/android-ci-resources.sh ./gradlew --console=plain allDevicesAndroidDeviceTest --continue --max-workers=1 \
-            -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1 \
-            -Pandroid.testoptions.manageddevices.emulator.gpu=software
+        run: bash .github/scripts/run-android-device-tests.sh
       - name: Upload Android test reports
         if: always()
         uses: actions/upload-artifact@v7

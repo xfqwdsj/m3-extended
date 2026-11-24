@@ -5,6 +5,8 @@
 // https://docs.gradle.org/current/userguide/settings_file_basics.html
 
 pluginManagement {
+    includeBuild("build-logic")
+
     // Use the version catalog to manage dependencies and plugins.
     // The version catalog is defined in `gradle/libs.versions.toml`.
     repositories {

@@ -60,7 +60,7 @@ class DemoLayoutTest {
         var scrollBehavior: TopAppBarScrollBehavior? = null
         setContent {
             val behavior =
-                rememberDemoScrollBehavior(DemoRoute.Components, BarVariant.Large, 400.dp)!!
+                rememberDemoScrollBehavior(DemoRoute.Components, BarVariant.Large, 400.dp)
             scrollBehavior = behavior
             M3xMaterialTheme {
                 Scaffold(
@@ -127,44 +127,38 @@ class DemoLayoutTest {
         waitForIdle()
         assertNotNull(behavior)
         runOnIdle {
-            behavior!!.state.heightOffsetLimit = -100f
-            behavior!!
-                .nestedScrollConnection
-                .onPreScroll(
-                    Offset(0f, -24f),
-                    NestedScrollSource.UserInput,
-                )
+            behavior.state.heightOffsetLimit = -100f
+            behavior.nestedScrollConnection.onPreScroll(
+                Offset(0f, -24f),
+                NestedScrollSource.UserInput,
+            )
         }
-        assertEquals(-24f, behavior!!.state.heightOffset)
+        assertEquals(-24f, behavior.state.heightOffset)
         runOnIdle { width.value = DemoLabWideBreakpoint - 1.dp }
         waitForIdle()
         assertNotNull(behavior)
-        assertTrue(behavior!!.isPinned)
+        assertTrue(behavior.isPinned)
         runOnIdle {
-            behavior!!
-                .nestedScrollConnection
-                .onPostScroll(
-                    Offset.Zero,
-                    Offset(0f, -24f),
-                    NestedScrollSource.UserInput,
-                )
+            behavior.nestedScrollConnection.onPostScroll(
+                Offset.Zero,
+                Offset(0f, -24f),
+                NestedScrollSource.UserInput,
+            )
         }
-        assertEquals(0f, behavior!!.state.contentOffset)
-        assertEquals(0f, behavior!!.state.heightOffset)
+        assertEquals(0f, behavior.state.contentOffset)
+        assertEquals(0f, behavior.state.heightOffset)
         runOnIdle { width.value = DemoLabWideBreakpoint }
         waitForIdle()
         assertNotNull(behavior)
-        assertEquals(0f, behavior!!.state.heightOffset)
+        assertEquals(0f, behavior.state.heightOffset)
         runOnIdle {
-            behavior!!.state.heightOffsetLimit = -100f
-            behavior!!
-                .nestedScrollConnection
-                .onPreScroll(
-                    Offset(0f, -24f),
-                    NestedScrollSource.UserInput,
-                )
+            behavior.state.heightOffsetLimit = -100f
+            behavior.nestedScrollConnection.onPreScroll(
+                Offset(0f, -24f),
+                NestedScrollSource.UserInput,
+            )
         }
-        assertEquals(-24f, behavior!!.state.heightOffset)
+        assertEquals(-24f, behavior.state.heightOffset)
     }
 
     @Test

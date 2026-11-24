@@ -1,8 +1,8 @@
-import com.android.build.api.dsl.ManagedVirtualDevice
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.test)
+    id("top.ltfan.m3x.android-test-device")
     alias(libs.plugins.spotless)
 }
 
@@ -20,14 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     testOptions {
-        managedDevices {
-            localDevices.create("pixel6Api37") {
-                device = "Pixel 6"
-                apiLevel = 37
-                systemImageSource = "google_apis"
-                pageAlignment = ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
-            }
-        }
+        managedDevices { androidTestDevice.configure(this) }
     }
     targetProjectPath = ":benchmarks:backdrop:android-app"
     buildTypes {
