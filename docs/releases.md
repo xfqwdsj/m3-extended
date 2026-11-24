@@ -82,9 +82,10 @@ Commit the selected versions, sources, and harness changes together. Run
 Generated notes seed an editable draft and reserve space for benchmarks. An optional previous tag
 controls the changelog comparison range. Resuming the draft preserves author edits.
 
-Publishing validates the version and exact tagged commit, then requires a successful push run of
-[Test](../.github/workflows/test.yml) for that commit. The gate observes a pending run for up to
-20 minutes. Missing, failed, canceled, or timed-out CI blocks publication. The
+Publishing validates the version and exact tagged commit, then requires the `Tests` check from the
+latest [Test workflow](../.github/workflows/test.yml) push run for that commit. The gate waits up to
+20 minutes for the JVM and Android result. Missing, failed, canceled, or timed-out tests block
+publication. A Pages-only retry uses the preceding test result. The
 [publishing workflow](../.github/workflows/publish.yml) verifies the release and uploads selected
 groups to GitHub Packages, then Maven Central. The BOM follows the selected libraries in each
 repository. Packages uses `--continue` to try independent tasks.

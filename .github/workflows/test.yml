@@ -5,41 +5,172 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: test-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  test:
-    name: Tests
+  prepare:
+    name: Cache shared build outputs
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-build
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Cache common KSP tasks and their dependencies
+        continue-on-error: true
+        run: >-
+          ./gradlew --console=plain --continue
+          :foundation:kspCommonMainKotlinMetadata
+          :material:kspCommonMainKotlinMetadata
+          :backdrop:kspCommonMainKotlinMetadata
+          :demo:kspCommonMainKotlinMetadata
+
+  jvm:
+    name: JVM tests
+    needs: prepare
+    if: ${{ !cancelled() && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-build
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Run JVM tests and checks
+        run: xvfb-run --auto-servernum ./gradlew --console=plain :verify --continue
+      - name: Upload JVM test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jvm-test-reports
+          path: '**/build/reports/tests/**'
+          overwrite: true
+          retention-days: 7
+
+  android:
+    name: Android device tests
+    needs: prepare
+    if: ${{ !cancelled() && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-build
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Package Android device tests
+        run: bash .github/scripts/android-ci-resources.sh ./gradlew --console=plain packageAndroidDeviceTest --continue
       - name: Enable KVM acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Run tests
-        run: xvfb-run --auto-servernum ./gradlew :verifyManaged --continue
-      - name: Upload test reports
+          sudo udevadm settle
+          test -r /dev/kvm && test -w /dev/kvm
+      - name: Run Android device tests
+        run: |
+          bash .github/scripts/android-ci-resources.sh ./gradlew --console=plain allDevicesAndroidDeviceTest --continue --max-workers=1 \
+            -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1 \
+            -Pandroid.testoptions.manageddevices.emulator.gpu=software
+      - name: Upload Android test reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-reports
+          name: android-test-reports
           path: |
-            **/build/reports/tests/**
             **/build/reports/androidTests/**
             **/build/outputs/androidTest-results/**
           overwrite: true
           retention-days: 7
+
+  test:
+    name: Tests
+    needs: [ jvm, android ]
+    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require both test jobs to pass
+        env:
+          JVM_RESULT: ${{ needs.jvm.result }}
+          ANDROID_RESULT: ${{ needs.android.result }}
+        run: |
+          printf 'JVM tests: %s\nAndroid device tests: %s\n' "$JVM_RESULT" "$ANDROID_RESULT"
+          [[ "$JVM_RESULT" == success && "$ANDROID_RESULT" == success ]]
+
+  build-pages:
+    name: Build Wasm demo site
+    needs: prepare
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      artifact-name: ${{ steps.artifact.outputs.name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/configure-pages@v6
+      - uses: ./.github/actions/setup-build
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      - name: Set up node
+        run: ./gradlew --console=plain kotlinNodeJsSetup kotlinWasmNodeJsSetup kotlinNpmInstall kotlinWasmNpmInstall
+      - name: Build Pages site
+        run: ./gradlew --console=plain :demo-web:pagesDistribution
+      - name: Name the Pages artifact for this attempt
+        id: artifact
+        run: echo "name=github-pages-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: modules/demo-web/build/pages
+
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    needs: build-pages
+    concurrency:
+      group: pages
+      queue: max
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Check whether to deploy this revision
+        id: revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            head_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+            if [[ "$GITHUB_SHA" != "$head_sha" ]]; then
+              echo 'A newer main commit superseded this Pages build.'
+              exit 0
+            fi
+          fi
+          echo 'deploy=true' >> "$GITHUB_OUTPUT"
+      - name: Deploy to GitHub Pages
+        if: steps.revision.outputs.deploy == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: ${{ needs.build-pages.outputs.artifact-name }}

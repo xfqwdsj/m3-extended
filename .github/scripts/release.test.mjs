@@ -59,16 +59,24 @@ test('published releases and duplicate version aliases cannot be replaced', asyn
   }
 });
 
-function ci(pages) {
+function ci(pages, jobs = (run) => [job('Tests', run.run_attempt, run.conclusion, run.status)]) {
   let index = 0;
-  return { rest: { actions: { listWorkflowRuns: async args => {
+  let runs;
+  const actions = { listJobsForWorkflowRun() {}, listWorkflowRuns: async args => {
     assert.equal(args.workflow_id, 'test.yml');
     assert.equal(args.event, 'push');
     assert.equal(args.head_sha, 'release-commit');
-    return { data: { workflow_runs: pages[Math.min(index++, pages.length - 1)] } };
-  } } } };
+    runs = pages[Math.min(index++, pages.length - 1)];
+    return { data: { workflow_runs: runs } };
+  } };
+  return { rest: { actions }, paginate: async (endpoint, args) => {
+    assert.equal(endpoint, actions.listJobsForWorkflowRun);
+    assert.equal(args.filter, 'all');
+    return jobs(runs.find(run => run.id === args.run_id));
+  } };
 }
-const run = (id, status, conclusion) => ({ id, head_sha: 'release-commit', event: 'push', status, conclusion });
+const run = (id, status, conclusion, run_attempt = 1) => ({ id, head_sha: 'release-commit', event: 'push', status, conclusion, run_attempt });
+const job = (name, run_attempt, conclusion, status = 'completed') => ({ name, run_attempt, status, conclusion });
 
 test('publication requires successful push CI for the exact commit', async () => {
   const passed = run(1, 'completed', 'success');
@@ -97,4 +105,30 @@ test('missing CI and a pending run past its deadline block publication', async (
   await assert.rejects(requirePassingTests(ci([[run(1, 'in_progress', null)]]), repo, 'release-commit', {
     timeoutMs: 1, now: () => clock++, wait: async () => {},
   }));
+});
+
+test('the Tests job can pass while Pages is pending or after Pages fails', async () => {
+  for (const workflow of [run(1, 'in_progress', null), run(1, 'completed', 'failure')]) {
+    assert.equal(await requirePassingTests(ci([[workflow]], () => [job('Tests', 1, 'success')]), repo, 'release-commit'), workflow);
+  }
+});
+
+test('Pages-only retries use the most recent test attempt', async () => {
+  const retry = run(1, 'completed', 'failure', 3);
+  const pagesRuns = [job('Build Wasm demo site', 2, 'success'), job('Deploy to GitHub Pages', 3, 'failure')];
+  assert.equal(await requirePassingTests(ci([[retry]], () => [job('Tests', 1, 'success'), ...pagesRuns]), repo, 'release-commit'), retry);
+  await assert.rejects(requirePassingTests(ci([[retry]], () => [job('Tests', 1, 'failure'), ...pagesRuns]), repo, 'release-commit'), /has not passed/);
+  await assert.rejects(requirePassingTests(ci([[retry]], () => [
+    job('Tests', 1, 'success'), job('Android device tests', 2, 'cancelled'), ...pagesRuns,
+  ]), repo, 'release-commit'), /No completed Tests check/);
+});
+
+test('a test retry must produce a new passing result', async () => {
+  const retry = run(1, 'completed', 'failure', 2);
+  for (const conclusion of ['failure', 'cancelled', 'skipped', 'timed_out']) {
+    await assert.rejects(requirePassingTests(ci([[retry]], () => [
+      job('Tests', 1, 'success'), job('Tests', 2, conclusion),
+    ]), repo, 'release-commit'), new RegExp(`has not passed: ${conclusion}`));
+  }
+  await assert.rejects(requirePassingTests(ci([[retry]], () => [job('Tests', 1, 'success')]), repo, 'release-commit'), /No completed Tests check/);
 });

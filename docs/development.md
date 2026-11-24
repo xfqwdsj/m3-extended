@@ -48,7 +48,7 @@ report separately whatever code checks actually ran.
 
 Daily verification with `./gradlew :verify` checks formatting, JVM and processor tests, release automation, and the generated build contract. At key validation points,
 run `./gradlew :verifyManaged` for Gradle Managed Devices or `:verifyConnected` for attached devices.
-`./gradlew :verifyManaged` is the CI entry point; `:verifyTargets` also runs local Web and Apple tests.
+`:verifyTargets` also runs local Web and Apple tests.
 
 | Source set | Runs on | Use |
 | --- | --- | --- |
@@ -66,10 +66,11 @@ pixel expectations depend on them.
 
 Module Android targets own instrumentation runners and GMD definitions. AGP creates and tears down
 the managed device. Compose-enabled Android targets enable `androidResources` so AGP registers
-the test asset output. CI enables KVM and uses Xvfb for JVM rendering tests. Reports include JVM and
-Android results. Demo packaging remains in release and Pages workflows. The shared benchmark scenarios have JVM
-correctness tests in this pass. JMH timing and Android Macrobenchmark run through their dedicated
-[benchmark entry points](benchmarks.md).
+the test asset output. CI runs `:verify` under Xvfb in the JVM job and packages Android test APKs
+before running `allDevicesAndroidDeviceTest` in the Android job. The Android job enables KVM and
+uses one Gradle worker and one managed device for the device test phase. Each job uploads its own
+reports. The shared benchmark scenarios have JVM correctness tests. JMH timing and Android
+Macrobenchmark run through their dedicated [benchmark entry points](benchmarks.md).
 
 Browser tests use Kotlin's default headless Chrome runner and require a local Chrome installation.
 Prepare the Web toolchain before local browser verification:
@@ -135,9 +136,11 @@ overrides that selection for ProGuard and jpackage. The JVM macOS package uses `
 when the project version has major zero; staged artifact names retain the complete project version.
 The macOS Native bundle uses the numeric project version and its archive contains the bare `.app`.
 
-The [pages workflow](../.github/workflows/pages.yml) builds and deploys the Wasm site on every push
-to `main`. The [publishing workflow](../.github/workflows/publish.yml) uploads demo artifacts to the
-release assets, excluding the website; each matrix job builds only formats supported by its host.
+On `main` pushes, the [Test workflow](../.github/workflows/test.yml) primes the Gradle build cache
+with shared KSP outputs before the JVM, Android and Wasm jobs start. Pages deploys the Wasm artifact
+as soon as the site build succeeds and also supports manual dispatch. The
+[publishing workflow](../.github/workflows/publish.yml) uploads demo packages to the release assets.
+Each matrix job builds only formats supported by its host.
 
 ## Choose regression coverage
 
