@@ -27,7 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_decrease_size
 import top.ltfan.m3x.demo.generated.resources.demo_drag_me
 import top.ltfan.m3x.demo.generated.resources.demo_increase_size
@@ -37,7 +37,7 @@ import top.ltfan.m3x.demo.generated.resources.demo_move_right
 import top.ltfan.m3x.demo.generated.resources.demo_move_up
 import top.ltfan.m3x.demo.generated.resources.demo_neighbor
 import top.ltfan.m3x.demo.generated.resources.demo_reset_placement
-import top.ltfan.m3x.demo.generated.resources.demo_resize
+import top.ltfan.m3x.demo.generated.resources.demo_resize_surface
 import top.ltfan.m3x.material.MaterialSurfaceRole
 import top.ltfan.m3x.material.TextButton
 import top.ltfan.m3x.material.backdrop.BackdropSurface
@@ -66,16 +66,16 @@ internal fun MovableLabSurfaces(modifier: Modifier = Modifier) {
                     (areaHeight - surfaceHeight).coerceAtLeast(0f),
                 )
             val label =
-                if (index == 0) demoText(Res.string.demo_drag_me)
-                else demoText(Res.string.demo_neighbor)
-            val moveRightLabel = demoText(Res.string.demo_move_right)
-            val moveLeftLabel = demoText(Res.string.demo_move_left)
-            val moveDownLabel = demoText(Res.string.demo_move_down)
-            val moveUpLabel = demoText(Res.string.demo_move_up)
-            val increaseSizeLabel = demoText(Res.string.demo_increase_size)
-            val decreaseSizeLabel = demoText(Res.string.demo_decrease_size)
-            val resetPlacementLabel = demoText(Res.string.demo_reset_placement)
-            val resizeLabel = demoText(Res.string.demo_resize)
+                if (index == 0) demoText(MR.strings.demo_drag_me)
+                else demoText(MR.strings.demo_neighbor)
+            val moveRightLabel = demoText(MR.strings.demo_move_right)
+            val moveLeftLabel = demoText(MR.strings.demo_move_left)
+            val moveDownLabel = demoText(MR.strings.demo_move_down)
+            val moveUpLabel = demoText(MR.strings.demo_move_up)
+            val increaseSizeLabel = demoText(MR.strings.demo_increase_size)
+            val decreaseSizeLabel = demoText(MR.strings.demo_decrease_size)
+            val resetPlacementLabel = demoText(MR.strings.demo_reset_placement)
+            val resizeLabel = demoText(MR.strings.demo_resize_surface, label)
             fun resize(delta: Offset) {
                 width = (width + delta.x).coerceIn(minOf(64f, areaWidth), areaWidth)
                 height = (height + delta.y).coerceIn(minOf(40f, areaHeight), areaHeight)
@@ -158,7 +158,7 @@ internal fun MovableLabSurfaces(modifier: Modifier = Modifier) {
                                 resize(amount / density)
                             }
                         }
-                        .semantics { contentDescription = "$resizeLabel $label" },
+                        .semantics { contentDescription = resizeLabel },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("↘")

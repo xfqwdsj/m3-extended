@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="demo_live_resource_interaction_count">
+        <item quantity="other">动态资源 · %1$d次交互</item>
+    </plurals>
+</resources>

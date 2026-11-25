@@ -49,7 +49,7 @@ import top.ltfan.m3x.backdrop.shadow.InnerShadow
 import top.ltfan.m3x.backdrop.shadow.Shadow
 import top.ltfan.m3x.compose.ui.visual.LocalBlurEnabled
 import top.ltfan.m3x.datastore.MutableStore
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_lab_limited_effects
 import top.ltfan.m3x.demo.generated.resources.demo_lab_scroll_hint
 import top.ltfan.m3x.demo.generated.resources.demo_lab_surface_hint
@@ -307,7 +307,7 @@ internal fun LabPreviewPanel(
                     containerColor = Color.Transparent,
                     divider = {},
                 ) {
-                    listOf(Res.string.demo_material_surfaces, Res.string.demo_scroll_edges)
+                    listOf(MR.strings.demo_material_surfaces, MR.strings.demo_scroll_edges)
                         .forEachIndexed { index, label ->
                             Tab(
                                 selected = scrollEdges == (index == 1),
@@ -320,15 +320,15 @@ internal fun LabPreviewPanel(
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Text(
                         demoText(
-                            if (scrollEdges) Res.string.demo_lab_scroll_hint
-                            else Res.string.demo_lab_surface_hint,
+                            if (scrollEdges) MR.strings.demo_lab_scroll_hint
+                            else MR.strings.demo_lab_surface_hint,
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (!isRenderEffectSupported() || !isRuntimeShaderSupported())
                         Text(
-                            demoText(Res.string.demo_lab_limited_effects),
+                            demoText(MR.strings.demo_lab_limited_effects),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

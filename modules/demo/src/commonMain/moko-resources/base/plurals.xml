@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="demo_live_resource_interaction_count">
+        <item quantity="one">Live resource · %1$d interaction</item>
+        <item quantity="other">Live resource · %1$d interactions</item>
+    </plurals>
+</resources>

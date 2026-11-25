@@ -19,10 +19,10 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(project(":settings-page-datastore"))
-    testImplementation(libs.kotlinpoet)
+    testImplementation(libs.kotlin.compiler.embeddable)
     testImplementation(libs.ksp.embeddable)
     testImplementation(libs.ksp.common.deps)
-    testImplementation(libs.kotlin.compiler.embeddable)
+    testImplementation(libs.kotlinpoet)
 }
 
 abstract class SettingsProcessorTestClasspathArguments : CommandLineArgumentProvider {

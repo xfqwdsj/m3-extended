@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.androidKmpLibrary)
     id("top.ltfan.m3x.android-test-device")
+    alias(libs.plugins.moko.resources)
     alias(libs.plugins.spotless)
     alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
@@ -75,9 +76,10 @@ kotlin {
                 implementation(project(":animation"))
                 api(project(":material"))
                 api(project(":overlay"))
-                implementation(libs.compose.components.resources)
-                implementation(libs.compose.material.icons.core)
                 implementation(libs.coroutines)
+                implementation(libs.compose.material.icons.core)
+                implementation(libs.moko.resources)
+                implementation(libs.moko.resources.compose)
             }
         }
 
@@ -101,9 +103,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
     }
@@ -197,6 +199,7 @@ signing {
 
 group = "top.ltfan.m3x"
 
-compose.resources {
-    packageOfResClass = "top.ltfan.m3x.material.overlay.generated.resources"
+multiplatformResources {
+    resourcesPackage.set("top.ltfan.m3x.material.overlay.generated.resources")
+    iosMinimalDeploymentTarget.set("15.0")
 }

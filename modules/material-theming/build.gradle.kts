@@ -100,9 +100,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
     }

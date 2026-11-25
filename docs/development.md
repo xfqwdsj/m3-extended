@@ -82,8 +82,8 @@ Prepare the Web toolchain before local browser verification:
 ./gradlew :verifyWeb
 ```
 
-Run `./gradlew kotlinUpgradeYarnLock` after Web dependency changes and review
-`kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock`.
+After Web dependency changes, run `./gradlew kotlinUpgradeYarnLock kotlinWasmUpgradeYarnLock`
+and review `kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock`.
 
 ## Run the existing launchers
 
@@ -97,10 +97,17 @@ Run `./gradlew kotlinUpgradeYarnLock` after Web dependency changes and review
 | iOS | Open `modules/demo-ios/iosApp/M3xDemo.xcodeproj`, run `M3xDemo` |
 
 The iOS launcher uses direct framework integration and supports iPad multiple windows. Device
-builds need a Development Team; simulator builds do not require signing. Inspect its deployment
-target in the Xcode project. Native macOS stages resolved transitive Compose resources beside its
-executable. Modules with Compose resources enable `androidResources` in the Android KMP target so
-accessors and assets reach the application together.
+builds need a Development Team. Simulator builds can run unsigned. Check the deployment target in
+the Xcode project.
+
+Modules that declare localized strings apply the `moko-resources` plugin after the Android KMP
+library plugin. Android merges their resources from library AARs, and JVM hosts read them from the
+runtime classpath. The iOS build phase calls `copyFrameworkResourcesToApp` after building the
+static framework. Native macOS packaging copies the generated bundles into the application.
+
+The Wasm distribution stages the generated `localization/` files, and Karma serves them during
+browser tests. If a running development server still serves an old translation, stop it and rerun
+the matching Web launcher to regenerate and serve the updated files.
 
 ## Package demo applications
 
@@ -110,6 +117,11 @@ accessors and assets reach the application together.
 | Desktop | `./gradlew :demo-desktop:packageReleaseArtifacts` | `modules/demo-desktop/build/release-assets/` |
 | macOS Native | `./gradlew :demo-macos:packageReleaseArtifacts` | `modules/demo-macos/build/release-assets/` (archive of the `.app`) |
 | Pages site | `./gradlew :demo-web:pagesDistribution` | `modules/demo-web/build/pages/` |
+
+`pagesDistribution` embeds the startup script and Wasm filenames in the loading page. The loader
+uses byte progress when the startup responses report usable lengths and counts completed startup
+files otherwise. While a tracked request outside the list is active, the main progress indicator
+is indeterminate.
 
 Each `packageReleaseArtifacts` task synchronizes only its current outputs into its module's
 `build/release-assets/`, removing stale staged files. CI uploads these files without renaming them.

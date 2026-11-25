@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_dark
 import top.ltfan.m3x.demo.generated.resources.demo_light
 import top.ltfan.m3x.demo.generated.resources.demo_runtime_mode
@@ -105,11 +105,11 @@ class ManualSettingsTree : SettingsTree {
         object : SettingsResources {
             override val label: Resource<String> =
                 when (text) {
-                    "Runtime mode" -> demoResource(Res.string.demo_runtime_mode)
-                    "Runtime scale" -> demoResource(Res.string.demo_runtime_scale)
-                    "System" -> demoResource(Res.string.demo_system)
-                    "Light" -> demoResource(Res.string.demo_light)
-                    "Dark" -> demoResource(Res.string.demo_dark)
+                    "Runtime mode" -> demoResource(MR.strings.demo_runtime_mode)
+                    "Runtime scale" -> demoResource(MR.strings.demo_runtime_scale)
+                    "System" -> demoResource(MR.strings.demo_system)
+                    "Light" -> demoResource(MR.strings.demo_light)
+                    "Dark" -> demoResource(MR.strings.demo_dark)
                     else -> Resource.Global.Static(text)
                 }
         }

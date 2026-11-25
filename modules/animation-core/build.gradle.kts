@@ -71,8 +71,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.compose.animation.core)
                 api(libs.compose.runtime)
+                api(libs.compose.animation.core)
             }
         }
 

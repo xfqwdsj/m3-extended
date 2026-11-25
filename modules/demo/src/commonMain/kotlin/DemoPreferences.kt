@@ -8,19 +8,19 @@ import top.ltfan.m3x.backdrop.highlight.HighlightSdfBackend
 import top.ltfan.m3x.backdrop.highlight.HighlightSdfMode
 import top.ltfan.m3x.backdrop.highlight.HighlightSdfSettings
 import top.ltfan.m3x.datastore.annotation.Store
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_accessibility
-import top.ltfan.m3x.demo.generated.resources.demo_adapt_surface_appearance_to_the_local_background
 import top.ltfan.m3x.demo.generated.resources.demo_adaptive_foreground_color
+import top.ltfan.m3x.demo.generated.resources.demo_adaptive_foreground_description
 import top.ltfan.m3x.demo.generated.resources.demo_appearance
 import top.ltfan.m3x.demo.generated.resources.demo_background
 import top.ltfan.m3x.demo.generated.resources.demo_background_adaptation
+import top.ltfan.m3x.demo.generated.resources.demo_background_adaptation_description
 import top.ltfan.m3x.demo.generated.resources.demo_basic
 import top.ltfan.m3x.demo.generated.resources.demo_blur
 import top.ltfan.m3x.demo.generated.resources.demo_blur_animation
 import top.ltfan.m3x.demo.generated.resources.demo_capsule
 import top.ltfan.m3x.demo.generated.resources.demo_centered
-import top.ltfan.m3x.demo.generated.resources.demo_choose_foreground_color_from_local_sdr_background_samples_when_adaptation_is_enabled
 import top.ltfan.m3x.demo.generated.resources.demo_color_theme
 import top.ltfan.m3x.demo.generated.resources.demo_colorful
 import top.ltfan.m3x.demo.generated.resources.demo_compose_runtime
@@ -28,16 +28,19 @@ import top.ltfan.m3x.demo.generated.resources.demo_contour
 import top.ltfan.m3x.demo.generated.resources.demo_control_blur_radius_dp
 import top.ltfan.m3x.demo.generated.resources.demo_dark
 import top.ltfan.m3x.demo.generated.resources.demo_disabled
-import top.ltfan.m3x.demo.generated.resources.demo_draw_the_shared_press_and_pointer_light_above_sdr_white_when_hdr_is_active
 import top.ltfan.m3x.demo.generated.resources.demo_edge_highlights
 import top.ltfan.m3x.demo.generated.resources.demo_enabled
 import top.ltfan.m3x.demo.generated.resources.demo_follow_system
 import top.ltfan.m3x.demo.generated.resources.demo_glass_clear
 import top.ltfan.m3x.demo.generated.resources.demo_glass_regular
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_headroom_ratio
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_headroom_ratio_description
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_interaction_light
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_output_android
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_output_android_description
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_refresh_interval_description
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_refresh_interval_ms
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_shared_light_description
 import top.ltfan.m3x.demo.generated.resources.demo_highlight_sdf_backend
 import top.ltfan.m3x.demo.generated.resources.demo_highlight_sdf_mode
 import top.ltfan.m3x.demo.generated.resources.demo_highlight_type
@@ -54,7 +57,6 @@ import top.ltfan.m3x.demo.generated.resources.demo_material_blur
 import top.ltfan.m3x.demo.generated.resources.demo_material_shapes
 import top.ltfan.m3x.demo.generated.resources.demo_material_style
 import top.ltfan.m3x.demo.generated.resources.demo_medium
-import top.ltfan.m3x.demo.generated.resources.demo_minimum_interval_between_backdrop_resource_refreshes_after_display_headroom_changes_android_14_and_later
 import top.ltfan.m3x.demo.generated.resources.demo_override_preset_blur_radii
 import top.ltfan.m3x.demo.generated.resources.demo_panel_blur_radius_dp
 import top.ltfan.m3x.demo.generated.resources.demo_progressive_alpha
@@ -67,11 +69,9 @@ import top.ltfan.m3x.demo.generated.resources.demo_reduce_motion
 import top.ltfan.m3x.demo.generated.resources.demo_reduce_motion_description
 import top.ltfan.m3x.demo.generated.resources.demo_reduce_transparency
 import top.ltfan.m3x.demo.generated.resources.demo_refraction
-import top.ltfan.m3x.demo.generated.resources.demo_request_hdr_color_mode_for_the_android_app_window_the_display_must_support_hdr
-import top.ltfan.m3x.demo.generated.resources.demo_requested_hdr_headroom_relative_to_sdr_white_android_15_and_later
 import top.ltfan.m3x.demo.generated.resources.demo_scroll_edge_blur_radius_dp
 import top.ltfan.m3x.demo.generated.resources.demo_scroll_edge_fade_below_the_bar_dp
-import top.ltfan.m3x.demo.generated.resources.demo_scroll_edge_plateau_dp_of_the_bar_that_keeps_full_strength
+import top.ltfan.m3x.demo.generated.resources.demo_scroll_edge_plateau_dp
 import top.ltfan.m3x.demo.generated.resources.demo_sdf_auto
 import top.ltfan.m3x.demo.generated.resources.demo_sdf_cpu
 import top.ltfan.m3x.demo.generated.resources.demo_sdf_gpu
@@ -82,13 +82,13 @@ import top.ltfan.m3x.demo.generated.resources.demo_shadows
 import top.ltfan.m3x.demo.generated.resources.demo_shape_family
 import top.ltfan.m3x.demo.generated.resources.demo_shared_interaction_light
 import top.ltfan.m3x.demo.generated.resources.demo_single_row
+import top.ltfan.m3x.demo.generated.resources.demo_surface_blur_override_description
 import top.ltfan.m3x.demo.generated.resources.demo_surface_blur_radius_dp
 import top.ltfan.m3x.demo.generated.resources.demo_system_expressive_default
 import top.ltfan.m3x.demo.generated.resources.demo_text_scale
 import top.ltfan.m3x.demo.generated.resources.demo_theme_color
 import top.ltfan.m3x.demo.generated.resources.demo_top_app_bar
 import top.ltfan.m3x.demo.generated.resources.demo_ui_palette
-import top.ltfan.m3x.demo.generated.resources.demo_use_the_following_per_surface_blur_radii_instead_of_the_selected_material_preset
 import top.ltfan.m3x.demo.generated.resources.demo_vibrancy
 import top.ltfan.m3x.demo.generated.resources.demo_visual_effects
 import top.ltfan.m3x.resource.Resource
@@ -202,15 +202,15 @@ data class DemoPreferences(
 
 @Serializable
 enum class AccessibilityMode(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue System(demoResource(Res.string.demo_follow_system)),
-    @SettingsValue Enabled(demoResource(Res.string.demo_enabled)),
-    @SettingsValue Disabled(demoResource(Res.string.demo_disabled)),
+    @SettingsValue System(demoResource(MR.strings.demo_follow_system)),
+    @SettingsValue Enabled(demoResource(MR.strings.demo_enabled)),
+    @SettingsValue Disabled(demoResource(MR.strings.demo_disabled)),
 }
 
 @Serializable
 enum class DemoHighlightType(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Contour(demoResource(Res.string.demo_contour)),
-    @SettingsValue Basic(demoResource(Res.string.demo_basic)),
+    @SettingsValue Contour(demoResource(MR.strings.demo_contour)),
+    @SettingsValue Basic(demoResource(MR.strings.demo_basic)),
 }
 
 @Serializable
@@ -218,11 +218,11 @@ enum class DemoHighlightSdfMode(
     override val label: Resource<String>,
     internal val mode: HighlightSdfMode,
 ) : SettingsResources {
-    @SettingsValue Off(demoResource(Res.string.demo_sdf_off), HighlightSdfMode.Off),
-    @SettingsValue On(demoResource(Res.string.demo_sdf_on), HighlightSdfMode.On),
-    @SettingsValue Auto(demoResource(Res.string.demo_sdf_auto), HighlightSdfMode.Auto),
+    @SettingsValue Off(demoResource(MR.strings.demo_sdf_off), HighlightSdfMode.Off),
+    @SettingsValue On(demoResource(MR.strings.demo_sdf_on), HighlightSdfMode.On),
+    @SettingsValue Auto(demoResource(MR.strings.demo_sdf_auto), HighlightSdfMode.Auto),
     @SettingsValue
-    Progressive(demoResource(Res.string.demo_sdf_progressive), HighlightSdfMode.Progressive),
+    Progressive(demoResource(MR.strings.demo_sdf_progressive), HighlightSdfMode.Progressive),
 }
 
 @Serializable
@@ -230,28 +230,28 @@ enum class DemoHighlightSdfBackend(
     override val label: Resource<String>,
     internal val backend: HighlightSdfBackend,
 ) : SettingsResources {
-    @SettingsValue Auto(demoResource(Res.string.demo_sdf_auto), HighlightSdfBackend.Auto),
-    @SettingsValue Cpu(demoResource(Res.string.demo_sdf_cpu), HighlightSdfBackend.Cpu),
-    @SettingsValue Gpu(demoResource(Res.string.demo_sdf_gpu), HighlightSdfBackend.Gpu),
+    @SettingsValue Auto(demoResource(MR.strings.demo_sdf_auto), HighlightSdfBackend.Auto),
+    @SettingsValue Cpu(demoResource(MR.strings.demo_sdf_cpu), HighlightSdfBackend.Cpu),
+    @SettingsValue Gpu(demoResource(MR.strings.demo_sdf_gpu), HighlightSdfBackend.Gpu),
 }
 
 internal fun DemoPreferences.Effects.highlightSdfSettings(): HighlightSdfSettings =
     HighlightSdfSettings(highlightSdfMode.mode, highlightSdfBackend.backend)
 
 object HighlightSdfModeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_sdf_mode)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_sdf_mode)
 }
 
 object HighlightSdfBackendLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_sdf_backend)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_sdf_backend)
 }
 
 @Serializable
 enum class DemoProgressiveBlurMode(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Auto(demoResource(Res.string.demo_progressive_auto)),
-    @SettingsValue Full(demoResource(Res.string.demo_progressive_full)),
-    @SettingsValue Layered(demoResource(Res.string.demo_progressive_layered)),
-    @SettingsValue Alpha(demoResource(Res.string.demo_progressive_alpha)),
+    @SettingsValue Auto(demoResource(MR.strings.demo_progressive_auto)),
+    @SettingsValue Full(demoResource(MR.strings.demo_progressive_full)),
+    @SettingsValue Layered(demoResource(MR.strings.demo_progressive_layered)),
+    @SettingsValue Alpha(demoResource(MR.strings.demo_progressive_alpha)),
 }
 
 internal fun DemoPreferences.Effects.progressiveBlurMode(): ProgressiveBlurMode =
@@ -264,244 +264,238 @@ internal fun DemoPreferences.Effects.progressiveBlurMode(): ProgressiveBlurMode 
 
 @Serializable
 enum class ThemeMode(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue System(demoResource(Res.string.demo_system_expressive_default)),
-    @SettingsValue Light(demoResource(Res.string.demo_light)),
-    @SettingsValue Dark(demoResource(Res.string.demo_dark)),
+    @SettingsValue System(demoResource(MR.strings.demo_system_expressive_default)),
+    @SettingsValue Light(demoResource(MR.strings.demo_light)),
+    @SettingsValue Dark(demoResource(MR.strings.demo_dark)),
 }
 
 @Serializable
 enum class MaterialPreset(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Regular(demoResource(Res.string.demo_glass_regular)),
-    @SettingsValue Blur(demoResource(Res.string.demo_material_blur)),
-    @SettingsValue Clear(demoResource(Res.string.demo_glass_clear)),
+    @SettingsValue Regular(demoResource(MR.strings.demo_glass_regular)),
+    @SettingsValue Blur(demoResource(MR.strings.demo_material_blur)),
+    @SettingsValue Clear(demoResource(MR.strings.demo_glass_clear)),
 }
 
 @Serializable
 enum class ShapePreset(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Capsule(demoResource(Res.string.demo_capsule)),
-    @SettingsValue Material(demoResource(Res.string.demo_material_shapes)),
+    @SettingsValue Capsule(demoResource(MR.strings.demo_capsule)),
+    @SettingsValue Material(demoResource(MR.strings.demo_material_shapes)),
 }
 
 @Serializable
 enum class BarVariant(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Small(demoResource(Res.string.demo_single_row)),
-    @SettingsValue Centered(demoResource(Res.string.demo_centered)),
-    @SettingsValue Medium(demoResource(Res.string.demo_medium)),
-    @SettingsValue Large(demoResource(Res.string.demo_large)),
+    @SettingsValue Small(demoResource(MR.strings.demo_single_row)),
+    @SettingsValue Centered(demoResource(MR.strings.demo_centered)),
+    @SettingsValue Medium(demoResource(MR.strings.demo_medium)),
+    @SettingsValue Large(demoResource(MR.strings.demo_large)),
 }
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 enum class PreviewBackground(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Artwork(demoResource(Res.string.demo_colorful)),
+    @SettingsValue Artwork(demoResource(MR.strings.demo_colorful)),
     @JsonNames("Light", "Dark", "Text")
     @SettingsValue
-    Theme(demoResource(Res.string.demo_theme_color)),
+    Theme(demoResource(MR.strings.demo_theme_color)),
 }
 
 @Serializable
 enum class UiPalette(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Theme(demoResource(Res.string.demo_theme_color)),
-    @SettingsValue Colorful(demoResource(Res.string.demo_colorful)),
+    @SettingsValue Theme(demoResource(MR.strings.demo_theme_color)),
+    @SettingsValue Colorful(demoResource(MR.strings.demo_colorful)),
 }
 
 object UiPaletteLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_ui_palette)
+    override val label: Resource<String> = demoResource(MR.strings.demo_ui_palette)
 }
 
 object AppearanceLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_appearance)
+    override val label: Resource<String> = demoResource(MR.strings.demo_appearance)
 }
 
 object RuntimeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_compose_runtime)
+    override val label: Resource<String> = demoResource(MR.strings.demo_compose_runtime)
 }
 
 object LinkComposerLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_link_composer)
+    override val label: Resource<String> = demoResource(MR.strings.demo_link_composer)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_link_composer_description)
+        demoResource(MR.strings.demo_link_composer_description)
 }
 
 object EffectsLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_visual_effects)
+    override val label: Resource<String> = demoResource(MR.strings.demo_visual_effects)
 }
 
 object AccessibilityLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_accessibility)
+    override val label: Resource<String> = demoResource(MR.strings.demo_accessibility)
 }
 
 object ThemeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_color_theme)
+    override val label: Resource<String> = demoResource(MR.strings.demo_color_theme)
 }
 
 object PresetLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_material_style)
+    override val label: Resource<String> = demoResource(MR.strings.demo_material_style)
 }
 
 object ShapeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shape_family)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shape_family)
 }
 
 object BarLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_top_app_bar)
+    override val label: Resource<String> = demoResource(MR.strings.demo_top_app_bar)
 }
 
 object FontScaleLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_text_scale)
+    override val label: Resource<String> = demoResource(MR.strings.demo_text_scale)
 }
 
 object BackgroundLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_background)
+    override val label: Resource<String> = demoResource(MR.strings.demo_background)
 }
 
 object BlurAnimationLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_blur_animation)
+    override val label: Resource<String> = demoResource(MR.strings.demo_blur_animation)
 }
 
 object BlurLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_blur)
+    override val label: Resource<String> = demoResource(MR.strings.demo_blur)
 }
 
 object LensLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_refraction)
+    override val label: Resource<String> = demoResource(MR.strings.demo_refraction)
 }
 
 object VibrancyLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_vibrancy)
+    override val label: Resource<String> = demoResource(MR.strings.demo_vibrancy)
 }
 
 object HighlightLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_edge_highlights)
+    override val label: Resource<String> = demoResource(MR.strings.demo_edge_highlights)
 }
 
 object HighlightTypeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_type)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_type)
 }
 
 object ShadowLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shadows)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shadows)
 }
 
 object InnerShadowLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_inner_shadows)
+    override val label: Resource<String> = demoResource(MR.strings.demo_inner_shadows)
 }
 
 object AdaptationLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_background_adaptation)
+    override val label: Resource<String> = demoResource(MR.strings.demo_background_adaptation)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_adapt_surface_appearance_to_the_local_background)
+        demoResource(MR.strings.demo_background_adaptation_description)
 }
 
 object AdaptiveContentColorLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_adaptive_foreground_color)
+    override val label: Resource<String> = demoResource(MR.strings.demo_adaptive_foreground_color)
     override val description: Resource<String?> =
         demoResource(
-            Res.string
-                .demo_choose_foreground_color_from_local_sdr_background_samples_when_adaptation_is_enabled,
+            MR.strings.demo_adaptive_foreground_description,
         )
 }
 
 object CustomBlurRadiiLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_override_preset_blur_radii)
+    override val label: Resource<String> = demoResource(MR.strings.demo_override_preset_blur_radii)
     override val description: Resource<String?> =
         demoResource(
-            Res.string
-                .demo_use_the_following_per_surface_blur_radii_instead_of_the_selected_material_preset,
+            MR.strings.demo_surface_blur_override_description,
         )
 }
 
 object ControlBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_control_blur_radius_dp)
+    override val label: Resource<String> = demoResource(MR.strings.demo_control_blur_radius_dp)
 }
 
 object PanelBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_panel_blur_radius_dp)
+    override val label: Resource<String> = demoResource(MR.strings.demo_panel_blur_radius_dp)
 }
 
 object SurfaceBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_surface_blur_radius_dp)
+    override val label: Resource<String> = demoResource(MR.strings.demo_surface_blur_radius_dp)
 }
 
 object ScrollEdgeBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_scroll_edge_blur_radius_dp)
+    override val label: Resource<String> = demoResource(MR.strings.demo_scroll_edge_blur_radius_dp)
 }
 
 object InteractionLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shared_interaction_light)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shared_interaction_light)
 }
 
 object HdrOutputLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_output_android)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_output_android)
     override val description: Resource<String?> =
         demoResource(
-            Res.string
-                .demo_request_hdr_color_mode_for_the_android_app_window_the_display_must_support_hdr,
+            MR.strings.demo_hdr_output_android_description,
         )
 }
 
 object InteractionHdrLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_interaction_light)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_interaction_light)
     override val description: Resource<String?> =
         demoResource(
-            Res.string
-                .demo_draw_the_shared_press_and_pointer_light_above_sdr_white_when_hdr_is_active,
+            MR.strings.demo_hdr_shared_light_description,
         )
 }
 
 object HdrHeadroomLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_headroom_ratio)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_headroom_ratio)
     override val description: Resource<String?> =
         demoResource(
-            Res.string.demo_requested_hdr_headroom_relative_to_sdr_white_android_15_and_later,
+            MR.strings.demo_hdr_headroom_ratio_description,
         )
 }
 
 object HdrRefreshIntervalLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_refresh_interval_ms)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_refresh_interval_ms)
     override val description: Resource<String?> =
         demoResource(
-            Res.string
-                .demo_minimum_interval_between_backdrop_resource_refreshes_after_display_headroom_changes_android_14_and_later,
+            MR.strings.demo_hdr_refresh_interval_description,
         )
 }
 
 object ScrollEdgePlateauLabel : SettingsResources {
-    override val label: Resource<String> =
-        demoResource(Res.string.demo_scroll_edge_plateau_dp_of_the_bar_that_keeps_full_strength)
+    override val label: Resource<String> = demoResource(MR.strings.demo_scroll_edge_plateau_dp)
 }
 
 object ScrollEdgeFadeLabel : SettingsResources {
     override val label: Resource<String> =
-        demoResource(Res.string.demo_scroll_edge_fade_below_the_bar_dp)
+        demoResource(MR.strings.demo_scroll_edge_fade_below_the_bar_dp)
 }
 
 object ReduceTransparencyLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_reduce_transparency)
+    override val label: Resource<String> = demoResource(MR.strings.demo_reduce_transparency)
 }
 
 object IncreaseContrastLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_increase_contrast)
+    override val label: Resource<String> = demoResource(MR.strings.demo_increase_contrast)
 }
 
 object ReduceMotionLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_reduce_motion)
+    override val label: Resource<String> = demoResource(MR.strings.demo_reduce_motion)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_reduce_motion_description)
+        demoResource(MR.strings.demo_reduce_motion_description)
 }
 
 object LiveSlidersLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_live_slider_updates)
+    override val label: Resource<String> = demoResource(MR.strings.demo_live_slider_updates)
 }
 
 object ProgressiveBlurLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_progressive_blur)
+    override val label: Resource<String> = demoResource(MR.strings.demo_progressive_blur)
     override val description: Resource<String> =
-        demoResource(Res.string.demo_progressive_blur_description)
+        demoResource(MR.strings.demo_progressive_blur_description)
 }
 
 object LayeredBlurLevelsLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_layered_blur_levels)
+    override val label: Resource<String> = demoResource(MR.strings.demo_layered_blur_levels)
     override val description: Resource<String> =
-        demoResource(Res.string.demo_layered_blur_levels_description)
+        demoResource(MR.strings.demo_layered_blur_levels_description)
 }

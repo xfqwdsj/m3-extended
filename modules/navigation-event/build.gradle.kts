@@ -71,8 +71,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.coroutines)
                 api(project(":animation-core"))
+                implementation(libs.coroutines)
                 api(libs.navigationevent)
             }
         }

@@ -4,7 +4,12 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.moko.resources)
     alias(libs.plugins.spotless)
+}
+
+multiplatformResources {
+    resourcesPackage.set("top.ltfan.m3x.demo.macos.generated.resources")
 }
 
 kotlin {
@@ -19,8 +24,8 @@ kotlin {
             dependencies {
                 implementation(project(":demo"))
                 implementation(project(":ui"))
-                implementation(libs.compose.ui)
                 implementation(libs.compose.runtime)
+                implementation(libs.compose.ui)
             }
         }
     }
@@ -44,8 +49,6 @@ compose.desktop {
             packageName = "M3XDemo"
             packageVersion = bundleVersion
             copyright = copyrightNotice
-            // The app-image task packages the native executable and Compose resources in a bare
-            // .app.
             macOS {
                 appCategory = "public.app-category.developer-tools"
             }
@@ -53,11 +56,22 @@ compose.desktop {
     }
 }
 
+// Moko writes bundles beside the executable. Stage them in Contents/Resources for NSBundle lookup.
+val stageMacosBundles =
+    tasks.register<Sync>("stageMacosBundles") {
+        description = "Stages Moko resource bundles in the native macOS application."
+        dependsOn("createDistributableNativeReleaseMacosArm64")
+        from(layout.buildDirectory.dir("bin/macosArm64/releaseExecutable")) {
+            include("*.bundle/**")
+        }
+        into(nativeAppDir.map { it.dir("Contents/Resources") })
+    }
+
 val packageMacosAppZip =
     tasks.register<Exec>("packageMacosAppZip") {
         description = "Packages the native macOS application bundle as a portable zip archive."
         group = "distribution"
-        dependsOn("createDistributableNativeReleaseMacosArm64")
+        dependsOn(stageMacosBundles)
         val archive =
             macosArchiveDir.get().asFile.resolve("M3X-Demo-$demoVersion-macos-native-arm64.zip")
         inputs.dir(nativeAppDir)
@@ -89,33 +103,6 @@ tasks.register<Sync>("packageReleaseArtifacts") {
         (task as Sync).destinationDir.list()?.toSet() == expectedNames
     }
     into(layout.buildDirectory.dir("release-assets"))
-}
-
-// Native resources are loaded from the compose-resources directory beside the executable.
-listOf("Debug", "Release").forEach { mode ->
-    val stage =
-        tasks.register<Sync>("stage${mode}MacosResources") {
-            description = "Stage macOS resources for $mode"
-            dependsOn("macosArm64ProcessResources")
-            from(layout.buildDirectory.dir("processedResources/macosArm64/main")) {
-                include("composeResources/**")
-            }
-            into(
-                layout.buildDirectory.dir(
-                    "bin/macosArm64/${mode.lowercase()}Executable/compose-resources",
-                ),
-            )
-        }
-    tasks
-        .matching { it.name == "link${mode}ExecutableMacosArm64" }
-        .configureEach {
-            finalizedBy(stage)
-        }
-    tasks
-        .matching { it.name == "run${mode}ExecutableMacosArm64" }
-        .configureEach {
-            dependsOn(stage)
-        }
 }
 
 spotless {

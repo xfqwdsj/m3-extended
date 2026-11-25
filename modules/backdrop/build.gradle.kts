@@ -75,12 +75,12 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 api(project(":shape"))
+                implementation(libs.coroutines)
                 api(libs.compose.foundation)
                 api(libs.compose.ui)
                 api(libs.compose.ui.graphics)
-                api(libs.dslUtilities)
                 implementation(libs.annotations)
-                implementation(libs.coroutines)
+                api(libs.dslUtilities)
             }
         }
 
@@ -94,8 +94,8 @@ kotlin {
             create("composeTest") {
                 dependsOn(commonTest.get())
                 dependencies {
-                    implementation(libs.compose.ui.test)
                     implementation(libs.coroutines.test)
+                    implementation(libs.compose.ui.test)
                 }
             }
         jvmTest {
@@ -108,9 +108,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
 

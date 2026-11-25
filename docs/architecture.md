@@ -78,8 +78,9 @@ Sources: [theme contracts](../modules/material-theme/build.gradle.kts),
 
 ## Resources
 
-`resource-core` defines resource abstractions independently of UI. `resource-compose` integrates them
-with Compose. Resource consumers choose the adapter appropriate to their execution environment.
+`resource-core` defines resource abstractions independently of UI. `resource-compose` resolves
+those resources in a composition. Libraries and applications declare their own resources, and
+application hosts package them for each target.
 
 ## Settings and persistence
 
@@ -97,7 +98,7 @@ The [settings guide](settings.md), [persistence guide](persistence.md) and
 and integration requirements.
 
 Sources: [resource abstractions](../modules/resource-core/build.gradle.kts),
-[Compose resources](../modules/resource-compose/build.gradle.kts),
+[Compose resource integration](../modules/resource-compose/build.gradle.kts),
 [settings contracts](../modules/settings-page-core/build.gradle.kts),
 [settings persistence integration](../modules/settings-page-datastore/build.gradle.kts), and
 [persistence foundations](../modules/datastore-core/build.gradle.kts).

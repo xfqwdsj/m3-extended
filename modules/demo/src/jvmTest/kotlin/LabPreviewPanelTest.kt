@@ -32,9 +32,8 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import org.jetbrains.compose.resources.getString
 import top.ltfan.m3x.datastore.compose.storeHost
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_lab_scroll_hint
 import top.ltfan.m3x.demo.generated.resources.demo_lab_surface_hint
 import top.ltfan.m3x.demo.generated.resources.demo_material_surfaces
@@ -56,10 +55,10 @@ class LabPreviewPanelTest {
     @Test fun widePreviewKeepsModesAndGuidanceVisible() = panel(1100)
 
     private fun panel(width: Int) = runComposeUiTest {
-        val surfaces = getString(Res.string.demo_material_surfaces)
-        val edges = getString(Res.string.demo_scroll_edges)
-        val surfaceHint = getString(Res.string.demo_lab_surface_hint)
-        val scrollHint = getString(Res.string.demo_lab_scroll_hint)
+        val surfaces = MR.strings.demo_material_surfaces.localized()
+        val edges = MR.strings.demo_scroll_edges.localized()
+        val surfaceHint = MR.strings.demo_lab_surface_hint.localized()
+        val scrollHint = MR.strings.demo_lab_scroll_hint.localized()
         var inheritedRendererCalls = 0
         setContent {
             val scope = rememberCoroutineScope()

@@ -2,15 +2,14 @@ package top.ltfan.m3x.demo
 
 import kotlinx.serialization.Serializable
 import top.ltfan.m3x.datastore.annotation.Store
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_accent
 import top.ltfan.m3x.demo.generated.resources.demo_appearance_and_scale
 import top.ltfan.m3x.demo.generated.resources.demo_balanced
 import top.ltfan.m3x.demo.generated.resources.demo_channel
 import top.ltfan.m3x.demo.generated.resources.demo_display
-import top.ltfan.m3x.demo.generated.resources.demo_editor_demo_only_these_settings_do_not_affect_the_app
-import top.ltfan.m3x.demo.generated.resources.demo_enable_dependent_profile_options_in_this_editor_demonstration
 import top.ltfan.m3x.demo.generated.resources.demo_enable_profile
+import top.ltfan.m3x.demo.generated.resources.demo_enable_profile_description
 import top.ltfan.m3x.demo.generated.resources.demo_features
 import top.ltfan.m3x.demo.generated.resources.demo_focused
 import top.ltfan.m3x.demo.generated.resources.demo_general
@@ -21,6 +20,7 @@ import top.ltfan.m3x.demo.generated.resources.demo_preferred_range
 import top.ltfan.m3x.demo.generated.resources.demo_profile_name
 import top.ltfan.m3x.demo.generated.resources.demo_quiet
 import top.ltfan.m3x.demo.generated.resources.demo_retry_count
+import top.ltfan.m3x.demo.generated.resources.demo_settings_editor_scope_description
 import top.ltfan.m3x.demo.generated.resources.demo_sync
 import top.ltfan.m3x.demo.generated.resources.demo_visible_rows
 import top.ltfan.m3x.resource.Resource
@@ -82,9 +82,9 @@ data class FeatureSettings(
 
 @Serializable
 enum class Mode(override val label: Resource<String>) : SettingsResources {
-    @SettingsValue Balanced(demoResource(Res.string.demo_balanced)),
-    @SettingsValue Focused(demoResource(Res.string.demo_focused)),
-    @SettingsValue Quiet(demoResource(Res.string.demo_quiet)),
+    @SettingsValue Balanced(demoResource(MR.strings.demo_balanced)),
+    @SettingsValue Focused(demoResource(MR.strings.demo_focused)),
+    @SettingsValue Quiet(demoResource(MR.strings.demo_quiet)),
 }
 
 @Serializable
@@ -92,7 +92,7 @@ sealed interface Feature {
     @SettingsValue
     @Serializable
     data object Sync : Feature, SettingsResources {
-        override val label: Resource<String> = demoResource(Res.string.demo_sync)
+        override val label: Resource<String> = demoResource(MR.strings.demo_sync)
     }
 
     @SettingsValue
@@ -103,7 +103,7 @@ sealed interface Feature {
         val channel: String = "Primary",
     ) : Feature {
         companion object : SettingsResources {
-            override val label: Resource<String> = demoResource(Res.string.demo_notifications)
+            override val label: Resource<String> = demoResource(MR.strings.demo_notifications)
         }
     }
 }
@@ -124,54 +124,54 @@ object RowsBounds : RangeBasedNumberInfo<Int> {
 }
 
 object GeneralResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_general)
+    override val label: Resource<String> = demoResource(MR.strings.demo_general)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_editor_demo_only_these_settings_do_not_affect_the_app)
+        demoResource(MR.strings.demo_settings_editor_scope_description)
 }
 
 object DisplayResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_display)
-    override val description: Resource<String?> = demoResource(Res.string.demo_appearance_and_scale)
+    override val label: Resource<String> = demoResource(MR.strings.demo_display)
+    override val description: Resource<String?> = demoResource(MR.strings.demo_appearance_and_scale)
 }
 
 object EnabledResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_enable_profile)
+    override val label: Resource<String> = demoResource(MR.strings.demo_enable_profile)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_enable_dependent_profile_options_in_this_editor_demonstration)
+        demoResource(MR.strings.demo_enable_profile_description)
 }
 
 object NameResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_profile_name)
+    override val label: Resource<String> = demoResource(MR.strings.demo_profile_name)
 }
 
 object ModeResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_mode)
+    override val label: Resource<String> = demoResource(MR.strings.demo_mode)
 }
 
 object FeaturesResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_features)
+    override val label: Resource<String> = demoResource(MR.strings.demo_features)
 }
 
 object ScaleResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_interface_scale)
+    override val label: Resource<String> = demoResource(MR.strings.demo_interface_scale)
 }
 
 object RetryResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_retry_count)
+    override val label: Resource<String> = demoResource(MR.strings.demo_retry_count)
 }
 
 object RowsResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_visible_rows)
+    override val label: Resource<String> = demoResource(MR.strings.demo_visible_rows)
 }
 
 object ChannelResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_channel)
+    override val label: Resource<String> = demoResource(MR.strings.demo_channel)
 }
 
 object RangeResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_preferred_range)
+    override val label: Resource<String> = demoResource(MR.strings.demo_preferred_range)
 }
 
 object AccentResources : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_accent)
+    override val label: Resource<String> = demoResource(MR.strings.demo_accent)
 }

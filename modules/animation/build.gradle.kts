@@ -71,11 +71,11 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.coroutines)
                 api(project(":ui"))
                 api(project(":animation-core"))
-                api(libs.compose.animation)
+                implementation(libs.coroutines)
                 api(libs.compose.foundation.layout)
+                api(libs.compose.animation)
             }
         }
 

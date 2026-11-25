@@ -7,10 +7,6 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import top.ltfan.m3x.resource.Resource
 
 /** A resource whose value needs composition. Other UI toolkits can provide their own subtype. */
@@ -33,19 +29,6 @@ public fun <T> Resource<T>.resolve(): T =
         is ComposeResource -> resolve()
         else -> error("No Compose adapter for ${this::class.simpleName}")
     }
-
-public fun stringResource(resource: StringResource): ComposeResource<String> = composeResource {
-    stringResource(resource)
-}
-
-public fun stringResource(resource: StringResource, vararg args: Any): ComposeResource<String> =
-    composeResource {
-        stringResource(resource, *args)
-    }
-
-public fun painterResource(resource: DrawableResource): ComposeResource<Painter> = composeResource {
-    painterResource(resource)
-}
 
 public fun painterResource(image: ImageVector): ComposeResource<Painter> = composeResource {
     rememberVectorPainter(image)

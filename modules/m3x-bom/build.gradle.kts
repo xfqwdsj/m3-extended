@@ -4,8 +4,8 @@ import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     `java-platform`
-    alias(libs.plugins.mavenPublish)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.mavenPublish)
     signing
 }
 

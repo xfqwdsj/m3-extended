@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import dev.icerock.moko.resources.StringResource
+import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.launch
 import top.ltfan.m3x.backdrop.BackdropHost
 import top.ltfan.m3x.backdrop.captureBackdrop
@@ -54,78 +56,67 @@ import top.ltfan.m3x.compose.foundation.GroupedLazyColumn
 import top.ltfan.m3x.compose.foundation.GroupedLazyRow
 import top.ltfan.m3x.compose.ui.layout.CornerRadii
 import top.ltfan.m3x.datastore.MutableStore
-import top.ltfan.m3x.demo.generated.resources.Res
-import top.ltfan.m3x.demo.generated.resources.demo_a_glass_snackbar
-import top.ltfan.m3x.demo.generated.resources.demo_a_stable_foreground_and_automatic_overlay_sampling_nested_modal_panels_have_independent_interaction_lighting
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_alert
 import top.ltfan.m3x.demo.generated.resources.demo_animate
 import top.ltfan.m3x.demo.generated.resources.demo_animated_chip
 import top.ltfan.m3x.demo.generated.resources.demo_blurred_entrance_and_exit
 import top.ltfan.m3x.demo.generated.resources.demo_bottom_sheet
+import top.ltfan.m3x.demo.generated.resources.demo_bottom_sheet_gesture_description
 import top.ltfan.m3x.demo.generated.resources.demo_cancel
-import top.ltfan.m3x.demo.generated.resources.demo_card
+import top.ltfan.m3x.demo.generated.resources.demo_card_number
 import top.ltfan.m3x.demo.generated.resources.demo_close
 import top.ltfan.m3x.demo.generated.resources.demo_close_floating_actions
 import top.ltfan.m3x.demo.generated.resources.demo_close_sheet
+import top.ltfan.m3x.demo.generated.resources.demo_components_intro_description
 import top.ltfan.m3x.demo.generated.resources.demo_confirm
-import top.ltfan.m3x.demo.generated.resources.demo_container_radius
 import top.ltfan.m3x.demo.generated.resources.demo_container_shape
 import top.ltfan.m3x.demo.generated.resources.demo_control
 import top.ltfan.m3x.demo.generated.resources.demo_controls_and_resources
+import top.ltfan.m3x.demo.generated.resources.demo_corner_metadata_unavailable
 import top.ltfan.m3x.demo.generated.resources.demo_corner_policy
+import top.ltfan.m3x.demo.generated.resources.demo_corner_radius_summary
+import top.ltfan.m3x.demo.generated.resources.demo_corner_size_summary
 import top.ltfan.m3x.demo.generated.resources.demo_dialog
 import top.ltfan.m3x.demo.generated.resources.demo_disabled_action
 import top.ltfan.m3x.demo.generated.resources.demo_dismiss
 import top.ltfan.m3x.demo.generated.resources.demo_display_corners
 import top.ltfan.m3x.demo.generated.resources.demo_done
-import top.ltfan.m3x.demo.generated.resources.demo_drag_between_partial_expanded_and_hidden_states_or_dismiss_with_back
 import top.ltfan.m3x.demo.generated.resources.demo_draggable_glass_sheet
-import top.ltfan.m3x.demo.generated.resources.demo_explore_surfaces_grouped_content_and_responsive_controls_change_the_app_s_appearance_in_settings
+import top.ltfan.m3x.demo.generated.resources.demo_editor_missing
 import top.ltfan.m3x.demo.generated.resources.demo_first_action
 import top.ltfan.m3x.demo.generated.resources.demo_floating_layers
-import top.ltfan.m3x.demo.generated.resources.demo_full_uses_size
-import top.ltfan.m3x.demo.generated.resources.demo_glass_rendering_material_colors_and_accessible_dismissal
+import top.ltfan.m3x.demo.generated.resources.demo_glass_snackbar_message
 import top.ltfan.m3x.demo.generated.resources.demo_grouped_horizontal_cards
-import top.ltfan.m3x.demo.generated.resources.demo_grouped_item
+import top.ltfan.m3x.demo.generated.resources.demo_grouped_item_number
 import top.ltfan.m3x.demo.generated.resources.demo_grouped_menu
 import top.ltfan.m3x.demo.generated.resources.demo_independent_groups
-import top.ltfan.m3x.demo.generated.resources.demo_interactions
 import top.ltfan.m3x.demo.generated.resources.demo_keyboard_and_pointer_tooltip
-import top.ltfan.m3x.demo.generated.resources.demo_l
-import top.ltfan.m3x.demo.generated.resources.demo_li
-import top.ltfan.m3x.demo.generated.resources.demo_live_resource
-import top.ltfan.m3x.demo.generated.resources.demo_m
+import top.ltfan.m3x.demo.generated.resources.demo_live_resource_interaction_count
+import top.ltfan.m3x.demo.generated.resources.demo_lower_panel_input_isolation
 import top.ltfan.m3x.demo.generated.resources.demo_material_alert
+import top.ltfan.m3x.demo.generated.resources.demo_material_alert_description
 import top.ltfan.m3x.demo.generated.resources.demo_material_with_light
 import top.ltfan.m3x.demo.generated.resources.demo_menus_and_transient_layers
 import top.ltfan.m3x.demo.generated.resources.demo_modal_panels
 import top.ltfan.m3x.demo.generated.resources.demo_nested_modal
-import top.ltfan.m3x.demo.generated.resources.demo_no_editor_registered_for
-import top.ltfan.m3x.demo.generated.resources.demo_no_radius_metadata_is_attached_to_this_shape_preset
-import top.ltfan.m3x.demo.generated.resources.demo_none
+import top.ltfan.m3x.demo.generated.resources.demo_nested_panel_foreground_description
+import top.ltfan.m3x.demo.generated.resources.demo_nested_panel_interaction_description
 import top.ltfan.m3x.demo.generated.resources.demo_open_a_dialog
 import top.ltfan.m3x.demo.generated.resources.demo_open_another_panel
 import top.ltfan.m3x.demo.generated.resources.demo_open_floating_actions
 import top.ltfan.m3x.demo.generated.resources.demo_panel
 import top.ltfan.m3x.demo.generated.resources.demo_panel_material
 import top.ltfan.m3x.demo.generated.resources.demo_persistent_glass_tooltip
-import top.ltfan.m3x.demo.generated.resources.demo_s
-import top.ltfan.m3x.demo.generated.resources.demo_scale
 import top.ltfan.m3x.demo.generated.resources.demo_scrolls_beneath_the_progressive_glass_bar
-import top.ltfan.m3x.demo.generated.resources.demo_section
+import top.ltfan.m3x.demo.generated.resources.demo_section_number
 import top.ltfan.m3x.demo.generated.resources.demo_show_alert
 import top.ltfan.m3x.demo.generated.resources.demo_show_panel
 import top.ltfan.m3x.demo.generated.resources.demo_snackbar
-import top.ltfan.m3x.demo.generated.resources.demo_the_lower_panel_remains_protected_from_input
 import top.ltfan.m3x.demo.generated.resources.demo_tooltip
-import top.ltfan.m3x.demo.generated.resources.demo_try_nested_panels_light_isolation_outside_dismissal_escape_and_keyboard_focus
 import top.ltfan.m3x.demo.generated.resources.demo_unknown
 import top.ltfan.m3x.demo.generated.resources.demo_window_corners
 import top.ltfan.m3x.demo.generated.resources.demo_window_presentation
-import top.ltfan.m3x.demo.generated.resources.demo_xl
-import top.ltfan.m3x.demo.generated.resources.demo_xli
-import top.ltfan.m3x.demo.generated.resources.demo_xs
-import top.ltfan.m3x.demo.generated.resources.demo_xxl
 import top.ltfan.m3x.material.Button
 import top.ltfan.m3x.material.FilterChip
 import top.ltfan.m3x.material.MaterialSurfaceRole
@@ -166,8 +157,19 @@ private fun SupportingText(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-private fun cornerRadiiText(corners: CornerRadii?, unknown: String): String =
-    "TL ${corners?.topLeft ?: unknown} · TR ${corners?.topRight ?: unknown} · BR ${corners?.bottomRight ?: unknown} · BL ${corners?.bottomLeft ?: unknown}"
+@Composable
+private fun cornerRadiiText(
+    resource: StringResource,
+    corners: CornerRadii?,
+    unknown: String,
+): String =
+    demoText(
+        resource,
+        corners?.topLeft?.toString() ?: unknown,
+        corners?.topRight?.toString() ?: unknown,
+        corners?.bottomRight?.toString() ?: unknown,
+        corners?.bottomLeft?.toString() ?: unknown,
+    )
 
 @Composable
 internal fun ComponentsPage() {
@@ -182,13 +184,12 @@ internal fun ComponentsPage() {
             cardItem(modifier = { Modifier.fillMaxWidth() }) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        demoText(Res.string.demo_material_with_light),
+                        demoText(MR.strings.demo_material_with_light),
                         style = MaterialTheme.typography.headlineMedium,
                     )
                     SupportingText(
                         demoText(
-                            Res.string
-                                .demo_explore_surfaces_grouped_content_and_responsive_controls_change_the_app_s_appearance_in_settings,
+                            MR.strings.demo_components_intro_description,
                         ),
                     )
                 }
@@ -197,46 +198,65 @@ internal fun ComponentsPage() {
                 val radii = MaterialTheme.extended.shapes.cornerRadii
                 val display = radii?.displayCorners
                 val window = radii?.windowCorners
+                val unknown = demoText(MR.strings.demo_unknown)
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        demoText(Res.string.demo_container_shape),
+                        demoText(MR.strings.demo_container_shape),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
                         if (radii == null)
                             demoText(
-                                Res.string.demo_no_radius_metadata_is_attached_to_this_shape_preset,
+                                MR.strings.demo_corner_metadata_unavailable,
                             )
-                        else
-                            "${demoText(Res.string.demo_display_corners)}: ${cornerRadiiText(display, demoText(Res.string.demo_unknown))}",
+                        else cornerRadiiText(MR.strings.demo_display_corners, display, unknown),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        "${demoText(Res.string.demo_window_corners)}: ${cornerRadiiText(window, demoText(Res.string.demo_unknown))}",
+                        cornerRadiiText(MR.strings.demo_window_corners, window, unknown),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        "${demoText(Res.string.demo_corner_policy)}: ${radii?.policy ?: demoText(Res.string.demo_unknown)}",
+                        demoText(MR.strings.demo_corner_policy, radii?.policy?.name ?: unknown),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        "${demoText(Res.string.demo_window_presentation)}: ${radii?.windowPresentation ?: demoText(Res.string.demo_unknown)}",
+                        demoText(
+                            MR.strings.demo_window_presentation,
+                            radii?.windowPresentation?.toString() ?: unknown,
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (radii != null) {
                         Text(
-                            "${demoText(Res.string.demo_container_radius)} ${radii.containerRadius} · ${demoText(Res.string.demo_scale)} ${radii.extraLargeIncreased.value / 32f} · ${radii.source}",
+                            demoText(
+                                MR.strings.demo_corner_radius_summary,
+                                radii.containerRadius.toString(),
+                                (radii.extraLargeIncreased.value / 32f).toString(),
+                                radii.source.name,
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                         Text(
-                            "${demoText(Res.string.demo_xs)} ${radii.extraSmall} · ${demoText(Res.string.demo_s)} ${radii.small} · ${demoText(Res.string.demo_m)} ${radii.medium} · ${demoText(Res.string.demo_l)} ${radii.large} · ${demoText(Res.string.demo_li)} ${radii.largeIncreased} · ${demoText(Res.string.demo_xl)} ${radii.extraLarge} · ${demoText(Res.string.demo_xli)} ${radii.extraLargeIncreased} · ${demoText(Res.string.demo_xxl)} ${radii.extraExtraLarge} · ${demoText(Res.string.demo_none)} ${radii.none} · ${demoText(Res.string.demo_full_uses_size)}",
+                            demoText(
+                                MR.strings.demo_corner_size_summary,
+                                radii.extraSmall.toString(),
+                                radii.small.toString(),
+                                radii.medium.toString(),
+                                radii.large.toString(),
+                                radii.largeIncreased.toString(),
+                                radii.extraLarge.toString(),
+                                radii.extraLargeIncreased.toString(),
+                                radii.extraExtraLarge.toString(),
+                                radii.none.toString(),
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
             }
             card {
-                header { Text(demoText(Res.string.demo_controls_and_resources)) }
+                header { Text(demoText(MR.strings.demo_controls_and_resources)) }
                 item {
                     // The gaps after the first row are padding on the following element rather than
                     // an arrangement: a collapsing row keeps the arrangement's gap until disposal.
@@ -245,7 +265,11 @@ internal fun ComponentsPage() {
                             .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
                     ) {
                         Text(
-                            "${demoText(Res.string.demo_live_resource)} · $count ${demoText(Res.string.demo_interactions)}",
+                            stringResource(
+                                MR.plurals.demo_live_resource_interaction_count,
+                                count,
+                                count,
+                            ),
                             style = MaterialTheme.typography.titleMedium,
                         )
                         FlowRow(
@@ -257,15 +281,15 @@ internal fun ComponentsPage() {
                             FilterChip(
                                 count % 2 == 1,
                                 { count++ },
-                                label = { Text(demoText(Res.string.demo_animated_chip)) },
+                                label = { Text(demoText(MR.strings.demo_animated_chip)) },
                             )
                             IconButtonWithTooltip(
                                 rememberVectorPainter(Icons.Default.Info),
-                                demoText(Res.string.demo_keyboard_and_pointer_tooltip),
+                                demoText(MR.strings.demo_keyboard_and_pointer_tooltip),
                                 onClick = { count++ },
                             )
                             Button(onClick = { visible = !visible }) {
-                                Text(demoText(Res.string.demo_animate))
+                                Text(demoText(MR.strings.demo_animate))
                             }
                         }
                         AnimatedVisibilityWithBlur(
@@ -294,7 +318,7 @@ internal fun ComponentsPage() {
                             maxRadius = MaterialTheme.extended.enterExitBlurRadius,
                         ) {
                             Text(
-                                demoText(Res.string.demo_blurred_entrance_and_exit),
+                                demoText(MR.strings.demo_blurred_entrance_and_exit),
                                 Modifier.fillMaxWidth().padding(top = 16.dp),
                                 style = MaterialTheme.typography.titleMedium,
                             )
@@ -317,8 +341,8 @@ internal fun ComponentsPage() {
                                 TextButton(onClick = { count++ }) {
                                     Text(
                                         if (role == MaterialSurfaceRole.Control)
-                                            demoText(Res.string.demo_control)
-                                        else demoText(Res.string.demo_panel),
+                                            demoText(MR.strings.demo_control)
+                                        else demoText(MR.strings.demo_panel),
                                     )
                                 }
                             }
@@ -327,7 +351,7 @@ internal fun ComponentsPage() {
                 }
             }
             card {
-                header { Text(demoText(Res.string.demo_grouped_horizontal_cards)) }
+                header { Text(demoText(MR.strings.demo_grouped_horizontal_cards)) }
                 item {
                     GroupedLazyRow(
                         Modifier.fillMaxWidth().height(128.dp),
@@ -343,8 +367,8 @@ internal fun ComponentsPage() {
                                     Modifier.padding(20.dp).widthIn(min = 140.dp),
                                     verticalArrangement = Arrangement.Center,
                                 ) {
-                                    Text("${demoText(Res.string.demo_card)} ${index + 1}")
-                                    SupportingText(demoText(Res.string.demo_independent_groups))
+                                    Text(demoText(MR.strings.demo_card_number, index + 1))
+                                    SupportingText(demoText(MR.strings.demo_independent_groups))
                                 }
                             }
                         }
@@ -353,7 +377,7 @@ internal fun ComponentsPage() {
             }
             repeat(4) { section ->
                 card(useStickyHeader = true) {
-                    header { Text("${demoText(Res.string.demo_section)} ${section + 1}") }
+                    header { Text(demoText(MR.strings.demo_section_number, section + 1)) }
                     repeat(4) { row ->
                         item(key = "$section-$row") {
                             Column(
@@ -361,10 +385,10 @@ internal fun ComponentsPage() {
                                     .padding(horizontal = 20.dp, vertical = 14.dp),
                                 verticalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
-                                Text("${demoText(Res.string.demo_grouped_item)} ${row + 1}")
+                                Text(demoText(MR.strings.demo_grouped_item_number, row + 1))
                                 SupportingText(
                                     demoText(
-                                        Res.string.demo_scrolls_beneath_the_progressive_glass_bar,
+                                        MR.strings.demo_scrolls_beneath_the_progressive_glass_bar,
                                     ),
                                 )
                             }
@@ -452,8 +476,8 @@ internal fun OverlaysPage() {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val tooltip = rememberOverlayTooltipState(isPersistent = true)
-    val snackbarMessage = demoText(Res.string.demo_a_glass_snackbar)
-    val dismissLabel = demoText(Res.string.demo_dismiss)
+    val snackbarMessage = demoText(MR.strings.demo_glass_snackbar_message)
+    val dismissLabel = demoText(MR.strings.demo_dismiss)
     DemoPageHost {
         GroupedLazyColumn(
             Modifier.fillMaxSize(),
@@ -463,19 +487,18 @@ internal fun OverlaysPage() {
             cardItem(modifier = { Modifier.fillMaxWidth() }) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        demoText(Res.string.demo_floating_layers),
+                        demoText(MR.strings.demo_floating_layers),
                         style = MaterialTheme.typography.headlineMedium,
                     )
                     SupportingText(
                         demoText(
-                            Res.string
-                                .demo_try_nested_panels_light_isolation_outside_dismissal_escape_and_keyboard_focus,
+                            MR.strings.demo_nested_panel_interaction_description,
                         ),
                     )
                 }
             }
             card {
-                header { Text(demoText(Res.string.demo_modal_panels)) }
+                header { Text(demoText(MR.strings.demo_modal_panels)) }
                 item {
                     FlowRow(
                         Modifier.fillMaxWidth()
@@ -488,25 +511,25 @@ internal fun OverlaysPage() {
                             onClick = { dialog = true },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(demoText(Res.string.demo_dialog))
+                            Text(demoText(MR.strings.demo_dialog))
                         }
                         Button(
                             onClick = { alert = true },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(demoText(Res.string.demo_alert))
+                            Text(demoText(MR.strings.demo_alert))
                         }
                         Button(
                             onClick = { sheet = true },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(demoText(Res.string.demo_bottom_sheet))
+                            Text(demoText(MR.strings.demo_bottom_sheet))
                         }
                     }
                 }
             }
             card {
-                header { Text(demoText(Res.string.demo_menus_and_transient_layers)) }
+                header { Text(demoText(MR.strings.demo_menus_and_transient_layers)) }
                 item {
                     FlowRow(
                         Modifier.fillMaxWidth()
@@ -521,7 +544,7 @@ internal fun OverlaysPage() {
                                 onClick = { menu = true },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Text(demoText(Res.string.demo_grouped_menu))
+                                Text(demoText(MR.strings.demo_grouped_menu))
                             }
                             OverlayMenu(
                                 expanded = { menu },
@@ -529,18 +552,18 @@ internal fun OverlaysPage() {
                             ) {
                                 OverlayMenuGroup(shapes = OverlayMenuDefaults.groupShape(0, 2)) {
                                     OverlayMenuItem(
-                                        { Text(demoText(Res.string.demo_first_action)) },
+                                        { Text(demoText(MR.strings.demo_first_action)) },
                                         { menu = false },
                                     )
                                     OverlayMenuItem(
-                                        { Text(demoText(Res.string.demo_disabled_action)) },
+                                        { Text(demoText(MR.strings.demo_disabled_action)) },
                                         {},
                                         enabled = false,
                                     )
                                 }
                                 OverlayMenuGroup(shapes = OverlayMenuDefaults.groupShape(1, 2)) {
                                     OverlayMenuItem(
-                                        { Text(demoText(Res.string.demo_open_a_dialog)) },
+                                        { Text(demoText(MR.strings.demo_open_a_dialog)) },
                                         {
                                             menu = false
                                             dialog = true
@@ -561,12 +584,12 @@ internal fun OverlaysPage() {
                             },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(demoText(Res.string.demo_snackbar))
+                            Text(demoText(MR.strings.demo_snackbar))
                         }
                         OverlayTooltipBox(
                             tooltip = {
                                 OverlayPlainTooltip {
-                                    Text(demoText(Res.string.demo_persistent_glass_tooltip))
+                                    Text(demoText(MR.strings.demo_persistent_glass_tooltip))
                                 }
                             },
                             state = tooltip,
@@ -576,7 +599,7 @@ internal fun OverlaysPage() {
                                 onClick = { scope.launch { tooltip.show() } },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Text(demoText(Res.string.demo_tooltip))
+                                Text(demoText(MR.strings.demo_tooltip))
                             }
                         }
                     }
@@ -591,20 +614,20 @@ internal fun OverlaysPage() {
                         buttonContent = { expanded ->
                             Icon(
                                 if (expanded) Icons.Default.Close else Icons.Default.Add,
-                                if (expanded) demoText(Res.string.demo_close_floating_actions)
-                                else demoText(Res.string.demo_open_floating_actions),
+                                if (expanded) demoText(MR.strings.demo_close_floating_actions)
+                                else demoText(MR.strings.demo_open_floating_actions),
                             )
                         },
                         menuContent = {
                             OverlayMenuItem(
-                                { Text(demoText(Res.string.demo_show_panel)) },
+                                { Text(demoText(MR.strings.demo_show_panel)) },
                                 {
                                     fab = false
                                     dialog = true
                                 },
                             )
                             OverlayMenuItem(
-                                { Text(demoText(Res.string.demo_show_alert)) },
+                                { Text(demoText(MR.strings.demo_show_alert)) },
                                 {
                                     fab = false
                                     alert = true
@@ -624,32 +647,31 @@ internal fun OverlaysPage() {
     ) {
         Column(Modifier.padding(28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(
-                demoText(Res.string.demo_panel_material),
+                demoText(MR.strings.demo_panel_material),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
                 demoText(
-                    Res.string
-                        .demo_a_stable_foreground_and_automatic_overlay_sampling_nested_modal_panels_have_independent_interaction_lighting,
+                    MR.strings.demo_nested_panel_foreground_description,
                 ),
             )
             Button(onClick = { nested = true }) {
-                Text(demoText(Res.string.demo_open_another_panel))
+                Text(demoText(MR.strings.demo_open_another_panel))
             }
             TextButton(onClick = { dialog = false }) {
-                Text(demoText(Res.string.demo_close))
+                Text(demoText(MR.strings.demo_close))
             }
             OverlayAlertDialog(
                 onDismissRequest = { nested = false },
                 visible = { nested },
                 confirmButton = {
                     TextButton(onClick = { nested = false }) {
-                        Text(demoText(Res.string.demo_done))
+                        Text(demoText(MR.strings.demo_done))
                     }
                 },
-                title = { Text(demoText(Res.string.demo_nested_modal)) },
+                title = { Text(demoText(MR.strings.demo_nested_modal)) },
                 text = {
-                    Text(demoText(Res.string.demo_the_lower_panel_remains_protected_from_input))
+                    Text(demoText(MR.strings.demo_lower_panel_input_isolation))
                 },
             )
         }
@@ -659,33 +681,32 @@ internal fun OverlaysPage() {
         visible = { alert },
         confirmButton = {
             TextButton(onClick = { alert = false }) {
-                Text(demoText(Res.string.demo_confirm))
+                Text(demoText(MR.strings.demo_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = { alert = false }) {
-                Text(demoText(Res.string.demo_cancel))
+                Text(demoText(MR.strings.demo_cancel))
             }
         },
-        title = { Text(demoText(Res.string.demo_material_alert)) },
+        title = { Text(demoText(MR.strings.demo_material_alert)) },
         text = {
-            Text(demoText(Res.string.demo_glass_rendering_material_colors_and_accessible_dismissal))
+            Text(demoText(MR.strings.demo_material_alert_description))
         },
     )
     OverlayBottomSheet(onDismissRequest = { sheet = false }, visible = { sheet }) {
         Column(Modifier.padding(28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(
-                demoText(Res.string.demo_draggable_glass_sheet),
+                demoText(MR.strings.demo_draggable_glass_sheet),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Text(
                 demoText(
-                    Res.string
-                        .demo_drag_between_partial_expanded_and_hidden_states_or_dismiss_with_back,
+                    MR.strings.demo_bottom_sheet_gesture_description,
                 ),
             )
             TextButton(onClick = { sheet = false }) {
-                Text(demoText(Res.string.demo_close_sheet))
+                Text(demoText(MR.strings.demo_close_sheet))
             }
         }
     }
@@ -732,7 +753,7 @@ internal fun SettingsCatalogPage(store: MutableStore<FeatureSettings>, manual: M
                         )
                     }
                 }
-            else Text("${demoText(Res.string.demo_no_editor_registered_for)} ${item.rendererId}")
+            else Text(demoText(MR.strings.demo_editor_missing, item.rendererId))
         },
     )
 }

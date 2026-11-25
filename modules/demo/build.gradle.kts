@@ -3,18 +3,19 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.androidKmpLibrary)
     id("top.ltfan.m3x.android-test-device")
     alias(libs.plugins.ksp)
+    alias(libs.plugins.moko.resources)
     alias(libs.plugins.spotless)
 }
 
-compose.resources {
-    packageOfResClass = "top.ltfan.m3x.demo.generated.resources"
-    generateResClass = always
+multiplatformResources {
+    resourcesPackage.set("top.ltfan.m3x.demo.generated.resources")
+    iosMinimalDeploymentTarget.set("15.0")
 }
 
 kotlin {
@@ -78,11 +79,12 @@ kotlin {
                 implementation(project(":settings-page-datastore"))
                 implementation(project(":datastore-serialization"))
                 implementation(project(":resource-compose"))
-                implementation(libs.navigation3.ui)
-                implementation(libs.serialization.json)
                 implementation(libs.coroutines)
-                implementation(libs.compose.components.resources)
+                implementation(libs.serialization.json)
                 implementation(libs.compose.material.icons.core)
+                implementation(libs.moko.resources)
+                implementation(libs.moko.resources.compose)
+                implementation(libs.navigation3.ui)
             }
         }
 
@@ -97,8 +99,8 @@ kotlin {
             create("composeTest") {
                 dependsOn(commonTest.get())
                 dependencies {
-                    implementation(libs.compose.ui.test)
                     implementation(libs.coroutines.test)
+                    implementation(libs.compose.ui.test)
                 }
             }
         jvmTest {
@@ -107,9 +109,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
     }

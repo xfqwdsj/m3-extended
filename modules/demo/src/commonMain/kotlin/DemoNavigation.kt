@@ -6,7 +6,7 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_backdrop_lab
 import top.ltfan.m3x.demo.generated.resources.demo_components
 import top.ltfan.m3x.demo.generated.resources.demo_home
@@ -46,11 +46,11 @@ internal val DemoTabs: List<DemoRoute> =
 @Composable
 internal fun DemoRoute.title(): String =
     when (this) {
-        DemoRoute.Components -> demoText(Res.string.demo_components)
-        DemoRoute.Overlays -> demoText(Res.string.demo_overlays)
-        DemoRoute.Lab -> demoText(Res.string.demo_backdrop_lab)
-        DemoRoute.Settings -> demoText(Res.string.demo_settings)
-        DemoRoute.SettingsCatalog -> demoText(Res.string.demo_settings_catalog)
+        DemoRoute.Components -> demoText(MR.strings.demo_components)
+        DemoRoute.Overlays -> demoText(MR.strings.demo_overlays)
+        DemoRoute.Lab -> demoText(MR.strings.demo_backdrop_lab)
+        DemoRoute.Settings -> demoText(MR.strings.demo_settings)
+        DemoRoute.SettingsCatalog -> demoText(MR.strings.demo_settings_catalog)
     }
 
 /**
@@ -60,9 +60,9 @@ internal fun DemoRoute.title(): String =
 @Composable
 internal fun DemoRoute.tabTitle(): String =
     when (this) {
-        DemoRoute.Components -> demoText(Res.string.demo_home)
-        DemoRoute.Overlays -> demoText(Res.string.demo_overlays)
-        DemoRoute.Lab -> demoText(Res.string.demo_lab)
+        DemoRoute.Components -> demoText(MR.strings.demo_home)
+        DemoRoute.Overlays -> demoText(MR.strings.demo_overlays)
+        DemoRoute.Lab -> demoText(MR.strings.demo_lab)
         DemoRoute.Settings,
-        DemoRoute.SettingsCatalog -> demoText(Res.string.demo_settings)
+        DemoRoute.SettingsCatalog -> demoText(MR.strings.demo_settings)
     }

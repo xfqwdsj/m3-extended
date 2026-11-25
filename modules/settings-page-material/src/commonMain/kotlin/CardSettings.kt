@@ -93,7 +93,6 @@ import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -102,10 +101,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
+import dev.icerock.moko.resources.compose.stringResource
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.drop
-import org.jetbrains.compose.resources.stringResource
 import top.ltfan.m3x.compose.animation.BlurEnterExit
 import top.ltfan.m3x.compose.animation.blurTransition
 import top.ltfan.m3x.compose.animation.core.withDefaultVisibilityThreshold
@@ -142,7 +141,6 @@ import top.ltfan.m3x.resource.compose.composeResource
 import top.ltfan.m3x.resource.compose.resolve
 import top.ltfan.m3x.settingspage.CompositeSettingsTree
 import top.ltfan.m3x.settingspage.NumberType
-import top.ltfan.m3x.settingspage.RangeBasedNumberInfo
 import top.ltfan.m3x.settingspage.SettingsCommit
 import top.ltfan.m3x.settingspage.SettingsItem
 import top.ltfan.m3x.settingspage.SettingsItems
@@ -156,11 +154,10 @@ import top.ltfan.m3x.settingspage.SettingsValidation
 import top.ltfan.m3x.settingspage.SettingsValue
 import top.ltfan.m3x.settingspage.SettingsValues
 import top.ltfan.m3x.settingspage.SliderCommitMode
-import top.ltfan.m3x.settingspage.compose.SettingsEditError
 import top.ltfan.m3x.settingspage.compose.SettingsEditSession
 import top.ltfan.m3x.settingspage.compose.SettingsPresentationError
 import top.ltfan.m3x.settingspage.compose.reportFailure
-import top.ltfan.m3x.settingspage.material.generated.resources.Res
+import top.ltfan.m3x.settingspage.material.generated.resources.MR
 import top.ltfan.m3x.settingspage.material.generated.resources.m3x_settings_cancel
 import top.ltfan.m3x.settingspage.material.generated.resources.m3x_settings_custom_editor_missing
 import top.ltfan.m3x.settingspage.material.generated.resources.m3x_settings_from
@@ -201,46 +198,46 @@ public typealias CustomSettingsEditor =
  */
 public class CardSettingsLabels(
     public val loading: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_loading)
+        stringResource(MR.strings.m3x_settings_loading)
     },
     public val readFailed: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_read_failed)
+        stringResource(MR.strings.m3x_settings_read_failed)
     },
     public val writeFailed: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_write_failed)
+        stringResource(MR.strings.m3x_settings_write_failed)
     },
     public val retry: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_retry)
+        stringResource(MR.strings.m3x_settings_retry)
     },
     public val cancel: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_cancel)
+        stringResource(MR.strings.m3x_settings_cancel)
     },
     public val save: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_save)
+        stringResource(MR.strings.m3x_settings_save)
     },
     public val restoreDefault: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_restore_default)
+        stringResource(MR.strings.m3x_settings_restore_default)
     },
     public val from: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_from)
+        stringResource(MR.strings.m3x_settings_from)
     },
     public val to: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_to)
+        stringResource(MR.strings.m3x_settings_to)
     },
     public val selectedCount: (Int) -> Resource<String> = { count ->
-        composeResource { stringResource(Res.string.m3x_settings_selected_count, count) }
+        composeResource { stringResource(MR.strings.m3x_settings_selected_count, count) }
     },
     public val invalidNumber: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_invalid_number)
+        stringResource(MR.strings.m3x_settings_invalid_number)
     },
     public val unavailable: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_unavailable)
+        stringResource(MR.strings.m3x_settings_unavailable)
     },
     public val value: Resource<String> = composeResource {
-        stringResource(Res.string.m3x_settings_value)
+        stringResource(MR.strings.m3x_settings_value)
     },
     public val customEditorMissing: (String) -> Resource<String> = { id ->
-        composeResource { stringResource(Res.string.m3x_settings_custom_editor_missing, id) }
+        composeResource { stringResource(MR.strings.m3x_settings_custom_editor_missing, id) }
     },
 )
 
@@ -333,7 +330,7 @@ private typealias RenderedSettingsGroup = Pair<SettingsItem, List<SettingsItem.I
 
 /** Whether a source with this status still contributes its items to the page. */
 private fun SettingsPersistenceStatus.isReadable(): Boolean =
-    this == SettingsPersistenceStatus.Ready || this is SettingsPersistenceStatus.WriteFailed
+    this == SettingsPersistenceStatus.Ready || this is WriteFailed
 
 /** The groups and their visible rows that every readable source of the page renders, in order. */
 private fun List<Pair<SettingsSource, SettingsPersistenceStatus>>.readableGroups():
@@ -342,7 +339,7 @@ private fun List<Pair<SettingsSource, SettingsPersistenceStatus>>.readableGroups
 }
     .flatMap { (source, _) -> source.tree.items.flatMap(SettingsItems::visibleGroups) }
     .map { root ->
-        val direct = if (root is SettingsItem.Category) root.children else listOf(root)
+        val direct = if (root is Category) root.children else listOf(root)
         root to direct.flatMap(SettingsItems::visibleEntries)
     }
     .filter { (_, rows) -> rows.isNotEmpty() }
@@ -353,7 +350,7 @@ private fun List<Pair<SettingsSource, SettingsPersistenceStatus>>.rendersItem(
 ): Boolean = any { (source, status) ->
     status.isReadable() &&
         source.tree.items.flatMap(SettingsItems::visibleGroups).any { group ->
-            (if (group is SettingsItem.Category) group.children else listOf(group))
+            (if (group is Category) group.children else listOf(group))
                 .flatMap(SettingsItems::visibleEntries)
                 .any { it.id == itemId }
         }
@@ -485,7 +482,7 @@ private fun pruneSettledVisibilityRecords(
             !group.visibility.targetState &&
                 group.rows.isEmpty() &&
                 group.root.id !in targets.first &&
-                (group.root !is SettingsItem.Category ||
+                (group.root !is Category ||
                     (group.visibility.isIdle && !group.visibility.currentState))
         ) {
             groups.remove(group.root.id)
@@ -736,14 +733,12 @@ private fun rememberSourceStatuses(
     val currentOnError by rememberUpdatedState(onError)
     return sources.map { source ->
         key(source.id, source.persistence) {
-            val status =
-                source.persistence?.status?.collectAsState()?.value
-                    ?: SettingsPersistenceStatus.Ready
+            val status = source.persistence?.status?.collectAsState()?.value ?: Ready
             LaunchedEffect(status) {
                 when (status) {
-                    is SettingsPersistenceStatus.ReadFailed ->
+                    is ReadFailed ->
                         currentOnError(SettingsPresentationError.ReadFailed(source, status.cause))
-                    is SettingsPersistenceStatus.WriteFailed ->
+                    is WriteFailed ->
                         currentOnError(SettingsPresentationError.WriteFailed(source, status.cause))
                     else -> Unit
                 }
@@ -786,7 +781,7 @@ private fun GroupedLazyListScope.settingsGroupCard(
         elevation = { appearance.elevation },
         border = { appearance.border },
     ) {
-        if (root is SettingsItem.Category) {
+        if (root is Category) {
             header(
                 key = root.id,
                 modifier = { Modifier.settingsGroupHeader(group, groupIndex, cardSpacing) },
@@ -869,11 +864,7 @@ private fun CardLazyGroup.settingsRowItem(
         key = entry.id,
         contentType = entry::class.simpleName,
         modifier = {
-            if (
-                groupIndex > 0 &&
-                    root !is SettingsItem.Category &&
-                    group.rowOrder.firstOrNull() == entry.id
-            ) {
+            if (groupIndex > 0 && root !is Category && group.rowOrder.firstOrNull() == entry.id) {
                 Modifier.settingsRowGap(record, root, cardSpacing)
             } else Modifier
         },
@@ -1114,9 +1105,7 @@ private fun SharedTransitionScope.SettingsEditorDialog(
                         confirmButton = {
                             TextButton(
                                 enabled =
-                                    eligible() &&
-                                        (active !is SettingsItem.Item.Custom<*> ||
-                                            customEditor != null),
+                                    eligible() && (active !is Custom<*> || customEditor != null),
                                 onClick = save,
                             ) {
                                 Text(labels.save.resolve())
@@ -1139,18 +1128,13 @@ private fun SharedTransitionScope.SettingsEditorDialog(
 @Composable
 public fun SettingsValidation.Issue.localizedMessage(): String =
     when (this) {
-        is SettingsValidation.Issue.TooShort ->
-            stringResource(Res.string.m3x_settings_too_short, minimum)
-        is SettingsValidation.Issue.TooLong ->
-            stringResource(Res.string.m3x_settings_too_long, maximum)
-        SettingsValidation.Issue.NotFinite -> stringResource(Res.string.m3x_settings_not_finite)
-        SettingsValidation.Issue.InvalidBounds ->
-            stringResource(Res.string.m3x_settings_invalid_bounds)
-        is SettingsValidation.Issue.OutOfBounds ->
-            stringResource(Res.string.m3x_settings_out_of_bounds, minimum, maximum)
-        is SettingsValidation.Issue.InvalidStep ->
-            stringResource(Res.string.m3x_settings_invalid_step, step)
-        SettingsValidation.Issue.RangeOrder -> stringResource(Res.string.m3x_settings_range_order)
+        is TooShort -> stringResource(MR.strings.m3x_settings_too_short, minimum)
+        is TooLong -> stringResource(MR.strings.m3x_settings_too_long, maximum)
+        NotFinite -> stringResource(MR.strings.m3x_settings_not_finite)
+        InvalidBounds -> stringResource(MR.strings.m3x_settings_invalid_bounds)
+        is OutOfBounds -> stringResource(MR.strings.m3x_settings_out_of_bounds, minimum, maximum)
+        is InvalidStep -> stringResource(MR.strings.m3x_settings_invalid_step, step)
+        RangeOrder -> stringResource(MR.strings.m3x_settings_range_order)
     }
 
 @Composable
@@ -1364,7 +1348,7 @@ private fun SettingsRowContent(
 ) {
     val finite = (item as? SettingsItem.Item.SingleNumber<*>)?.type as? NumberType.Finite<*>
     val mapping = remember(finite) { finite?.sliderMappingOrNull() }
-    if (finite != null && (mapping != null || finite.type == RangeBasedNumberInfo.Type.Slider)) {
+    if (finite != null && (mapping != null || finite.type == Slider)) {
         SliderSettingsRow(
             item,
             finite,
@@ -1400,10 +1384,9 @@ private fun SettingsItem.Item.NumberRange<*>.usesSliderBounds(): Boolean {
     val endType = endType as? NumberType.Finite<*>
     val startSlider =
         remember(startType) { startType?.sliderMappingOrNull() != null } ||
-            startType?.type == RangeBasedNumberInfo.Type.Slider
+            startType?.type == Slider
     val endSlider =
-        remember(endType) { endType?.sliderMappingOrNull() != null } ||
-            endType?.type == RangeBasedNumberInfo.Type.Slider
+        remember(endType) { endType?.sliderMappingOrNull() != null } || endType?.type == Slider
     return startSlider || endSlider
 }
 
@@ -1423,14 +1406,14 @@ private fun SettingsListItem(
     val icon = item.resources.icon?.resolve() as? Painter
     val summary =
         when (item) {
-            is SettingsItem.Item.Switch -> description
-            is SettingsItem.Item.Selector<*> -> item.value.resources.label.resolve()
-            is SettingsItem.Item.MultiSelector<*> -> labels.selectedCount(item.value.size).resolve()
+            is Switch -> description
+            is Selector<*> -> item.value.resources.label.resolve()
+            is MultiSelector<*> -> labels.selectedCount(item.value.size).resolve()
             else -> description ?: item.value.toString()
         }
     val enabled = item.enabled && interactive
     val listItemModifier = modifier.semantics {
-        if (item is SettingsItem.Item.Switch) role = Role.Switch
+        if (item is Switch) role = Role.Switch
         stateDescription = summary.orEmpty()
     }
     val supportingContent: (@Composable () -> Unit)? =
@@ -1440,9 +1423,9 @@ private fun SettingsListItem(
                 {
                     val summaryModifier =
                         when (item) {
-                            is SettingsItem.Item.Selector<*> ->
+                            is Selector<*> ->
                                 Modifier.settingsSharedValue(sharedText, item.value.id)
-                            !is SettingsItem.Item.MultiSelector<*> if description != null ->
+                            !is MultiSelector<*> if description != null ->
                                 Modifier.settingsSharedDescription(sharedText)
 
                             else -> Modifier
@@ -1454,7 +1437,7 @@ private fun SettingsListItem(
         { Icon(it, contentDescription = null) }
     }
     val trailingContent: (@Composable () -> Unit)? =
-        if (item is SettingsItem.Item.Switch) {
+        if (item is Switch) {
             {
                 Switch(
                     item.value,
@@ -1463,7 +1446,7 @@ private fun SettingsListItem(
                 )
             }
         } else null
-    if (item is SettingsItem.Item.Switch) {
+    if (item is Switch) {
         ListItem(
             checked = item.value,
             onCheckedChange = {
@@ -1534,33 +1517,33 @@ private fun SettingsItemEditor(
         if (!interactive) focusManager.clearFocus(force = true)
     }
     LaunchedEffect(item, custom) {
-        if (item is SettingsItem.Item.Custom<*> && custom == null) {
+        if (item is Custom<*> && custom == null) {
             currentOnError(SettingsPresentationError.MissingCustomEditor(item))
         }
     }
     Column(modifier.settingsEditorInput(interactive)) {
         val enabled = item.enabled && interactive
         when (item) {
-            is SettingsItem.Item.Selector<*> -> SelectorEditor(item, state, enabled, sharedText)
+            is Selector<*> -> SelectorEditor(item, state, enabled, sharedText)
 
-            is SettingsItem.Item.MultiSelector<*> -> MultiSelectorEditor(item, state, enabled)
+            is MultiSelector<*> -> MultiSelectorEditor(item, state, enabled)
 
-            is SettingsItem.Item.Text -> TextEditor(item, state, enabled, onSave)
+            is Text -> TextEditor(item, state, enabled, onSave)
 
-            is SettingsItem.Item.SingleNumber<*> ->
+            is SingleNumber<*> ->
                 NumberEditor(item, state, labels, enabled = enabled, onError = onError)
 
-            is SettingsItem.Item.NumberRange<*> ->
+            is NumberRange<*> ->
                 RangeEditor(item, state, labels, enabled = enabled, onError = onError)
 
-            is SettingsItem.Item.Custom<*> ->
+            is Custom<*> ->
                 if (custom != null)
                     custom(item, state.draft) { draft ->
                         if (currentInteractive.value) state.changeDraft(draft)
                     }
                 else Unit
 
-            is SettingsItem.Item.Switch -> Unit
+            is Switch -> Unit
         }
     }
 }
@@ -1661,8 +1644,7 @@ private fun TextEditor(
         label = { Text(item.resources.label.resolve()) },
         lineLimits =
             if (item.multiline) TextFieldLineLimits.MultiLine() else TextFieldLineLimits.SingleLine,
-        keyboardOptions =
-            KeyboardOptions(imeAction = if (item.multiline) ImeAction.Default else ImeAction.Done),
+        keyboardOptions = KeyboardOptions(imeAction = if (item.multiline) Default else Done),
         onKeyboardAction = {
             state.changeDraft(textState.text.toString())
             onSave()
@@ -1703,15 +1685,13 @@ private fun NumberEditor(
                 val parsed = SettingsNumbers.parse(input, item.type.kind)
                 if (parsed == null) {
                     state.invalidInput()
-                    currentOnError(
-                        SettingsPresentationError.EditFailed(item, SettingsEditError.InvalidInput),
-                    )
+                    currentOnError(SettingsPresentationError.EditFailed(item, InvalidInput))
                 } else state.changeDraft(parsed)
             }
     }
     val mapping = remember(finite) { finite?.sliderMappingOrNull() }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (finite != null && finite.type != RangeBasedNumberInfo.Type.Slider && mapping == null) {
+        if (finite != null && finite.type != Slider && mapping == null) {
             NumberStepper(
                 current,
                 finite,
@@ -1771,11 +1751,7 @@ private fun RangeEditor(
     val startMapping = remember(finite) { finite?.sliderMappingOrNull() }
     val endMapping = remember(endFinite) { endFinite?.sliderMappingOrNull() }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (
-            finite != null &&
-                finite.type != RangeBasedNumberInfo.Type.Slider &&
-                startMapping == null
-        ) {
+        if (finite != null && finite.type != Slider && startMapping == null) {
             NumberStepper(
                 start,
                 finite,
@@ -1791,11 +1767,7 @@ private fun RangeEditor(
                 },
             )
         }
-        if (
-            endFinite != null &&
-                endFinite.type != RangeBasedNumberInfo.Type.Slider &&
-                endMapping == null
-        ) {
+        if (endFinite != null && endFinite.type != Slider && endMapping == null) {
             NumberStepper(
                 end,
                 endFinite,
@@ -1872,6 +1844,6 @@ private fun updateRangeDraft(
     val parsedEnd = SettingsNumbers.parse(endText, item.endType.kind)
     if (parsedStart == null || parsedEnd == null) {
         state.invalidInput()
-        onError(SettingsPresentationError.EditFailed(item, SettingsEditError.InvalidInput))
+        onError(SettingsPresentationError.EditFailed(item, InvalidInput))
     } else state.changeDraft(parsedStart to parsedEnd)
 }

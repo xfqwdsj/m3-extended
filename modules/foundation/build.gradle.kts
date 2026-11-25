@@ -12,8 +12,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.androidKmpLibrary)
     id("top.ltfan.m3x.android-test-device")
-    alias(libs.plugins.dokka)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.ksp)
     signing
@@ -75,9 +75,9 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
-                api(libs.coroutines)
                 api(project(":ui"))
                 api(project(":animation-core"))
+                api(libs.coroutines)
                 api(libs.compose.foundation)
                 api(libs.dslUtilities)
             }

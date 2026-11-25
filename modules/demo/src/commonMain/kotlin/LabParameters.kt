@@ -3,7 +3,7 @@ package top.ltfan.m3x.demo
 import kotlinx.serialization.Serializable
 import top.ltfan.m3x.backdrop.BackdropCurve
 import top.ltfan.m3x.datastore.annotation.Store
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_background_adaptation
 import top.ltfan.m3x.demo.generated.resources.demo_blur_radius
 import top.ltfan.m3x.demo.generated.resources.demo_brightness
@@ -13,13 +13,14 @@ import top.ltfan.m3x.demo.generated.resources.demo_custom_directional_strength_c
 import top.ltfan.m3x.demo.generated.resources.demo_custom_directional_width_curve
 import top.ltfan.m3x.demo.generated.resources.demo_depth_effect
 import top.ltfan.m3x.demo.generated.resources.demo_dimming_opacity
-import top.ltfan.m3x.demo.generated.resources.demo_draw_a_striped_extended_range_patch_in_the_preview_enable_hdr_output_in_appearance_to_see_it_above_sdr_white
 import top.ltfan.m3x.demo.generated.resources.demo_edge
 import top.ltfan.m3x.demo.generated.resources.demo_edge_highlight
-import top.ltfan.m3x.demo.generated.resources.demo_extend_the_preview_s_press_and_pointer_light_above_sdr_white
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_background_patch
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_background_patch_description
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_contour_light
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_contour_light_description
 import top.ltfan.m3x.demo.generated.resources.demo_hdr_interaction_light
+import top.ltfan.m3x.demo.generated.resources.demo_hdr_interaction_light_description
 import top.ltfan.m3x.demo.generated.resources.demo_highlight_angle
 import top.ltfan.m3x.demo.generated.resources.demo_highlight_blur_radius
 import top.ltfan.m3x.demo.generated.resources.demo_highlight_color_gain
@@ -49,7 +50,6 @@ import top.ltfan.m3x.demo.generated.resources.demo_shadow_opacity
 import top.ltfan.m3x.demo.generated.resources.demo_shadow_radius
 import top.ltfan.m3x.demo.generated.resources.demo_shadows
 import top.ltfan.m3x.demo.generated.resources.demo_tint_opacity
-import top.ltfan.m3x.demo.generated.resources.demo_use_extended_range_white_when_the_display_reports_hdr_headroom
 import top.ltfan.m3x.demo.generated.resources.demo_vibrancy
 import top.ltfan.m3x.resource.Resource
 import top.ltfan.m3x.settingspage.RangeBasedNumberInfo
@@ -213,188 +213,187 @@ internal fun highlightStrengthCurve(falloff: Float): BackdropCurve {
 }
 
 object LabBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_blur_radius)
+    override val label: Resource<String> = demoResource(MR.strings.demo_blur_radius)
 }
 
 object LabRefractionHeightLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_refraction_height)
+    override val label: Resource<String> = demoResource(MR.strings.demo_refraction_height)
 }
 
 object LabRefractionAmountLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_refraction_amount)
+    override val label: Resource<String> = demoResource(MR.strings.demo_refraction_amount)
 }
 
 object LabTintAlphaLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_tint_opacity)
+    override val label: Resource<String> = demoResource(MR.strings.demo_tint_opacity)
 }
 
 object LabDimmingAlphaLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_dimming_opacity)
+    override val label: Resource<String> = demoResource(MR.strings.demo_dimming_opacity)
 }
 
 object LabBrightnessLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_brightness)
+    override val label: Resource<String> = demoResource(MR.strings.demo_brightness)
 }
 
 object LabContrastLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_contrast)
+    override val label: Resource<String> = demoResource(MR.strings.demo_contrast)
 }
 
 object LabSaturationLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_saturation)
+    override val label: Resource<String> = demoResource(MR.strings.demo_saturation)
 }
 
 object LabDepthEffectLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_depth_effect)
+    override val label: Resource<String> = demoResource(MR.strings.demo_depth_effect)
 }
 
 object LabChromaticAberrationLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_chromatic_aberration)
+    override val label: Resource<String> = demoResource(MR.strings.demo_chromatic_aberration)
 }
 
 object LabVibrancyLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_vibrancy)
+    override val label: Resource<String> = demoResource(MR.strings.demo_vibrancy)
 }
 
 object LabAdaptiveLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_background_adaptation)
+    override val label: Resource<String> = demoResource(MR.strings.demo_background_adaptation)
 }
 
 object LabHighlightWidthLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_width)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_width)
 }
 
 object LabHighlightBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_blur_radius)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_blur_radius)
 }
 
 object LabHighlightColorGainLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_color_gain)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_color_gain)
 }
 
 object LabHighlightEnvironmentGainLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_environment_gain)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_environment_gain)
 }
 
 object LabHighlightAlphaLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_opacity)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_opacity)
 }
 
 object LabHighlightAngleLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_angle)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_angle)
 }
 
 object LabHighlightStrengthFromLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_strength_from)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_strength_from)
 }
 
 object LabHighlightStrengthToLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_strength_to)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_strength_to)
 }
 
 object LabHighlightWidthFromLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_width_from)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_width_from)
 }
 
 object LabHighlightWidthToLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_width_to)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_width_to)
 }
 
 object LabCustomHighlightStrengthCurveLabel : SettingsResources {
     override val label: Resource<String> =
-        demoResource(Res.string.demo_custom_directional_strength_curve)
+        demoResource(MR.strings.demo_custom_directional_strength_curve)
 }
 
 object LabCustomHighlightWidthCurveLabel : SettingsResources {
     override val label: Resource<String> =
-        demoResource(Res.string.demo_custom_directional_width_curve)
+        demoResource(MR.strings.demo_custom_directional_width_curve)
 }
 
 object LabHighlightFalloffLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_falloff)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_falloff)
 }
 
 object LabHighlightWidthFalloffLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_width_falloff)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_width_falloff)
 }
 
 object LabHighlightLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_edge_highlight)
+    override val label: Resource<String> = demoResource(MR.strings.demo_edge_highlight)
 }
 
 object LabHighlightTypeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_highlight_type)
+    override val label: Resource<String> = demoResource(MR.strings.demo_highlight_type)
 }
 
 object LabHdrHighlightLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_contour_light)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_contour_light)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_use_extended_range_white_when_the_display_reports_hdr_headroom)
+        demoResource(MR.strings.demo_hdr_contour_light_description)
 }
 
 object LabHdrInteractionLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_interaction_light)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_interaction_light)
     override val description: Resource<String?> =
-        demoResource(Res.string.demo_extend_the_preview_s_press_and_pointer_light_above_sdr_white)
+        demoResource(MR.strings.demo_hdr_interaction_light_description)
 }
 
 object LabHdrBackgroundLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_hdr_background_patch)
+    override val label: Resource<String> = demoResource(MR.strings.demo_hdr_background_patch)
     override val description: Resource<String?> =
         demoResource(
-            Res.string
-                .demo_draw_a_striped_extended_range_patch_in_the_preview_enable_hdr_output_in_appearance_to_see_it_above_sdr_white,
+            MR.strings.demo_hdr_background_patch_description,
         )
 }
 
 object LabShadowRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shadow_radius)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shadow_radius)
 }
 
 object LabShadowOpacityLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shadow_opacity)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shadow_opacity)
 }
 
 object LabShadowOffsetLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shadow_offset)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shadow_offset)
 }
 
 object LabInnerRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_inner_shadow_radius)
+    override val label: Resource<String> = demoResource(MR.strings.demo_inner_shadow_radius)
 }
 
 object LabInnerOpacityLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_inner_shadow_opacity)
+    override val label: Resource<String> = demoResource(MR.strings.demo_inner_shadow_opacity)
 }
 
 object LabShadowLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shadow)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shadow)
 }
 
 object LabInnerShadowLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_inner_shadow)
+    override val label: Resource<String> = demoResource(MR.strings.demo_inner_shadow)
 }
 
 object LabLightRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_light_radius)
+    override val label: Resource<String> = demoResource(MR.strings.demo_light_radius)
 }
 
 object LabInteriorAlphaLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_interior_light_opacity)
+    override val label: Resource<String> = demoResource(MR.strings.demo_interior_light_opacity)
 }
 
 object LabLightingLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_lighting)
+    override val label: Resource<String> = demoResource(MR.strings.demo_lighting)
 }
 
 object LabOpticsLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_optics)
+    override val label: Resource<String> = demoResource(MR.strings.demo_optics)
 }
 
 object LabEdgeLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_edge)
+    override val label: Resource<String> = demoResource(MR.strings.demo_edge)
 }
 
 object LabShadowsLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(Res.string.demo_shadows)
+    override val label: Resource<String> = demoResource(MR.strings.demo_shadows)
 }

@@ -6,6 +6,12 @@
         <true/>
         <key>CFBundleDisplayName</key>
         <string>M3X Demo</string>
+        <key>CFBundleLocalizations</key>
+        <array>
+            <string>en</string>
+            <string>zh-Hans</string>
+            <string>zh-CN</string>
+        </array>
         <key>CFBundleExecutable</key>
         <string>$(EXECUTABLE_NAME)</string>
         <key>CFBundleIdentifier</key>

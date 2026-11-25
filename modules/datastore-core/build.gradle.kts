@@ -68,8 +68,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.datastore.core)
                 api(libs.coroutines)
+                api(libs.datastore.core)
             }
         }
 

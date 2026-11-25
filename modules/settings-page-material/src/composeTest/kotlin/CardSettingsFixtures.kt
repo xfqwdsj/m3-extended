@@ -2,18 +2,17 @@ package top.ltfan.m3x.settingspage.material
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import top.ltfan.m3x.resource.Resource
 import top.ltfan.m3x.resource.compose.composeResource
 import top.ltfan.m3x.settingspage.NumberType
-import top.ltfan.m3x.settingspage.RangeBasedNumberInfo
 import top.ltfan.m3x.settingspage.SettingsItem
 import top.ltfan.m3x.settingspage.SettingsResetMode
 import top.ltfan.m3x.settingspage.SettingsResources
 import top.ltfan.m3x.settingspage.SettingsValidation
 import top.ltfan.m3x.settingspage.SettingsValue
-import top.ltfan.m3x.settingspage.SliderMode
 
 internal object CardSettingsFixtures {
     internal class RuntimeBoundsSliderItem : SettingsItem.Item.SingleNumber<Float> {
@@ -29,12 +28,12 @@ internal object CardSettingsFixtures {
         override val type: NumberType<Float>
             get() =
                 NumberType.finiteFloat(
-                    RangeBasedNumberInfo.Type.Slider,
+                    Slider,
                     0f,
                     maximumScale,
                     0.1f,
                     true,
-                    SliderMode.Continuous,
+                    Continuous,
                 )
 
         override val id: String = "runtime-scale"
@@ -50,21 +49,21 @@ internal object CardSettingsFixtures {
     internal class SliderItem(
         override val type: NumberType<Int> =
             NumberType.finiteInt(
-                RangeBasedNumberInfo.Type.Slider,
+                Slider,
                 0,
                 10,
                 1,
                 false,
             ),
     ) : SettingsItem.Item.SingleNumber<Int> {
-        private val state = mutableStateOf(5)
+        private val state = mutableIntStateOf(5)
         var writes: Int = 0
             private set
 
         override var value: Int
-            get() = state.value
+            get() = state.intValue
             set(value) {
-                state.value = value
+                state.intValue = value
                 writes++
             }
 
@@ -104,7 +103,7 @@ internal object CardSettingsFixtures {
     internal class DefaultSwitchItem(
         initialValue: Boolean = true,
         override val enabled: Boolean = true,
-        override val resetMode: SettingsResetMode = SettingsResetMode.Menu,
+        override val resetMode: SettingsResetMode = Menu,
         private val labelText: String = "Default switch",
         override val id: String = "default-switch",
     ) : SettingsItem.Item.Switch {
@@ -141,7 +140,7 @@ internal object CardSettingsFixtures {
     }
 
     internal class RangeSliderItem : SettingsItem.Item.NumberRange<Int> {
-        private val type = NumberType.finiteInt(RangeBasedNumberInfo.Type.Slider, 0, 10, 1, false)
+        private val type = NumberType.finiteInt(Slider, 0, 10, 1, false)
         private val state = mutableStateOf(2 to 8)
         var writes: Int = 0
             private set

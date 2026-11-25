@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import dev.icerock.moko.resources.compose.stringResource
 import top.ltfan.m3x.compose.material3.ListItemColorsTransparent
 import top.ltfan.m3x.material.RangeSlider
 import top.ltfan.m3x.material.Slider
@@ -33,6 +34,8 @@ import top.ltfan.m3x.settingspage.SliderCommitMode
 import top.ltfan.m3x.settingspage.SliderMode
 import top.ltfan.m3x.settingspage.compose.SettingsPresentationError
 import top.ltfan.m3x.settingspage.compose.reportFailure
+import top.ltfan.m3x.settingspage.material.generated.resources.MR
+import top.ltfan.m3x.settingspage.material.generated.resources.m3x_settings_range_value
 import top.ltfan.m3x.settingspage.sliderMappingOrNull
 
 @Composable
@@ -79,6 +82,12 @@ internal fun RangeSliderSettingsRow(
     val endPosition = if (endDragging) localEnd else endMapping?.positionOf(end) ?: 1f
     val previewStart = if (startDragging) startMapping?.valueAt(startPosition) ?: start else start
     val previewEnd = if (endDragging) endMapping?.valueAt(endPosition) ?: end else end
+    val preview =
+        stringResource(
+            MR.strings.m3x_settings_range_value,
+            previewStart.toString(),
+            previewEnd.toString(),
+        )
     val canOpen =
         (startType?.allowInput != false || !startSlider) ||
             (endType?.allowInput != false || !endSlider)
@@ -119,7 +128,7 @@ internal fun RangeSliderSettingsRow(
                     item.resources.description?.resolve()?.let {
                         Text(it, Modifier.settingsSharedDescription(sharedText))
                     }
-                    Text("$previewStart – $previewEnd")
+                    Text(preview)
                 }
             },
             colors = ListItemColorsTransparent,
@@ -156,7 +165,7 @@ internal fun RangeSliderSettingsRow(
                 enabled = interactive && item.enabled && !startMapping.isFixed,
                 modifier =
                     Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
-                        stateDescription = "$previewStart – $previewEnd"
+                        stateDescription = preview
                     },
             )
         } else {

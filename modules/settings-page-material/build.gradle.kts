@@ -10,15 +10,16 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.androidKmpLibrary)
     id("top.ltfan.m3x.android-test-device")
+    alias(libs.plugins.moko.resources)
     alias(libs.plugins.spotless)
     alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
     signing
 }
 
-compose.resources {
-    packageOfResClass = "top.ltfan.m3x.settingspage.material.generated.resources"
-    generateResClass = always
+multiplatformResources {
+    resourcesPackage.set("top.ltfan.m3x.settingspage.material.generated.resources")
+    iosMinimalDeploymentTarget.set("15.0")
 }
 
 kotlin {
@@ -86,13 +87,14 @@ kotlin {
                 api(project(":settings-page-compose"))
                 api(project(":resource-compose"))
                 implementation(project(":material3"))
-                api(libs.compose.animation)
-                api(libs.compose.foundation)
-                api(libs.compose.material3)
-                api(libs.compose.runtime)
-                api(libs.compose.ui)
-                implementation(libs.compose.components.resources)
                 implementation(libs.coroutines)
+                api(libs.compose.runtime)
+                api(libs.compose.foundation)
+                api(libs.compose.ui)
+                api(libs.compose.animation)
+                api(libs.compose.material3)
+                implementation(libs.moko.resources)
+                implementation(libs.moko.resources.compose)
             }
         }
 
@@ -116,9 +118,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
     }

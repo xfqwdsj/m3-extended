@@ -34,8 +34,8 @@ import top.ltfan.m3x.backdrop.BackdropRampAnchors
 import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
 import top.ltfan.m3x.backdrop.rememberStackedBackdropLayer
-import top.ltfan.m3x.demo.generated.resources.Res
-import top.ltfan.m3x.demo.generated.resources.demo_lab_option
+import top.ltfan.m3x.demo.generated.resources.MR
+import top.ltfan.m3x.demo.generated.resources.demo_lab_option_number
 import top.ltfan.m3x.demo.generated.resources.demo_lab_sample
 import top.ltfan.m3x.material.FilterChip
 import top.ltfan.m3x.material.backdrop.backdropScrollEdge
@@ -92,7 +92,7 @@ internal fun ScrollEdgeLabPreview(modifier: Modifier = Modifier) {
                         contentAlignment = Alignment.CenterStart,
                     ) {
                         Text(
-                            demoText(Res.string.demo_lab_sample),
+                            demoText(MR.strings.demo_lab_sample),
                             style = MaterialTheme.typography.titleLarge,
                         )
                     }
@@ -110,7 +110,7 @@ internal fun ScrollEdgeLabPreview(modifier: Modifier = Modifier) {
                                 selected = selected == index,
                                 onClick = { selected = index },
                                 label = {
-                                    Text("${demoText(Res.string.demo_lab_option)} ${index + 1}")
+                                    Text(demoText(MR.strings.demo_lab_option_number, index + 1))
                                 },
                             )
                         }

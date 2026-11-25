@@ -8,8 +8,10 @@ both for generated store-backed descriptions. A handwritten tree can expose dyna
 options, visibility, and numeric bounds. Observable getters make those changes visible to UI.
 `CompositeSettingsTree` combines generated and handwritten sources while retaining their sources.
 
-`Resource<T>` labels keep the tree toolkit-independent. Use `resource-compose` adapters to resolve
-Compose strings and painters at rendering time. See [resource boundaries](architecture.md#resources).
+`Resource<T>` labels keep the tree toolkit-independent. Use `composeResource { … }` to resolve
+localized strings and painters in the renderer’s composition. See the
+[resource boundaries](architecture.md#resources) and the
+[demo resource adapters](../modules/demo/src/commonMain/kotlin/DemoStrings.kt).
 
 Source: [tree and item contracts](../modules/settings-page-core/src/commonMain/kotlin/Settings.kt).
 Example: [handwritten demo tree](../modules/demo/src/commonMain/kotlin/ManualSettingsTree.kt).

@@ -12,8 +12,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.androidKmpLibrary)
     id("top.ltfan.m3x.android-test-device")
-    alias(libs.plugins.dokka)
     alias(libs.plugins.spotless)
+    alias(libs.plugins.dokka)
     alias(libs.plugins.mavenPublish)
     alias(libs.plugins.ksp)
     signing
@@ -80,14 +80,13 @@ kotlin {
                 api(project(":material-theme"))
                 api(project(":foundation"))
                 api(project(":material3"))
-                api(libs.compose.animation)
+                implementation(libs.coroutines)
                 api(libs.compose.runtime)
                 api(libs.compose.foundation)
                 api(libs.compose.ui)
+                api(libs.compose.animation)
                 api(libs.compose.material3)
-                api(libs.compose.components.resources)
                 api(libs.dslUtilities)
-                implementation(libs.coroutines)
             }
         }
 
@@ -126,9 +125,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
     }

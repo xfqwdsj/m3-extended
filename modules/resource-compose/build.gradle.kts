@@ -74,7 +74,6 @@ kotlin {
                 api(project(":resource-core"))
                 api(libs.compose.runtime)
                 api(libs.compose.ui)
-                api(libs.compose.components.resources)
             }
         }
 

@@ -19,6 +19,7 @@ out/
 
 ### Kotlin ###
 .kotlin
+moko-resources-generated.js
 
 ### Eclipse ###
 .apt_generated

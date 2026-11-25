@@ -51,10 +51,10 @@ dependencies {
     implementation(project(":benchmarks:backdrop:scenarios")) {
         isTransitive = false
     }
-    implementation(libs.androidx.benchmark.macro.junit4)
     implementation(libs.androidx.test.runner)
     implementation(libs.androidx.test.junit)
     implementation(libs.androidx.uiautomator)
+    implementation(libs.androidx.benchmark.macro.junit4)
 }
 
 spotless {

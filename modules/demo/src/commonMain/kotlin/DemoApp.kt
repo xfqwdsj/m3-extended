@@ -77,7 +77,8 @@ import top.ltfan.m3x.compose.ui.privateapi.ProvidePrivateCornerRadii
 import top.ltfan.m3x.compose.ui.visual.LocalBlurEnabled
 import top.ltfan.m3x.datastore.StoreFile
 import top.ltfan.m3x.datastore.compose.storeHost
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
+import top.ltfan.m3x.demo.generated.resources.demo_app_bar_title
 import top.ltfan.m3x.demo.generated.resources.demo_back
 import top.ltfan.m3x.demo.generated.resources.demo_reset_lab_parameters
 import top.ltfan.m3x.demo.generated.resources.demo_restore_defaults
@@ -219,7 +220,12 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                                     topBar = {
                                         val title: @Composable () -> Unit = {
-                                            Text("M3X · ${current.title()}")
+                                            Text(
+                                                demoText(
+                                                    MR.strings.demo_app_bar_title,
+                                                    current.title(),
+                                                ),
+                                            )
                                         }
                                         val navigation: @Composable () -> Unit = {
                                             if (backStack.size > 1)
@@ -232,7 +238,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                         content = {
                                                             Icon(
                                                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                                                demoText(Res.string.demo_back),
+                                                                demoText(MR.strings.demo_back),
                                                             )
                                                         },
                                                     )
@@ -247,7 +253,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                 Icons.Default.Refresh,
                                                             ),
                                                             demoText(
-                                                                Res.string.demo_restore_defaults,
+                                                                MR.strings.demo_restore_defaults,
                                                             ),
                                                             buttonShapes =
                                                                 IconButtonDefaults.staticShapes(),
@@ -260,7 +266,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                 Icons.AutoMirrored.Filled.List,
                                                             ),
                                                             demoText(
-                                                                Res.string
+                                                                MR.strings
                                                                     .demo_settings_editor_demo,
                                                             ),
                                                             buttonShapes =
@@ -278,7 +284,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                 Icons.AutoMirrored.Filled.List,
                                                             ),
                                                             demoText(
-                                                                Res.string
+                                                                MR.strings
                                                                     .demo_toggle_runtime_options,
                                                             ),
                                                             buttonShapes =
@@ -292,7 +298,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                 Icons.Default.Refresh,
                                                             ),
                                                             demoText(
-                                                                Res.string
+                                                                MR.strings
                                                                     .demo_toggle_runtime_bounds,
                                                             ),
                                                             buttonShapes =
@@ -308,7 +314,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                 Icons.Default.Refresh,
                                                             ),
                                                             demoText(
-                                                                Res.string
+                                                                MR.strings
                                                                     .demo_reset_lab_parameters,
                                                             ),
                                                             buttonShapes =
@@ -323,7 +329,7 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                 Icons.Default.Settings,
                                                             ),
                                                             demoText(
-                                                                Res.string.demo_visual_settings,
+                                                                MR.strings.demo_visual_settings,
                                                             ),
                                                             buttonShapes =
                                                                 IconButtonDefaults.staticShapes(),

@@ -35,20 +35,20 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.unit.dp
+import dev.icerock.moko.resources.desc.PluralFormatted
+import dev.icerock.moko.resources.desc.StringDesc
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import org.jetbrains.compose.resources.getString
 import top.ltfan.m3x.datastore.MutableStore
 import top.ltfan.m3x.datastore.compose.storeHost
-import top.ltfan.m3x.demo.generated.resources.Res
+import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_animate
-import top.ltfan.m3x.demo.generated.resources.demo_editor_demo_only_these_settings_do_not_affect_the_app
 import top.ltfan.m3x.demo.generated.resources.demo_enable_profile
-import top.ltfan.m3x.demo.generated.resources.demo_interactions
-import top.ltfan.m3x.demo.generated.resources.demo_live_resource
+import top.ltfan.m3x.demo.generated.resources.demo_live_resource_interaction_count
+import top.ltfan.m3x.demo.generated.resources.demo_settings_editor_scope_description
 import top.ltfan.m3x.material.backdrop.BackdropLargeFlexibleTopAppBar
 import top.ltfan.m3x.material.bundle.M3xMaterialTheme
 import top.ltfan.m3x.overlay.OverlayHost
@@ -165,9 +165,8 @@ class DemoLayoutTest {
     fun settingsCatalogExplainsItsScopeAndKeepsEditorsUsable() = runComposeUiTest {
         lateinit var store: MutableStore<FeatureSettings>
         var topInsetPx = 0f
-        val scopeExplainer =
-            getString(Res.string.demo_editor_demo_only_these_settings_do_not_affect_the_app)
-        val editorLabel = getString(Res.string.demo_enable_profile)
+        val scopeExplainer = MR.strings.demo_settings_editor_scope_description.localized()
+        val editorLabel = MR.strings.demo_enable_profile.localized()
         setContent {
             val scope = rememberCoroutineScope()
             val host = remember(scope) { storeHost(scope, DemoStoreFile({ null }, { _, _ -> })) }
@@ -211,9 +210,9 @@ class DemoLayoutTest {
     @Test
     fun collapsedBlurExampleDoesNotLeaveSpacingUntilDisposal() = runComposeUiTest {
         val liveLabel =
-            "${getString(Res.string.demo_live_resource)} · 0 " +
-                getString(Res.string.demo_interactions)
-        val animateLabel = getString(Res.string.demo_animate)
+            StringDesc.PluralFormatted(MR.plurals.demo_live_resource_interaction_count, 0, 0)
+                .localized()
+        val animateLabel = MR.strings.demo_animate.localized()
         setContent {
             M3xMaterialTheme { OverlayHost(remember { OverlayHostState() }) { ComponentsPage() } }
         }

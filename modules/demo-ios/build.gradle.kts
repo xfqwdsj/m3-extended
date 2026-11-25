@@ -2,7 +2,13 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.compose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.moko.resources)
     alias(libs.plugins.spotless)
+}
+
+multiplatformResources {
+    resourcesPackage.set("top.ltfan.m3x.demo.ios.generated.resources")
+    iosMinimalDeploymentTarget.set("15.0")
 }
 
 kotlin {

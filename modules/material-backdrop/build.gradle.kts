@@ -104,8 +104,8 @@ kotlin {
                 dependsOn(commonTest.get())
                 dependencies {
                     implementation(project(":material-bundle"))
-                    implementation(libs.compose.ui.test)
                     implementation(libs.coroutines.test)
+                    implementation(libs.compose.ui.test)
                 }
             }
         jvmTest {
@@ -114,9 +114,9 @@ kotlin {
         getByName("androidDeviceTest") {
             dependsOn(composeTest)
             dependencies {
+                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.junit)
-                implementation(libs.activity.compose)
             }
         }
     }
