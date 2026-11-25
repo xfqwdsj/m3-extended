@@ -1,6 +1,6 @@
 plugins { `kotlin-dsl` }
 
-kotlin { jvmToolchain(25) }
+kotlin { jvmToolchain(21) }
 
 dependencies {
     compileOnly(libs.android.gradle.api) { isTransitive = false }
