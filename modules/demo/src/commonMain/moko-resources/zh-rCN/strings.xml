@@ -36,9 +36,6 @@
     <string name="demo_blurred_entrance_and_exit">带模糊效果的进入与退出</string>
     <string name="demo_control">控件</string>
     <string name="demo_panel">面板</string>
-    <string name="demo_grouped_horizontal_cards">水平分组卡片</string>
-    <string name="demo_card_number">卡片%1$d</string>
-    <string name="demo_independent_groups">独立分组</string>
     <string name="demo_section_number">分区%1$d</string>
     <string name="demo_grouped_item_number">分组项%1$d</string>
     <string name="demo_scrolls_beneath_the_progressive_glass_bar">滚动内容会经过渐变玻璃栏下方</string>

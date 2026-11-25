@@ -46,6 +46,7 @@ import top.ltfan.m3x.datastore.MutableStore
 import top.ltfan.m3x.datastore.compose.storeHost
 import top.ltfan.m3x.demo.generated.resources.MR
 import top.ltfan.m3x.demo.generated.resources.demo_animate
+import top.ltfan.m3x.demo.generated.resources.demo_container_shape
 import top.ltfan.m3x.demo.generated.resources.demo_enable_profile
 import top.ltfan.m3x.demo.generated.resources.demo_live_resource_interaction_count
 import top.ltfan.m3x.demo.generated.resources.demo_settings_editor_scope_description
@@ -208,7 +209,7 @@ class DemoLayoutTest {
     }
 
     @Test
-    fun collapsedBlurExampleDoesNotLeaveSpacingUntilDisposal() = runComposeUiTest {
+    fun alignedSectionAndCollapsingContentKeepTheirSpacing() = runComposeUiTest {
         val liveLabel =
             StringDesc.PluralFormatted(MR.plurals.demo_live_resource_interaction_count, 0, 0)
                 .localized()
@@ -216,14 +217,25 @@ class DemoLayoutTest {
         setContent {
             M3xMaterialTheme { OverlayHost(remember { OverlayHostState() }) { ComponentsPage() } }
         }
-        fun cardHeight(): Float =
+        val heading = MR.strings.demo_container_shape.localized()
+        val headingLeft = onNodeWithText(heading).fetchSemanticsNode().boundsInRoot.left
+        val rowLeft =
+            onNodeWithText(liveLabel, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.left
+        assertEquals(
+            headingLeft,
+            rowLeft,
+            absoluteTolerance = 1f,
+            message = "Section content inset",
+        )
+
+        fun rowHeight(): Float =
             onNodeWithText(liveLabel).fetchSemanticsNode().parent!!.boundsInRoot.height
         mainClock.autoAdvance = false
         onNodeWithText(animateLabel).performClick()
         val heights = mutableListOf<Float>()
         repeat(70) {
             mainClock.advanceTimeBy(16)
-            heights.add(cardHeight())
+            heights.add(rowHeight())
         }
         val final = heights.last()
         val tail = heights.takeLast(10)

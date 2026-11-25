@@ -43,12 +43,9 @@ Regressions: [sizing](../../modules/material-backdrop/src/composeTest/kotlin/Flo
 
 M3X `Card` uses the Surface material by default, retaining Material card elevation and border.
 Set `backdrop = false` to use direct card colors; `backdropMaterial` replaces its backing material.
-Grouped cards keep a continuous backing appearance and trim only the group's internal corners.
-The resolved `LocalCardShape` is available for descendants that need to clip shared content.
+The resolved `LocalCardShape` is available for descendants that need the card's clip shape.
 
-Sources: [card](../../modules/material/src/commonMain/kotlin/Card.kt) and
-[grouped cards](../../modules/material/src/commonMain/kotlin/CardLazyGroup.kt).
-Shape contract: [S6](shapes.md#s6-grouped-cards-preserve-the-outer-silhouette).
+Source: [card](../../modules/material/src/commonMain/kotlin/Card.kt).
 
 ## C4. Overlay ordering, lifetime, and input belong to a host
 
@@ -79,15 +76,19 @@ Regressions: [visibility](../../modules/overlay/src/jvmTest/kotlin/OverlayVisibi
 
 ## C5. List structure uses the public DSL
 
-`GroupedLazyListScope`, `LazyListGroupScope`, and `CardLazyGroup` are sealed DSL scopes. Build through
-`group`, `item`, `items`, `stickyHeader`, `header`, and `card`; use `LazyGroup` for custom group content.
-Generated collectors own low-level registration. A card group has one header slot: the latest header
-call wins and that header renders before ordinary entries. Keep item keys stable and unique.
+Use `group`, `item`, `items`, and `stickyHeader` to build a grouped lazy list, or implement
+`LazyGroup` for custom registration. Keep item keys stable and unique within the list.
+
+In a `GroupedLazyColumn`, `segmentedListGroup` supplies Material list item shapes and a modifier
+for row spacing. Apply both to each `SegmentedListItem`. The optional `header` sits outside
+the segment count and exposes heading semantics. It inherits the on-surface variant color and
+title-medium typography. A sticky heading uses the surface color as its backing and pins until
+the next group boundary.
 
 Sources: [generic list](../../modules/foundation/src/commonMain/kotlin/GroupedLazyList.kt) and
-[Material helpers](../../modules/material/src/commonMain/kotlin/layout/GroupedLazyList.kt).
+[segmented list group](../../modules/material/src/commonMain/kotlin/SegmentedListGroup.kt).
 Regressions: [generic DSL](../../modules/foundation/src/commonTest/kotlin/GroupedLazyListDslTest.kt) and
-[card DSL](../../modules/material/src/commonTest/kotlin/CardLazyGroupDslTest.kt).
+[segmented sections](../../modules/material/src/composeTest/kotlin/SegmentedListGroupTest.kt).
 
 ## C6. Settings separate immediate edits from modal transactions
 
@@ -98,14 +99,14 @@ All UI commit paths use `SettingsCommit`; errors go to caller-owned presentation
 
 Stable item IDs connect row and editor. Labels, descriptions, and selected Selector values use
 `SettingsSharedText` where both endpoints show the same text. Values rendered only on one side fade
-with their surroundings; reduced motion disables that sharing. Rows and retained editors derive
-visibility from one editor transition, with each item ID preserving its content identity. The page
-consumes the enclosing theme and overlay host.
+with their surroundings. Reduced motion disables shared text transitions. Rows and retained editors
+derive visibility from the same editor transition. Each item ID preserves its content identity.
+The page consumes the enclosing theme and overlay host.
 
-Source: [settings UI](../../modules/settings-page-material/src/commonMain/kotlin/CardSettings.kt).
+Source: [settings UI](../../modules/settings-page-material/src/commonMain/kotlin/SettingsPage.kt).
 Details: [settings guide](../settings.md).
-Regressions: [settings interaction](../../modules/settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt)
-and [rendering transitions](../../modules/settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
+Regressions: [settings interaction](../../modules/settings-page-material/src/composeTest/kotlin/SettingsPageInteractionTest.kt)
+and [rendering transitions](../../modules/settings-page-material/src/jvmTest/kotlin/SettingsPageTest.kt).
 
 ## C7. Expressive controls retain Material interaction ownership
 

@@ -1,14 +1,12 @@
 package top.ltfan.m3x.settingspage.material
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,7 +40,6 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -72,90 +69,64 @@ import top.ltfan.m3x.settingspage.SettingsValue
 import top.ltfan.m3x.settingspage.SliderCommitMode
 import top.ltfan.m3x.settingspage.compose.SettingsEditSession
 import top.ltfan.m3x.settingspage.compose.SettingsPresentationError
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.ConditionalCategory
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.DefaultSwitchItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.MultiSelectorItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.RangeItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.RangeSliderItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.RuntimeBoundsSliderItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.SelectorItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.SliderItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.SwitchItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.TextItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.ConditionalCategory
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.DefaultSwitchItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.MultiSelectorItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.RangeItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.RangeSliderItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.RuntimeBoundsSliderItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.SelectorItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.SliderItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.SwitchItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.TextItem
 
-class CardSettingsInteractionTest {
+class SettingsPageInteractionTest {
     @Test
-    fun cardDefaultsAndRendererEnablementReachGroupedCards() {
-        for (enabled in listOf(false, true)) for (custom in listOf(false, true)) runComposeUiTest {
-            val renderedShapes = mutableListOf<Shape>()
-            val explicitShape = RoundedCornerShape(2.dp)
-            lateinit var nativeShape: Shape
-            val tree =
-                object : SettingsTree {
-                    override val items = listOf(TextItem())
-                }
-            val renderer =
-                object : MaterialSurfaceRenderer by PlainMaterialSurfaceRenderer {
-                    @Composable
-                    override fun appearance(
-                        role: MaterialSurfaceRole,
-                        style: MaterialSurfaceStyle?,
-                        containerColor: Color,
-                        contentColor: Color,
-                        effects: MaterialSurfaceEffects?,
-                        shape: Shape,
-                        excludedEdges: Set<MaterialSurfaceEdge>,
-                    ): MaterialSurfaceAppearance {
-                        renderedShapes.add(shape)
-                        return PlainMaterialSurfaceRenderer.appearance(
-                            role,
-                            style,
-                            containerColor,
-                            contentColor,
-                            effects,
-                            shape,
-                            excludedEdges,
-                        )
-                    }
-                }
-            setContent {
-                MaterialTheme {
-                    nativeShape = CardDefaults.shape
-                    CompositionLocalProvider(LocalMaterialSurfaceRenderer provides renderer) {
-                        OverlayHost(remember { OverlayHostState() }) {
-                            if (custom)
-                                CardSettings(
-                                    tree,
-                                    cardBackdrop = enabled,
-                                    cardShape = explicitShape,
-                                )
-                            else CardSettings(tree, cardBackdrop = enabled)
-                        }
-                    }
+    fun settingsSegmentsDrawWithoutASurfaceRenderer() = runComposeUiTest {
+        val renderedShapes = mutableListOf<Shape>()
+        val tree =
+            object : SettingsTree {
+                override val items = listOf(TextItem())
+            }
+        val renderer =
+            object : MaterialSurfaceRenderer by PlainMaterialSurfaceRenderer {
+                @Composable
+                override fun appearance(
+                    role: MaterialSurfaceRole,
+                    style: MaterialSurfaceStyle?,
+                    containerColor: Color,
+                    contentColor: Color,
+                    effects: MaterialSurfaceEffects?,
+                    shape: Shape,
+                    excludedEdges: Set<MaterialSurfaceEdge>,
+                ): MaterialSurfaceAppearance {
+                    renderedShapes.add(shape)
+                    return PlainMaterialSurfaceRenderer.appearance(
+                        role,
+                        style,
+                        containerColor,
+                        contentColor,
+                        effects,
+                        shape,
+                        excludedEdges,
+                    )
                 }
             }
-            waitForIdle()
-            runOnIdle {
-                if (!enabled)
-                    assertTrue(
-                        renderedShapes.isEmpty(),
-                        "Disabled settings cards must bypass the surface renderer",
-                    )
-                else {
-                    assertTrue(renderedShapes.isNotEmpty())
-                    assertTrue(
-                        renderedShapes.all { it == if (custom) explicitShape else nativeShape },
-                        "Settings cards must retain native Card defaults or the explicit shape",
-                    )
+        setContent {
+            MaterialTheme {
+                CompositionLocalProvider(LocalMaterialSurfaceRenderer provides renderer) {
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
                 }
             }
         }
+        onNodeWithText("Name").assertIsDisplayed()
+        runOnIdle { assertTrue(renderedShapes.isEmpty()) }
     }
 
     @Test
     fun removingThePageClosesTheEditorAndReleasesItsPresentation() = runComposeUiTest {
         var mounted by mutableStateOf(true)
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val item = TextItem()
         val tree =
             object : SettingsTree {
@@ -166,11 +137,10 @@ class CardSettingsInteractionTest {
                 MaterialTheme {
                     OverlayHost(remember { OverlayHostState() }) {
                         if (mounted)
-                            CardSettings(
+                            SettingsPage(
                                 tree,
                                 state = state,
-                                cardBackdrop = false,
-                                labels = CardSettingsLabels(save = Resource.Global.Static("Save")),
+                                labels = SettingsPageLabels(save = Resource.Global.Static("Save")),
                             )
                     }
                 }
@@ -205,15 +175,15 @@ class CardSettingsInteractionTest {
                         ),
                     )
             }
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(remember { OverlayHostState() }) {
-                        CardSettings(
+                        SettingsPage(
                             tree,
                             state = state,
-                            labels = CardSettingsLabels(cancel = Resource.Global.Static("Cancel")),
+                            labels = SettingsPageLabels(cancel = Resource.Global.Static("Cancel")),
                         )
                     }
                 }
@@ -241,7 +211,7 @@ class CardSettingsInteractionTest {
                     OverlayHost(remember { OverlayHostState() }) {
                         SettingsRow(
                             item,
-                            CardSettingsLabels(
+                            SettingsPageLabels(
                                 restoreDefault = Resource.Global.Static("Restore default"),
                             ),
                             onOpen = {},
@@ -269,14 +239,14 @@ class CardSettingsInteractionTest {
                         Column {
                             SettingsRow(
                                 disabled,
-                                CardSettingsLabels(
+                                SettingsPageLabels(
                                     restoreDefault = Resource.Global.Static("Restore default"),
                                 ),
                                 onOpen = {},
                             )
                             SettingsRow(
                                 noMenu,
-                                CardSettingsLabels(
+                                SettingsPageLabels(
                                     restoreDefault = Resource.Global.Static("Restore default"),
                                 ),
                                 onOpen = {},
@@ -306,11 +276,11 @@ class CardSettingsInteractionTest {
                 override fun retrySave() = Unit
             }
         var error by mutableStateOf<SettingsPresentationError?>(null)
-        val labels = CardSettingsLabels(save = Resource.Global.Static("Save"))
+        val labels = SettingsPageLabels(save = Resource.Global.Static("Save"))
         setContent {
             ProvideM3xMaterialRendering {
                 OverlayHost(remember { OverlayHostState() }) {
-                    CardSettings(store, labels = labels, onError = { error = it })
+                    SettingsPage(store, labels = labels, onError = { error = it })
                 }
             }
         }
@@ -337,16 +307,16 @@ class CardSettingsInteractionTest {
                 override fun retrySave() = Unit
             }
         val errors = mutableListOf<SettingsPresentationError>()
-        var recomposition by mutableStateOf(0)
+        var recomposition by mutableIntStateOf(0)
         setContent {
             ProvideM3xMaterialRendering {
                 OverlayHost(remember { OverlayHostState() }) {
                     Text("Composition $recomposition")
-                    CardSettings(
+                    SettingsPage(
                         store,
                         onError = errors::add,
                         labels =
-                            CardSettingsLabels(
+                            SettingsPageLabels(
                                 readFailed = Resource.Global.Static("Read failure"),
                                 writeFailed = Resource.Global.Static("Write failure"),
                             ),
@@ -384,7 +354,7 @@ class CardSettingsInteractionTest {
                     item,
                     session,
                     null,
-                    CardSettingsLabels(),
+                    SettingsPageLabels(),
                     {},
                     Modifier.testTag("editor"),
                 )
@@ -410,9 +380,9 @@ class CardSettingsInteractionTest {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(remember { OverlayHostState() }) {
-                        CardSettings(
+                        SettingsPage(
                             tree,
-                            labels = CardSettingsLabels(cancel = Resource.Global.Static("Cancel")),
+                            labels = SettingsPageLabels(cancel = Resource.Global.Static("Cancel")),
                         )
                     }
                 }
@@ -440,7 +410,7 @@ class CardSettingsInteractionTest {
         val session = SettingsEditSession().apply { open(item) }
         setContent {
             ProvideM3xMaterialRendering {
-                SettingsItemEditor(item, session, null, CardSettingsLabels(), {})
+                SettingsItemEditor(item, session, null, SettingsPageLabels(), {})
             }
         }
 
@@ -483,7 +453,7 @@ class CardSettingsInteractionTest {
         val item = SwitchItem()
         setContent {
             ProvideM3xMaterialRendering {
-                SettingsRow(item, CardSettingsLabels(), {}, Modifier.testTag("switch"))
+                SettingsRow(item, SettingsPageLabels(), {}, Modifier.testTag("switch"))
             }
         }
         onNodeWithTag("switch")
@@ -495,6 +465,13 @@ class CardSettingsInteractionTest {
                 ),
             )
             .performClick()
+        onNodeWithTag("switch")
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.ToggleableState,
+                    ToggleableState.On,
+                ),
+            )
         runOnIdle {
             assertEquals(true, item.value)
             assertEquals(1, item.writes)
@@ -508,7 +485,7 @@ class CardSettingsInteractionTest {
             ProvideM3xMaterialRendering {
                 SettingsRow(
                     item,
-                    CardSettingsLabels(),
+                    SettingsPageLabels(),
                     {},
                     Modifier.testTag("switch"),
                     interactive = false,
@@ -528,7 +505,7 @@ class CardSettingsInteractionTest {
             ProvideM3xMaterialRendering {
                 SettingsRow(
                     setting,
-                    CardSettingsLabels(),
+                    SettingsPageLabels(),
                     {},
                     Modifier.testTag("row"),
                     onError = errors::add,
@@ -571,14 +548,14 @@ class CardSettingsInteractionTest {
                     NumberEditor(
                         single,
                         singleSession,
-                        CardSettingsLabels(),
+                        SettingsPageLabels(),
                         Modifier.testTag("number"),
                         errors::add,
                     )
                     RangeEditor(
                         range,
                         rangeSession,
-                        CardSettingsLabels(),
+                        SettingsPageLabels(),
                         Modifier.testTag("range"),
                         errors::add,
                     )
@@ -626,7 +603,7 @@ class CardSettingsInteractionTest {
     @Test
     fun editingTextDiscardsOnCancelAndPersistsOnSave() = runComposeUiTest {
         val item = TextItem()
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val store =
             object : SettingsStoreDescriber {
                 override val items: List<SettingsItem> = listOf(item)
@@ -638,11 +615,11 @@ class CardSettingsInteractionTest {
         setContent {
             ProvideM3xMaterialRendering {
                 OverlayHost(remember { OverlayHostState() }) {
-                    CardSettings(
+                    SettingsPage(
                         store,
                         state = state,
                         labels =
-                            CardSettingsLabels(
+                            SettingsPageLabels(
                                 cancel = Resource.Global.Static("Cancel"),
                                 save = Resource.Global.Static("Save"),
                             ),
@@ -701,7 +678,7 @@ class CardSettingsInteractionTest {
             }
         setContent {
             ProvideM3xMaterialRendering {
-                OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
             }
         }
         val slider = onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
@@ -724,7 +701,7 @@ class CardSettingsInteractionTest {
             }
         setContent {
             ProvideM3xMaterialRendering {
-                OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
             }
         }
         val slider =
@@ -750,7 +727,7 @@ class CardSettingsInteractionTest {
             }
         setContent {
             ProvideM3xMaterialRendering {
-                OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
             }
         }
         val slider = onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
@@ -776,7 +753,7 @@ class CardSettingsInteractionTest {
         setContent {
             ProvideM3xMaterialRendering {
                 OverlayHost(remember { OverlayHostState() }) {
-                    CardSettings(tree, sliderCommitMode = SliderCommitMode.WhileDragging)
+                    SettingsPage(tree, sliderCommitMode = SliderCommitMode.WhileDragging)
                 }
             }
         }
@@ -804,7 +781,7 @@ class CardSettingsInteractionTest {
         setContent {
             ProvideM3xMaterialRendering {
                 OverlayHost(remember { OverlayHostState() }) {
-                    CardSettings(tree, sliderCommitMode = SliderCommitMode.WhileDragging)
+                    SettingsPage(tree, sliderCommitMode = SliderCommitMode.WhileDragging)
                 }
             }
         }
@@ -832,7 +809,7 @@ class CardSettingsInteractionTest {
             }
         setContent {
             ProvideM3xMaterialRendering {
-                OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
             }
         }
 

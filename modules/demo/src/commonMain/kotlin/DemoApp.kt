@@ -468,7 +468,9 @@ private fun DemoAppContent(storeFile: StoreFile) {
                                                                                     .hdrOutput,
                                                                         )
                                                                     DemoRoute.Settings ->
-                                                                        SettingsPage(preferences)
+                                                                        DemoSettingsPage(
+                                                                            preferences,
+                                                                        )
                                                                     DemoRoute.SettingsCatalog ->
                                                                         SettingsCatalogPage(
                                                                             features,

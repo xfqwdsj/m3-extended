@@ -13,7 +13,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PixelMap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -39,6 +43,7 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -48,6 +53,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.rightClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.navigationevent.DirectNavigationEventInput
 import androidx.navigationevent.NavigationEvent
@@ -65,20 +71,31 @@ import top.ltfan.m3x.backdrop.captureBackdrop
 import top.ltfan.m3x.backdrop.rememberBackdropLayer
 import top.ltfan.m3x.compose.animation.LocalBlurAnimationEnabled
 import top.ltfan.m3x.compose.ui.visual.LocalBlurEnabled
+import top.ltfan.m3x.material.LocalMaterialSurfaceRenderer
+import top.ltfan.m3x.material.MaterialSurfaceAppearance
+import top.ltfan.m3x.material.MaterialSurfaceEdge
+import top.ltfan.m3x.material.MaterialSurfaceEffects
+import top.ltfan.m3x.material.MaterialSurfaceRenderer
+import top.ltfan.m3x.material.MaterialSurfaceRole
+import top.ltfan.m3x.material.MaterialSurfaceStyle
+import top.ltfan.m3x.material.PlainMaterialSurfaceRenderer
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
+import top.ltfan.m3x.material.theme.toMaterialShapes
+import top.ltfan.m3x.material.theming.capsule.capsuleShapes
 import top.ltfan.m3x.overlay.OverlayHost
 import top.ltfan.m3x.overlay.OverlayHostState
 import top.ltfan.m3x.resource.Resource
 import top.ltfan.m3x.settingspage.SettingsItem
 import top.ltfan.m3x.settingspage.SettingsResources
 import top.ltfan.m3x.settingspage.SettingsTree
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.ConditionalCategory
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.ConditionalTextItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.DefaultSwitchItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.SliderItem
-import top.ltfan.m3x.settingspage.material.CardSettingsFixtures.TextItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.ConditionalCategory
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.ConditionalTextItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.DefaultSwitchItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.SliderItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.SwitchItem
+import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.TextItem
 
-class CardSettingsTest {
+class SettingsPageTest {
     @Test
     fun predictiveBackSeeksTheSettingsRowAndEditorTogether() = runComposeUiTest {
         val dispatcher = NavigationEventDispatcher()
@@ -88,7 +105,7 @@ class CardSettingsTest {
             object : NavigationEventDispatcherOwner {
                 override val navigationEventDispatcher = dispatcher
             }
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val item = TextItem()
         val tree =
             object : SettingsTree {
@@ -128,7 +145,7 @@ class CardSettingsTest {
                             Modifier.size(480.dp, 640.dp).background(Color.White).testTag("scene"),
                         ) {
                             OverlayHost(remember { OverlayHostState() }) {
-                                CardSettings(tree, state = state, cardBackdrop = false)
+                                SettingsPage(tree, state = state)
                             }
                         }
                     }
@@ -250,7 +267,7 @@ class CardSettingsTest {
             object : NavigationEventDispatcherOwner {
                 override val navigationEventDispatcher = dispatcher
             }
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val first = TextItem()
         val tree =
             object : SettingsTree {
@@ -288,7 +305,7 @@ class CardSettingsTest {
                             Modifier.size(480.dp, 640.dp).background(Color.White).testTag("scene"),
                         ) {
                             OverlayHost(host) {
-                                CardSettings(tree, state = state, cardBackdrop = false)
+                                SettingsPage(tree, state = state)
                             }
                         }
                     }
@@ -386,7 +403,7 @@ class CardSettingsTest {
             object : NavigationEventDispatcherOwner {
                 override val navigationEventDispatcher = dispatcher
             }
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val first = TextItem()
         val second = TextItem("other", "Other")
         val tree =
@@ -428,7 +445,7 @@ class CardSettingsTest {
                             Modifier.size(480.dp, 640.dp).background(Color.White).testTag("scene"),
                         ) {
                             OverlayHost(remember { OverlayHostState() }) {
-                                CardSettings(tree, state = state, cardBackdrop = false)
+                                SettingsPage(tree, state = state)
                             }
                         }
                     }
@@ -537,7 +554,7 @@ class CardSettingsTest {
 
     private fun rapidEditorReversals(motion: MotionScheme) = runComposeUiTest {
         mainClock.autoAdvance = false
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val item = TextItem()
         val tree =
             object : SettingsTree {
@@ -554,7 +571,7 @@ class CardSettingsTest {
                             Modifier.size(480.dp, 640.dp).background(Color.White).testTag("scene"),
                         ) {
                             OverlayHost(remember { OverlayHostState() }) {
-                                CardSettings(tree, state = state, cardBackdrop = false)
+                                SettingsPage(tree, state = state)
                             }
                         }
                     }
@@ -634,11 +651,10 @@ class CardSettingsTest {
                                 .testTag("fade-scene"),
                         ) {
                             OverlayHost(remember { OverlayHostState() }) {
-                                CardSettings(
+                                SettingsPage(
                                     tree,
-                                    cardBackdrop = false,
                                     labels =
-                                        CardSettingsLabels(
+                                        SettingsPageLabels(
                                             cancel = Resource.Global.Static("Cancel"),
                                         ),
                                 )
@@ -724,7 +740,227 @@ class CardSettingsTest {
     }
 
     @Test
-    fun sharedEditorKeepsTheRowsRippleInsideItsCardCorners() = runComposeUiTest {
+    fun editorAndRowKeepTheirOwnCornersWhenTheSharedTransitionSettles() = verifySettlement(false)
+
+    @Test
+    fun capsuleEditorAndRowKeepTheirOwnCornersWhenTheSharedTransitionSettles() =
+        verifySettlement(true)
+
+    private fun verifySettlement(useCapsule: Boolean) = runComposeUiTest {
+        val item = TextItem()
+        val state = SettingsPageState()
+        val tree =
+            object : SettingsTree {
+                override val items = listOf(item)
+            }
+        val panelShapes = mutableListOf<Shape>()
+        val renderer =
+            object : MaterialSurfaceRenderer by PlainMaterialSurfaceRenderer {
+                @Composable
+                override fun appearance(
+                    role: MaterialSurfaceRole,
+                    style: MaterialSurfaceStyle?,
+                    containerColor: Color,
+                    contentColor: Color,
+                    effects: MaterialSurfaceEffects?,
+                    shape: Shape,
+                    excludedEdges: Set<MaterialSurfaceEdge>,
+                ): MaterialSurfaceAppearance {
+                    if (role == MaterialSurfaceRole.Panel && containerColor == Color.Red) {
+                        SideEffect { panelShapes += shape }
+                    }
+                    return PlainMaterialSurfaceRenderer.appearance(
+                        role,
+                        style,
+                        containerColor,
+                        contentColor,
+                        effects,
+                        shape,
+                        excludedEdges,
+                    )
+                }
+            }
+        setContent {
+            val shapeRoles =
+                if (useCapsule) capsuleShapes().toMaterialShapes() else MaterialTheme.shapes
+            MaterialTheme(
+                shapes = shapeRoles,
+                colorScheme =
+                    lightColorScheme(surface = Color.Green, surfaceContainerHigh = Color.Red),
+            ) {
+                Box(Modifier.size(480.dp, 640.dp).background(Color.Blue).testTag("settlement")) {
+                    CompositionLocalProvider(LocalMaterialSurfaceRenderer provides renderer) {
+                        OverlayHost(remember { OverlayHostState() }) {
+                            val editorShape =
+                                if (useCapsule) shapeRoles.extraLarge else RoundedCornerShape(40.dp)
+                            SettingsPage(tree, state = state, editorShape = editorShape)
+                        }
+                    }
+                }
+            }
+        }
+
+        fun pixels() = onNodeWithTag("settlement").captureToImage().toPixelMap()
+        fun isPanel(color: Color) = color.red > 0.8f && color.green < 0.2f && color.blue < 0.2f
+
+        val row = onNodeWithTag("settings-row:${item.id}").fetchSemanticsNode().boundsInRoot
+        val initial = pixels()
+        val x = row.right.toInt() - 8
+        val y = row.center.y.toInt()
+        val initialRowColor = initial[x, y]
+        val container =
+            onAllNodesWithTag("settings-segment-container:${item.id}", useUnmergedTree = true)
+        val restingHeight = container.fetchSemanticsNodes().single().size.height
+        mainClock.autoAdvance = false
+        onNodeWithText("Name").performSemanticsAction(SemanticsActions.OnClick)
+        val containerHeights = mutableListOf<Int>()
+        repeat(16) {
+            mainClock.advanceTimeByFrame()
+            containerHeights +=
+                container.fetchSemanticsNodes(atLeastOneRootRequired = false).map { it.size.height }
+        }
+        assertTrue(
+            containerHeights.any { it > restingHeight + 2 },
+            "The surface must remeasure while it expands: $containerHeights",
+        )
+        mainClock.advanceTimeBy(1500)
+        runOnIdle {
+            assertEquals(item.id, state.transitionState.currentState)
+            assertEquals(item.id, state.transitionState.targetState)
+        }
+        val open = pixels()
+        var panelLeft = open.width
+        var panelTop = open.height
+        for (py in 0 until open.height) for (px in 0 until open.width) {
+            if (isPanel(open[px, py])) {
+                panelLeft = minOf(panelLeft, px)
+                panelTop = minOf(panelTop, py)
+            }
+        }
+        assertTrue(panelLeft < open.width && panelTop < open.height)
+        val inset = (open.width * (6f / 480f)).toInt()
+        val corner = open[panelLeft + inset, panelTop + inset]
+        assertFalse(isPanel(corner), "Editor corner at ($panelLeft, $panelTop) + $inset: $corner")
+
+        runOnIdle { state.close() }
+        var rowFullyVisible = false
+        repeat(75) { frame ->
+            mainClock.advanceTimeByFrame()
+            val color = pixels()[x, y]
+            if (color == initialRowColor) rowFullyVisible = true
+            else
+                assertFalse(
+                    rowFullyVisible,
+                    "At closing frame $frame the fully returned row flashed: $color",
+                )
+        }
+        assertTrue(rowFullyVisible)
+        runOnIdle {
+            val first = panelShapes.first()
+            assertTrue(
+                panelShapes.all { it === first },
+                "The editor switched its shape while mounted",
+            )
+        }
+        mainClock.autoAdvance = true
+    }
+
+    @Test
+    fun editorContentKeepsItsLookaheadConstraintsWhileThePanelMoves() = runComposeUiTest {
+        val item =
+            object : SettingsItem.Item.Custom<String> {
+                override val rendererId = "measure-editor"
+                override val id = "name"
+                override var value = "before"
+                override val children: List<SettingsItem>? = null
+                override val shouldShow = true
+                override val enabled = true
+                override val resources: SettingsResources =
+                    object : SettingsResources {
+                        override val label = Resource.Global.Static("Name")
+                    }
+            }
+        val tree =
+            object : SettingsTree {
+                override val items: List<SettingsItem> = listOf(item)
+            }
+        val measured = mutableListOf<Constraints>()
+        setContent {
+            MaterialTheme {
+                Box(Modifier.size(520.dp, 720.dp)) {
+                    OverlayHost(remember { OverlayHostState() }) {
+                        SettingsPage(
+                            tree,
+                            customEditor = { _, _, _ ->
+                                Layout(content = {}) { _, constraints ->
+                                    if (!isLookingAhead) measured += constraints
+                                    layout(constraints.maxWidth, 64.dp.roundToPx()) {}
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+        mainClock.autoAdvance = false
+        onNodeWithText("Name").performSemanticsAction(SemanticsActions.OnClick)
+        repeat(6) { mainClock.advanceTimeByFrame() }
+        val openingMeasurements = runOnIdle {
+            assertTrue(measured.isNotEmpty())
+            measured.size
+        }
+        repeat(12) { mainClock.advanceTimeByFrame() }
+        runOnIdle {
+            assertEquals(1, measured.distinct().size, "Editor body constraints changed: $measured")
+            assertEquals(
+                openingMeasurements,
+                measured.size,
+                "Editor body remeasured during the move",
+            )
+        }
+        mainClock.autoAdvance = true
+    }
+
+    @Test
+    fun capsuleRowBackgroundFollowsItsNativePressedShape() = runComposeUiTest {
+        val item = TextItem("middle", "Middle")
+        val category =
+            object : SettingsItem.Category by ConditionalCategory(item) {
+                override val children: List<SettingsItem> =
+                    listOf(TextItem("first", "First"), item, TextItem("last", "Last"))
+            }
+        val tree =
+            object : SettingsTree {
+                override val items = listOf(category)
+            }
+        setContent {
+            MaterialTheme(
+                colorScheme = lightColorScheme(surface = Color.Green),
+                shapes = capsuleShapes().toMaterialShapes(),
+            ) {
+                Box(Modifier.size(480.dp, 640.dp).background(Color.Blue).testTag("press-scene")) {
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
+                }
+            }
+        }
+        val row = onNodeWithTag("settings-row:middle").fetchSemanticsNode().boundsInRoot
+        fun corner(): Color {
+            val pixels = onNodeWithTag("press-scene").captureToImage().toPixelMap()
+            val inset = (pixels.width * (4f / 480f)).toInt()
+            return pixels[row.left.toInt() + inset, row.top.toInt() + inset]
+        }
+        assertTrue(corner().green > 0.8f)
+        mainClock.autoAdvance = false
+        onNodeWithText("Middle").performTouchInput { down(center) }
+        mainClock.advanceTimeBy(400)
+        val pressed = corner()
+        assertTrue(pressed.blue > 0.8f && pressed.green < 0.2f, "Pressed corner: $pressed")
+        onNodeWithText("Middle").performTouchInput { cancel() }
+        mainClock.autoAdvance = true
+    }
+
+    @Test
+    fun sharedEditorKeepsTheRowsRippleInsideItsSegmentCorners() = runComposeUiTest {
         val tree =
             object : SettingsTree {
                 override val items: List<SettingsItem> = listOf(TextItem())
@@ -734,10 +970,8 @@ class CardSettingsTest {
                 MaterialTheme(colorScheme = lightColorScheme(onSurface = Color.Red)) {
                     Box(Modifier.size(320.dp, 480.dp).background(Color.Blue)) {
                         OverlayHost(remember { OverlayHostState() }) {
-                            CardSettings(
+                            SettingsPage(
                                 tree,
-                                cardBackdrop = false,
-                                cardShape = RoundedCornerShape(32.dp),
                             )
                         }
                     }
@@ -752,7 +986,7 @@ class CardSettingsTest {
         mainClock.advanceTimeBy(32)
         val pixels = onRoot().captureToImage().toPixelMap()
         val corner = pixels[row.left.toInt() + 2, row.top.toInt() + 2]
-        assertTrue(corner.red < 0.025f, "Shared source ripple escapes rounded card: $corner")
+        assertTrue(corner.red < 0.025f, "Shared source ripple escapes rounded segment: $corner")
         mainClock.autoAdvance = true
     }
 
@@ -766,7 +1000,7 @@ class CardSettingsTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
-                    OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
                 }
             }
         }
@@ -788,6 +1022,85 @@ class CardSettingsTest {
     }
 
     @Test
+    fun checkedSwitchKeepsItsSegmentColorAndCornerShape() = runComposeUiTest {
+        val item = SwitchItem()
+        val category =
+            object : SettingsItem.Category by ConditionalCategory(item) {
+                override val children: List<SettingsItem> = listOf(item, TextItem())
+            }
+        val tree =
+            object : SettingsTree {
+                override val items = listOf(category)
+            }
+        setContent {
+            MaterialTheme(
+                colorScheme =
+                    lightColorScheme(
+                        surface = Color.Green,
+                        secondaryContainer = Color.Magenta,
+                    ),
+            ) {
+                Box(Modifier.size(320.dp, 480.dp).background(Color.Blue)) {
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
+                }
+            }
+        }
+
+        fun segmentPixels(): List<Color> {
+            val row = onNodeWithText("Switch").fetchSemanticsNode().parent!!.boundsInRoot
+            val pixels = onRoot().captureToImage().toPixelMap()
+            val inset = pixels.width * (4f / 320f)
+            return listOf(
+                pixels[(row.left + row.width * 0.55f).toInt(), row.center.y.toInt()],
+                pixels[(row.left + inset).toInt(), (row.bottom - inset).toInt()],
+            )
+        }
+
+        val off = segmentPixels()
+        assertTrue(off.all { it.green > 0.8f && it.red < 0.1f && it.blue < 0.1f })
+        onNodeWithText("Switch").performSemanticsAction(SemanticsActions.OnClick)
+        runOnIdle { assertTrue(item.value) }
+        assertEquals(off, segmentPixels())
+    }
+
+    @Test
+    fun remainingSegmentGainsOuterCornersWhenTheLastRowLeaves() = runComposeUiTest {
+        val conditional = ConditionalTextItem()
+        val category =
+            object : SettingsItem.Category by ConditionalCategory(conditional) {
+                override val children: List<SettingsItem> = listOf(TextItem(), conditional)
+            }
+        val tree =
+            object : SettingsTree {
+                override val items: List<SettingsItem> = listOf(category)
+            }
+        setContent {
+            MaterialTheme(colorScheme = lightColorScheme(surface = Color.Red)) {
+                Box(Modifier.size(320.dp, 480.dp).background(Color.Blue)) {
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
+                }
+            }
+        }
+
+        fun sampleBottomCorner(): Color {
+            val row = onNodeWithText("Name").fetchSemanticsNode().parent!!.boundsInRoot
+            val pixels = onRoot().captureToImage().toPixelMap()
+            val inset = pixels.width * (4f / 320f)
+            return pixels[(row.left + inset).toInt(), (row.bottom - inset).toInt()]
+        }
+
+        assertEquals(Color.Red, sampleBottomCorner())
+        mainClock.autoAdvance = false
+        runOnIdle { conditional.shown = false }
+        mainClock.advanceTimeBy(100)
+        onNodeWithTag("settings-row:conditional").assertIsDisplayed()
+        mainClock.advanceTimeBy(1000)
+        onNodeWithTag("settings-row:conditional").assertDoesNotExist()
+        assertTrue(sampleBottomCorner().blue > 0.8f)
+        mainClock.autoAdvance = true
+    }
+
+    @Test
     fun enteringRowAndRapidVisibilityReversalKeepOneStableRow() = runComposeUiTest {
         val item = ConditionalTextItem()
         val tree =
@@ -797,7 +1110,7 @@ class CardSettingsTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
-                    OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
                 }
             }
         }
@@ -837,7 +1150,7 @@ class CardSettingsTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
-                    OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
                 }
             }
         }
@@ -875,7 +1188,7 @@ class CardSettingsTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
-                    OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
                 }
             }
         }
@@ -906,7 +1219,7 @@ class CardSettingsTest {
         setContent {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
-                    OverlayHost(remember { OverlayHostState() }) { CardSettings(tree) }
+                    OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
                 }
             }
         }
@@ -936,7 +1249,7 @@ class CardSettingsTest {
                         Box(Modifier.size(320.dp, 240.dp)) {
                             SettingsRow(
                                 item,
-                                CardSettingsLabels(
+                                SettingsPageLabels(
                                     restoreDefault = Resource.Global.Static("Restore default"),
                                 ),
                                 onOpen = {},
@@ -969,7 +1282,7 @@ class CardSettingsTest {
                         Box(Modifier.size(320.dp, 240.dp)) {
                             SettingsRow(
                                 item,
-                                CardSettingsLabels(
+                                SettingsPageLabels(
                                     restoreDefault = Resource.Global.Static("Restore default"),
                                 ),
                                 onOpen = {},
@@ -1001,7 +1314,7 @@ class CardSettingsTest {
     fun hidingAnAncestorImmediatelyDisablesTheActiveEditor() = runComposeUiTest {
         val item = ConditionalTextItem()
         val category = ConditionalCategory(item)
-        val state = CardSettingsState()
+        val state = SettingsPageState()
         val tree =
             object : SettingsTree {
                 override val items: List<SettingsItem> = listOf(category)
@@ -1010,10 +1323,10 @@ class CardSettingsTest {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(remember { OverlayHostState() }) {
-                        CardSettings(
+                        SettingsPage(
                             tree,
                             state = state,
-                            labels = CardSettingsLabels(save = Resource.Global.Static("Save")),
+                            labels = SettingsPageLabels(save = Resource.Global.Static("Save")),
                         )
                     }
                 }
@@ -1062,10 +1375,10 @@ class CardSettingsTest {
             ProvideM3xMaterialRendering {
                 MaterialTheme {
                     OverlayHost(remember { OverlayHostState() }) {
-                        CardSettings(
+                        SettingsPage(
                             tree,
                             labels =
-                                CardSettingsLabels(
+                                SettingsPageLabels(
                                     restoreDefault = Resource.Global.Static("Restore default"),
                                 ),
                         )
@@ -1106,21 +1419,19 @@ class CardSettingsTest {
                         Row {
                             CompositionLocalProvider(LocalBlurEnabled provides true) {
                                 Box(Modifier.size(320.dp, 420.dp).testTag("blur-on")) {
-                                    CardSettings(
+                                    SettingsPage(
                                         blurTree,
-                                        cardBackdrop = false,
                                         contentPadding = PaddingValues(0.dp),
-                                        cardSpacing = 0.dp,
+                                        groupSpacing = 0.dp,
                                     )
                                 }
                             }
                             CompositionLocalProvider(LocalBlurEnabled provides false) {
                                 Box(Modifier.size(320.dp, 420.dp).testTag("blur-off")) {
-                                    CardSettings(
+                                    SettingsPage(
                                         sharpTree,
-                                        cardBackdrop = false,
                                         contentPadding = PaddingValues(0.dp),
-                                        cardSpacing = 0.dp,
+                                        groupSpacing = 0.dp,
                                     )
                                 }
                             }
@@ -1166,15 +1477,16 @@ class CardSettingsTest {
     }
 
     @Test
-    fun cardsAndEditorSampleBackdropInsteadOfCoveringItWithOpaqueCards() = runComposeUiTest {
-        val editorState = CardSettingsState()
+    fun segmentsUseMaterialColorAndEditorSamplesBackdrop() = runComposeUiTest {
+        val segmentColor = Color(0xFFBCE7CB)
+        val editorState = SettingsPageState()
         val tree =
             object : SettingsTree {
                 override val items: List<SettingsItem> = listOf(TextItem())
             }
         setContent {
             ProvideM3xMaterialRendering {
-                MaterialTheme(colorScheme = lightColorScheme()) {
+                MaterialTheme(colorScheme = lightColorScheme(surface = segmentColor)) {
                     val source = rememberBackdropLayer()
                     Box(Modifier.size(240.dp, 240.dp)) {
                         Box(
@@ -1183,26 +1495,26 @@ class CardSettingsTest {
                         Box(Modifier.fillMaxSize().background(Color.Red))
                         BackdropHost(source) {
                             OverlayHost(remember { OverlayHostState() }) {
-                                CardSettings(tree, state = editorState)
+                                SettingsPage(tree, state = editorState)
                             }
                         }
                     }
                 }
             }
         }
-        fun verifySample() {
+        fun sampleBacking(): Color {
             val title =
                 onNode(hasText("Name") and !hasSetTextAction()).fetchSemanticsNode().boundsInRoot
             val pixels = onRoot().captureToImage().toPixelMap()
-            val color = pixels[pixels.width - 45, title.center.y.toInt()]
-            assertTrue(color.blue - color.red > 0.2f, "Sampled blue backing: $color")
+            return pixels[pixels.width - 45, title.center.y.toInt()]
         }
         waitForIdle()
-        verifySample()
+        assertEquals(segmentColor, sampleBacking())
         mainClock.autoAdvance = false
         onNodeWithText("Name").performClick()
         mainClock.advanceTimeBy(1000)
-        verifySample()
+        val editorColor = sampleBacking()
+        assertTrue(editorColor.blue - editorColor.red > 0.2f, "Editor samples blue: $editorColor")
         mainClock.autoAdvance = true
     }
 
@@ -1220,7 +1532,7 @@ class CardSettingsTest {
                         Box(Modifier.fillMaxSize().captureBackdrop(source).background(Color.Blue))
                         BackdropHost(source) {
                             OverlayHost(remember { OverlayHostState() }) {
-                                CardSettings(tree, cardBackdrop = false)
+                                SettingsPage(tree)
                             }
                         }
                     }

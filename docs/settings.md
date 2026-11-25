@@ -38,29 +38,29 @@ Sources: [annotations](../modules/settings-page-core/src/commonMain/kotlin/annot
 
 ## Mount the page inside the application theme and host
 
-The existing setup uses the generated platform extension:
+Keep the generated describer stable and mount the page inside an Expressive theme and an
+`OverlayHost`.
 
 ```kotlin
 @Composable
 fun ProfileSettingsPage(store: MutableStore<ExampleSettingsStore>) {
     val describer = remember(store) { store.settingsDescriber() }
     val overlayState = remember { OverlayHostState() }
-    MaterialTheme {
+    MaterialExpressiveTheme {
         OverlayHost(overlayState) {
-            CardSettings(describer)
+            SettingsPage(describer)
         }
     }
 }
 ```
 
-This preserves the original host example; the Material component support contract expects an
-Expressive theme supplied by the application. Imports and the application's generated model are
-omitted. Add `customEditor` for `@CustomSettingsItem(rendererId = ...)`; it receives a draft editor
-contract. The demo's settings catalog supplies an accent editor as a reference.
+Use `customEditor` for an item declared with `@CustomSettingsItem(rendererId = …)`. The editor
+receives the draft and an update callback. The demo's settings catalog shows an accent editor.
 
-`CardSettings` draws grouped cards, uses stable IDs for row/editor transitions, and consumes the
-shared transition scope supplied by `OverlayHost`. Set `cardBackdrop = false` for direct card colors;
-`cardMaterial` overrides the grouped backing. It installs neither a theme nor a host.
+`SettingsPage` draws Material segmented rows and category headings in a grouped lazy list.
+Use `groupSpacing` to set the distance between sections. The page pairs rows and editors by stable
+item ID in the shared transition scope from `OverlayHost`. A trailing switch shows the checked
+state while the row retains its regular interaction appearance.
 
 ## Choose edit timing and numeric representation
 
@@ -88,7 +88,7 @@ and [mapping](../modules/settings-page-core/src/commonTest/kotlin/NumberSliderMa
 ## Own error presentation and recovery
 
 UI adapters use `SettingsCommit.tryCommit()` and its draft/reset variants. Validation and local
-write acceptance are distinct from durable saving. `CardSettings`, `SettingsRow`, and public
+write acceptance are distinct from durable saving. `SettingsPage`, `SettingsRow`, and public
 editors report structured `SettingsPresentationError` values through `onError`; they do not display errors
 automatically. With no callback those notifications are ignored.
 
@@ -99,12 +99,12 @@ replace a host after a failed read as described in [persistence](persistence.md)
 
 `localizedMessage()` is an optional composable helper for application-owned UI. It translates
 validation text and excludes persistence exception messages. Built-in labels include English and
-Simplified Chinese; override `CardSettingsLabels` to customize them.
+Simplified Chinese; override `SettingsPageLabels` to customize them.
 
 ```kotlin
 var error by remember { mutableStateOf<SettingsPresentationError?>(null) }
 Column {
-    CardSettings(describer, onError = { error = it })
+    SettingsPage(describer, onError = { error = it })
     error?.let { Text(it.localizedMessage()) }
 }
 ```
@@ -115,7 +115,7 @@ callbacks precede optional arguments; use named arguments for callbacks and modi
 Sources: [structured errors](../modules/settings-page-compose/src/commonMain/kotlin/SettingsPresentationError.kt)
 and [commit path](../modules/settings-page-core/src/commonMain/kotlin/SettingsCommit.kt).
 Regressions: [commit validation](../modules/settings-page-core/src/commonTest/kotlin/SettingsCommitTest.kt)
-and [Material editors](../modules/settings-page-material/src/composeTest/kotlin/CardSettingsInteractionTest.kt).
+and [Material editors](../modules/settings-page-material/src/composeTest/kotlin/SettingsPageInteractionTest.kt).
 
 ## Persistence adapter and custom renderers
 

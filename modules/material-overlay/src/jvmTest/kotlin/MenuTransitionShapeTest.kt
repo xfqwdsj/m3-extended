@@ -30,6 +30,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import top.ltfan.m3x.compose.animation.InterpolatedShape
 import top.ltfan.m3x.material.LocalMaterialSurfaceRenderer
 import top.ltfan.m3x.material.MaterialSurfaceAppearance
 import top.ltfan.m3x.material.MaterialSurfaceEdge
@@ -48,7 +49,7 @@ class MenuTransitionShapeTest {
     fun cornerInterpolationPreservesPhysicalCornersAndClampsProgress() = runComposeUiTest {
         var progress = 0f
         val shape =
-            MenuTransitionShape(
+            InterpolatedShape(
                 AbsoluteRoundedCornerShape(4.dp, 8.dp, 12.dp, 16.dp),
                 AbsoluteRoundedCornerShape(20.dp, 24.dp, 28.dp, 32.dp),
             ) {

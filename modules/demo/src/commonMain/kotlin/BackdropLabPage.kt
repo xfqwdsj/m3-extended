@@ -66,7 +66,7 @@ import top.ltfan.m3x.material.theme.M3xShapes
 import top.ltfan.m3x.material.theming.M3xBaseTheme
 import top.ltfan.m3x.material.theming.capsule.rememberCapsuleShapes
 import top.ltfan.m3x.settingspage.SliderCommitMode
-import top.ltfan.m3x.settingspage.material.CardSettings
+import top.ltfan.m3x.settingspage.material.SettingsPage
 
 internal fun LabParameters.material(hdrAvailable: Boolean = false): M3xBackdropMaterial =
     M3xBackdropMaterial(
@@ -238,7 +238,7 @@ internal fun BackdropLabPage(store: MutableStore<LabParameters>, hdrOutput: Bool
                             preview(Modifier.fillMaxSize(), params.optics.hdrBackground)
                         }
                     }
-                    CardSettings(
+                    SettingsPage(
                         describer,
                         Modifier.weight(1f).fillMaxHeight(),
                         sliderCommitMode = SliderCommitMode.WhileDragging,
@@ -264,7 +264,7 @@ internal fun BackdropLabPage(store: MutableStore<LabParameters>, hdrOutput: Bool
                             preview(Modifier.fillMaxSize(), params.optics.hdrBackground)
                         }
                     }
-                    CardSettings(
+                    SettingsPage(
                         describer,
                         Modifier.weight(1f),
                         sliderCommitMode = SliderCommitMode.WhileDragging,

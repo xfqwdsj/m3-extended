@@ -2,14 +2,10 @@ package top.ltfan.m3x.demo
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
@@ -38,13 +34,6 @@ import top.ltfan.m3x.demo.generated.resources.demo_lab_scroll_hint
 import top.ltfan.m3x.demo.generated.resources.demo_lab_surface_hint
 import top.ltfan.m3x.demo.generated.resources.demo_material_surfaces
 import top.ltfan.m3x.demo.generated.resources.demo_scroll_edges
-import top.ltfan.m3x.material.LocalMaterialSurfaceRenderer
-import top.ltfan.m3x.material.MaterialSurfaceAppearance
-import top.ltfan.m3x.material.MaterialSurfaceEdge
-import top.ltfan.m3x.material.MaterialSurfaceEffects
-import top.ltfan.m3x.material.MaterialSurfaceRenderer
-import top.ltfan.m3x.material.MaterialSurfaceRole
-import top.ltfan.m3x.material.MaterialSurfaceStyle
 import top.ltfan.m3x.material.bundle.M3xMaterialTheme
 import top.ltfan.m3x.overlay.OverlayHost
 import top.ltfan.m3x.overlay.OverlayHostState
@@ -59,53 +48,19 @@ class LabPreviewPanelTest {
         val edges = MR.strings.demo_scroll_edges.localized()
         val surfaceHint = MR.strings.demo_lab_surface_hint.localized()
         val scrollHint = MR.strings.demo_lab_scroll_hint.localized()
-        var inheritedRendererCalls = 0
         setContent {
             val scope = rememberCoroutineScope()
             val host = remember(scope) { storeHost(scope, DemoStoreFile({ null }, { _, _ -> })) }
             DisposableEffect(host) { onDispose { host.close() } }
             val store = remember(host) { host.mutable(LabParametersStore) }
             M3xMaterialTheme {
-                val inherited = LocalMaterialSurfaceRenderer.current
-                val renderer =
-                    remember(inherited) {
-                        object : MaterialSurfaceRenderer by inherited {
-                            @Composable
-                            override fun appearance(
-                                role: MaterialSurfaceRole,
-                                style: MaterialSurfaceStyle?,
-                                containerColor: Color,
-                                contentColor: Color,
-                                effects: MaterialSurfaceEffects?,
-                                shape: Shape,
-                                excludedEdges: Set<MaterialSurfaceEdge>,
-                            ): MaterialSurfaceAppearance {
-                                inheritedRendererCalls++
-                                return inherited.appearance(
-                                    role,
-                                    style,
-                                    containerColor,
-                                    contentColor,
-                                    effects,
-                                    shape,
-                                    excludedEdges,
-                                )
-                            }
-                        }
-                    }
-                CompositionLocalProvider(LocalMaterialSurfaceRenderer provides renderer) {
-                    OverlayHost(OverlayHostState()) {
-                        Box(Modifier.size(width.dp, 760.dp).testTag("scene")) {
-                            BackdropLabPage(store, hdrOutput = false)
-                        }
+                OverlayHost(OverlayHostState()) {
+                    Box(Modifier.size(width.dp, 760.dp).testTag("scene")) {
+                        BackdropLabPage(store, hdrOutput = false)
                     }
                 }
             }
         }
-        assertTrue(
-            inheritedRendererCalls > 0,
-            "The parameter panel must keep the application surface renderer",
-        )
         onNodeWithText(surfaces).assertIsDisplayed().assertIsSelected()
         onNodeWithText(surfaceHint).assertIsDisplayed()
         fun snapshot(mode: String) {

@@ -14,7 +14,7 @@ import top.ltfan.m3x.settingspage.compose.SettingsPresentationError
  */
 @Composable
 public fun SettingsPresentationError.localizedMessage(
-    labels: CardSettingsLabels = remember { CardSettingsLabels() },
+    labels: SettingsPageLabels = remember { SettingsPageLabels() },
 ): String =
     when (this) {
         is SettingsPresentationError.ReadFailed -> labels.readFailed.resolve()

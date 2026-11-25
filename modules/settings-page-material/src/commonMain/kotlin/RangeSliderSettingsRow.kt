@@ -41,7 +41,7 @@ import top.ltfan.m3x.settingspage.sliderMappingOrNull
 @Composable
 internal fun RangeSliderSettingsRow(
     item: SettingsItem.Item.NumberRange<*>,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     interactive: Boolean,
     onOpen: () -> Unit,
     modifier: Modifier,

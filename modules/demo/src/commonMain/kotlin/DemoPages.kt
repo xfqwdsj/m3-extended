@@ -10,20 +10,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -53,7 +53,7 @@ import top.ltfan.m3x.backdrop.rememberBackdropLayer
 import top.ltfan.m3x.compose.animation.AnimatedVisibilityWithBlur
 import top.ltfan.m3x.compose.animation.core.withDefaultVisibilityThreshold
 import top.ltfan.m3x.compose.foundation.GroupedLazyColumn
-import top.ltfan.m3x.compose.foundation.GroupedLazyRow
+import top.ltfan.m3x.compose.foundation.item
 import top.ltfan.m3x.compose.ui.layout.CornerRadii
 import top.ltfan.m3x.datastore.MutableStore
 import top.ltfan.m3x.demo.generated.resources.MR
@@ -64,7 +64,6 @@ import top.ltfan.m3x.demo.generated.resources.demo_blurred_entrance_and_exit
 import top.ltfan.m3x.demo.generated.resources.demo_bottom_sheet
 import top.ltfan.m3x.demo.generated.resources.demo_bottom_sheet_gesture_description
 import top.ltfan.m3x.demo.generated.resources.demo_cancel
-import top.ltfan.m3x.demo.generated.resources.demo_card_number
 import top.ltfan.m3x.demo.generated.resources.demo_close
 import top.ltfan.m3x.demo.generated.resources.demo_close_floating_actions
 import top.ltfan.m3x.demo.generated.resources.demo_close_sheet
@@ -87,10 +86,8 @@ import top.ltfan.m3x.demo.generated.resources.demo_editor_missing
 import top.ltfan.m3x.demo.generated.resources.demo_first_action
 import top.ltfan.m3x.demo.generated.resources.demo_floating_layers
 import top.ltfan.m3x.demo.generated.resources.demo_glass_snackbar_message
-import top.ltfan.m3x.demo.generated.resources.demo_grouped_horizontal_cards
 import top.ltfan.m3x.demo.generated.resources.demo_grouped_item_number
 import top.ltfan.m3x.demo.generated.resources.demo_grouped_menu
-import top.ltfan.m3x.demo.generated.resources.demo_independent_groups
 import top.ltfan.m3x.demo.generated.resources.demo_keyboard_and_pointer_tooltip
 import top.ltfan.m3x.demo.generated.resources.demo_live_resource_interaction_count
 import top.ltfan.m3x.demo.generated.resources.demo_lower_panel_input_isolation
@@ -123,10 +120,6 @@ import top.ltfan.m3x.material.MaterialSurfaceRole
 import top.ltfan.m3x.material.OutlinedButton
 import top.ltfan.m3x.material.TextButton
 import top.ltfan.m3x.material.backdrop.BackdropSurface
-import top.ltfan.m3x.material.card
-import top.ltfan.m3x.material.cardItem
-import top.ltfan.m3x.material.header
-import top.ltfan.m3x.material.item
 import top.ltfan.m3x.material.overlay.IconButtonWithTooltip
 import top.ltfan.m3x.material.overlay.MenuFloatingActionButton
 import top.ltfan.m3x.material.overlay.OverlayAlertDialog
@@ -140,21 +133,30 @@ import top.ltfan.m3x.material.overlay.OverlayPlainTooltip
 import top.ltfan.m3x.material.overlay.OverlaySnackbarHost
 import top.ltfan.m3x.material.overlay.OverlayTooltipBox
 import top.ltfan.m3x.material.overlay.rememberOverlayTooltipState
+import top.ltfan.m3x.material.segmentedListGroup
 import top.ltfan.m3x.material.theme.extended
 import top.ltfan.m3x.settingspage.CompositeSettingsTree
 import top.ltfan.m3x.settingspage.SettingsSource
 import top.ltfan.m3x.settingspage.SliderCommitMode
-import top.ltfan.m3x.settingspage.material.CardSettings
+import top.ltfan.m3x.settingspage.material.SettingsPage
 
-/** Body text under a card header, kept in one place so every page shares the same rhythm. */
 @Composable
-private fun SupportingText(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text,
-        modifier,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+private fun DemoPageIntro(title: String, description: String) {
+    Column(
+        Modifier.fillMaxWidth().padding(ListItemDefaults.ContentPadding),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
@@ -179,155 +181,162 @@ internal fun ComponentsPage() {
         GroupedLazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = DemoContentPadding,
-            spacing = 16.dp,
+            spacing = 12.dp,
         ) {
-            cardItem(modifier = { Modifier.fillMaxWidth() }) {
-                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        demoText(MR.strings.demo_material_with_light),
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
-                    SupportingText(
-                        demoText(
-                            MR.strings.demo_components_intro_description,
-                        ),
-                    )
-                }
+            item {
+                DemoPageIntro(
+                    demoText(MR.strings.demo_material_with_light),
+                    demoText(MR.strings.demo_components_intro_description),
+                )
             }
-            cardItem(modifier = { Modifier.fillMaxWidth() }) {
-                val radii = MaterialTheme.extended.shapes.cornerRadii
-                val display = radii?.displayCorners
-                val window = radii?.windowCorners
-                val unknown = demoText(MR.strings.demo_unknown)
-                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        demoText(MR.strings.demo_container_shape),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        if (radii == null)
-                            demoText(
-                                MR.strings.demo_corner_metadata_unavailable,
-                            )
-                        else cornerRadiiText(MR.strings.demo_display_corners, display, unknown),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        cornerRadiiText(MR.strings.demo_window_corners, window, unknown),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        demoText(MR.strings.demo_corner_policy, radii?.policy?.name ?: unknown),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        demoText(
-                            MR.strings.demo_window_presentation,
-                            radii?.windowPresentation?.toString() ?: unknown,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    if (radii != null) {
-                        Text(
-                            demoText(
-                                MR.strings.demo_corner_radius_summary,
-                                radii.containerRadius.toString(),
-                                (radii.extraLargeIncreased.value / 32f).toString(),
-                                radii.source.name,
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            demoText(
-                                MR.strings.demo_corner_size_summary,
-                                radii.extraSmall.toString(),
-                                radii.small.toString(),
-                                radii.medium.toString(),
-                                radii.large.toString(),
-                                radii.largeIncreased.toString(),
-                                radii.extraLarge.toString(),
-                                radii.extraLargeIncreased.toString(),
-                                radii.extraExtraLarge.toString(),
-                                radii.none.toString(),
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
-            }
-            card {
-                header { Text(demoText(MR.strings.demo_controls_and_resources)) }
-                item {
-                    // The gaps after the first row are padding on the following element rather than
-                    // an arrangement: a collapsing row keeps the arrangement's gap until disposal.
-                    Column(
-                        Modifier.fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
-                    ) {
-                        Text(
-                            stringResource(
-                                MR.plurals.demo_live_resource_interaction_count,
-                                count,
-                                count,
-                            ),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        FlowRow(
-                            Modifier.padding(top = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            itemVerticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            FilterChip(
-                                count % 2 == 1,
-                                { count++ },
-                                label = { Text(demoText(MR.strings.demo_animated_chip)) },
-                            )
-                            IconButtonWithTooltip(
-                                rememberVectorPainter(Icons.Default.Info),
-                                demoText(MR.strings.demo_keyboard_and_pointer_tooltip),
-                                onClick = { count++ },
-                            )
-                            Button(onClick = { visible = !visible }) {
-                                Text(demoText(MR.strings.demo_animate))
-                            }
-                        }
-                        AnimatedVisibilityWithBlur(
-                            animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                            visible = visible,
-                            enter =
-                                expandVertically(
-                                    animationSpec =
-                                        MaterialTheme.motionScheme
-                                            .defaultSpatialSpec<IntSize>()
-                                            .withDefaultVisibilityThreshold(
-                                                IntSize.VisibilityThreshold,
-                                            ),
-                                    clip = false,
-                                ),
-                            exit =
-                                shrinkVertically(
-                                    animationSpec =
-                                        MaterialTheme.motionScheme
-                                            .fastSpatialSpec<IntSize>()
-                                            .withDefaultVisibilityThreshold(
-                                                IntSize.VisibilityThreshold,
-                                            ),
-                                    clip = false,
-                                ),
-                            maxRadius = MaterialTheme.extended.enterExitBlurRadius,
+            segmentedListGroup {
+                header { Text(demoText(MR.strings.demo_container_shape)) }
+                item { modifier, shapes ->
+                    SegmentedListItem(shapes = shapes, modifier = modifier) {
+                        val radii = MaterialTheme.extended.shapes.cornerRadii
+                        val display = radii?.displayCorners
+                        val window = radii?.windowCorners
+                        val unknown = demoText(MR.strings.demo_unknown)
+                        Column(
+                            Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
-                                demoText(MR.strings.demo_blurred_entrance_and_exit),
-                                Modifier.fillMaxWidth().padding(top = 16.dp),
-                                style = MaterialTheme.typography.titleMedium,
+                                if (radii == null)
+                                    demoText(
+                                        MR.strings.demo_corner_metadata_unavailable,
+                                    )
+                                else
+                                    cornerRadiiText(
+                                        MR.strings.demo_display_corners,
+                                        display,
+                                        unknown,
+                                    ),
+                                style = MaterialTheme.typography.bodyMedium,
                             )
+                            Text(
+                                cornerRadiiText(MR.strings.demo_window_corners, window, unknown),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                demoText(
+                                    MR.strings.demo_corner_policy,
+                                    radii?.policy?.name ?: unknown,
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                demoText(
+                                    MR.strings.demo_window_presentation,
+                                    radii?.windowPresentation?.toString() ?: unknown,
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (radii != null) {
+                                Text(
+                                    demoText(
+                                        MR.strings.demo_corner_radius_summary,
+                                        radii.containerRadius.toString(),
+                                        (radii.extraLargeIncreased.value / 32f).toString(),
+                                        radii.source.name,
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Text(
+                                    demoText(
+                                        MR.strings.demo_corner_size_summary,
+                                        radii.extraSmall.toString(),
+                                        radii.small.toString(),
+                                        radii.medium.toString(),
+                                        radii.large.toString(),
+                                        radii.largeIncreased.toString(),
+                                        radii.extraLarge.toString(),
+                                        radii.extraLargeIncreased.toString(),
+                                        radii.extraExtraLarge.toString(),
+                                        radii.none.toString(),
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
                         }
                     }
                 }
             }
-            cardItem(modifier = { Modifier.fillMaxWidth() }) {
-                GlassPreview(Modifier.fillMaxWidth().height(240.dp)) {
+            segmentedListGroup {
+                header { Text(demoText(MR.strings.demo_controls_and_resources)) }
+                item { modifier, shapes ->
+                    SegmentedListItem(shapes = shapes, modifier = modifier) {
+                        // Padding inside the collapsing content closes with its height.
+                        Column(Modifier.fillMaxWidth()) {
+                            Text(
+                                stringResource(
+                                    MR.plurals.demo_live_resource_interaction_count,
+                                    count,
+                                    count,
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            FlowRow(
+                                Modifier.padding(top = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                itemVerticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                FilterChip(
+                                    count % 2 == 1,
+                                    { count++ },
+                                    label = { Text(demoText(MR.strings.demo_animated_chip)) },
+                                )
+                                IconButtonWithTooltip(
+                                    rememberVectorPainter(Icons.Default.Info),
+                                    demoText(MR.strings.demo_keyboard_and_pointer_tooltip),
+                                    onClick = { count++ },
+                                )
+                                Button(onClick = { visible = !visible }) {
+                                    Text(demoText(MR.strings.demo_animate))
+                                }
+                            }
+                            AnimatedVisibilityWithBlur(
+                                animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                visible = visible,
+                                enter =
+                                    expandVertically(
+                                        animationSpec =
+                                            MaterialTheme.motionScheme
+                                                .defaultSpatialSpec<IntSize>()
+                                                .withDefaultVisibilityThreshold(
+                                                    IntSize.VisibilityThreshold,
+                                                ),
+                                        clip = false,
+                                    ),
+                                exit =
+                                    shrinkVertically(
+                                        animationSpec =
+                                            MaterialTheme.motionScheme
+                                                .fastSpatialSpec<IntSize>()
+                                                .withDefaultVisibilityThreshold(
+                                                    IntSize.VisibilityThreshold,
+                                                ),
+                                        clip = false,
+                                    ),
+                                maxRadius = MaterialTheme.extended.enterExitBlurRadius,
+                            ) {
+                                Text(
+                                    demoText(MR.strings.demo_blurred_entrance_and_exit),
+                                    Modifier.fillMaxWidth().padding(top = 16.dp),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            item {
+                GlassPreview(
+                    Modifier.fillMaxWidth()
+                        .height(240.dp)
+                        .clip(ListItemDefaults.segmentedShapes(0, 1).shape),
+                ) {
                     Row(
                         Modifier.align(Alignment.Center),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -350,48 +359,27 @@ internal fun ComponentsPage() {
                     }
                 }
             }
-            card {
-                header { Text(demoText(MR.strings.demo_grouped_horizontal_cards)) }
-                item {
-                    GroupedLazyRow(
-                        Modifier.fillMaxWidth().height(128.dp),
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
-                        spacing = 12.dp,
-                    ) {
-                        repeat(8) { index ->
-                            cardItem(
-                                key = "horizontal-$index",
-                                modifier = { Modifier.fillMaxHeight() },
-                            ) {
-                                Column(
-                                    Modifier.padding(20.dp).widthIn(min = 140.dp),
-                                    verticalArrangement = Arrangement.Center,
-                                ) {
-                                    Text(demoText(MR.strings.demo_card_number, index + 1))
-                                    SupportingText(demoText(MR.strings.demo_independent_groups))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             repeat(4) { section ->
-                card(useStickyHeader = true) {
-                    header { Text(demoText(MR.strings.demo_section_number, section + 1)) }
-                    repeat(4) { row ->
-                        item(key = "$section-$row") {
-                            Column(
-                                Modifier.fillMaxWidth()
-                                    .padding(horizontal = 20.dp, vertical = 14.dp),
-                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                            ) {
-                                Text(demoText(MR.strings.demo_grouped_item_number, row + 1))
-                                SupportingText(
+                segmentedListGroup {
+                    header(key = "section-$section") {
+                        Text(demoText(MR.strings.demo_section_number, section + 1))
+                    }
+                    items((0 until 4).toList(), key = { row -> "$section-$row" }) {
+                        row,
+                        modifier,
+                        shapes ->
+                        SegmentedListItem(
+                            shapes = shapes,
+                            modifier = modifier,
+                            supportingContent = {
+                                Text(
                                     demoText(
                                         MR.strings.demo_scrolls_beneath_the_progressive_glass_bar,
                                     ),
                                 )
-                            }
+                            },
+                        ) {
+                            Text(demoText(MR.strings.demo_grouped_item_number, row + 1))
                         }
                     }
                 }
@@ -482,131 +470,134 @@ internal fun OverlaysPage() {
         GroupedLazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = DemoContentPadding,
-            spacing = 16.dp,
+            spacing = 12.dp,
         ) {
-            cardItem(modifier = { Modifier.fillMaxWidth() }) {
-                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        demoText(MR.strings.demo_floating_layers),
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
-                    SupportingText(
-                        demoText(
-                            MR.strings.demo_nested_panel_interaction_description,
-                        ),
-                    )
-                }
+            item {
+                DemoPageIntro(
+                    demoText(MR.strings.demo_floating_layers),
+                    demoText(MR.strings.demo_nested_panel_interaction_description),
+                )
             }
-            card {
+            segmentedListGroup {
                 header { Text(demoText(MR.strings.demo_modal_panels)) }
-                item {
-                    FlowRow(
-                        Modifier.fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        maxItemsInEachRow = 2,
-                    ) {
-                        Button(
-                            onClick = { dialog = true },
-                            modifier = Modifier.weight(1f),
+                item { modifier, shapes ->
+                    SegmentedListItem(shapes = shapes, modifier = modifier) {
+                        FlowRow(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            maxItemsInEachRow = 2,
                         ) {
-                            Text(demoText(MR.strings.demo_dialog))
-                        }
-                        Button(
-                            onClick = { alert = true },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(demoText(MR.strings.demo_alert))
-                        }
-                        Button(
-                            onClick = { sheet = true },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(demoText(MR.strings.demo_bottom_sheet))
+                            Button(
+                                onClick = { dialog = true },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(demoText(MR.strings.demo_dialog))
+                            }
+                            Button(
+                                onClick = { alert = true },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(demoText(MR.strings.demo_alert))
+                            }
+                            Button(
+                                onClick = { sheet = true },
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(demoText(MR.strings.demo_bottom_sheet))
+                            }
                         }
                     }
                 }
             }
-            card {
+            segmentedListGroup {
                 header { Text(demoText(MR.strings.demo_menus_and_transient_layers)) }
-                item {
-                    FlowRow(
-                        Modifier.fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        maxItemsInEachRow = 2,
-                        itemVerticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(Modifier.weight(1f)) {
-                            OutlinedButton(
-                                onClick = { menu = true },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(demoText(MR.strings.demo_grouped_menu))
-                            }
-                            OverlayMenu(
-                                expanded = { menu },
-                                onDismissRequest = { menu = false },
-                            ) {
-                                OverlayMenuGroup(shapes = OverlayMenuDefaults.groupShape(0, 2)) {
-                                    OverlayMenuItem(
-                                        { Text(demoText(MR.strings.demo_first_action)) },
-                                        { menu = false },
-                                    )
-                                    OverlayMenuItem(
-                                        { Text(demoText(MR.strings.demo_disabled_action)) },
-                                        {},
-                                        enabled = false,
-                                    )
-                                }
-                                OverlayMenuGroup(shapes = OverlayMenuDefaults.groupShape(1, 2)) {
-                                    OverlayMenuItem(
-                                        { Text(demoText(MR.strings.demo_open_a_dialog)) },
-                                        {
-                                            menu = false
-                                            dialog = true
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    snackbar.showSnackbar(
-                                        snackbarMessage,
-                                        actionLabel = dismissLabel,
-                                        withDismissAction = true,
-                                    )
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
+                item { modifier, shapes ->
+                    SegmentedListItem(shapes = shapes, modifier = modifier) {
+                        FlowRow(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            maxItemsInEachRow = 2,
+                            itemVerticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(demoText(MR.strings.demo_snackbar))
-                        }
-                        OverlayTooltipBox(
-                            tooltip = {
-                                OverlayPlainTooltip {
-                                    Text(demoText(MR.strings.demo_persistent_glass_tooltip))
+                            Box(Modifier.weight(1f)) {
+                                OutlinedButton(
+                                    onClick = { menu = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text(demoText(MR.strings.demo_grouped_menu))
                                 }
-                            },
-                            state = tooltip,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            OutlinedButton(
-                                onClick = { scope.launch { tooltip.show() } },
-                                modifier = Modifier.fillMaxWidth(),
+                                OverlayMenu(
+                                    expanded = { menu },
+                                    onDismissRequest = { menu = false },
+                                ) {
+                                    OverlayMenuGroup(
+                                        shapes = OverlayMenuDefaults.groupShape(0, 2),
+                                    ) {
+                                        OverlayMenuItem(
+                                            { Text(demoText(MR.strings.demo_first_action)) },
+                                            { menu = false },
+                                        )
+                                        OverlayMenuItem(
+                                            { Text(demoText(MR.strings.demo_disabled_action)) },
+                                            {},
+                                            enabled = false,
+                                        )
+                                    }
+                                    OverlayMenuGroup(
+                                        shapes = OverlayMenuDefaults.groupShape(1, 2),
+                                    ) {
+                                        OverlayMenuItem(
+                                            { Text(demoText(MR.strings.demo_open_a_dialog)) },
+                                            {
+                                                menu = false
+                                                dialog = true
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        snackbar.showSnackbar(
+                                            snackbarMessage,
+                                            actionLabel = dismissLabel,
+                                            withDismissAction = true,
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
                             ) {
-                                Text(demoText(MR.strings.demo_tooltip))
+                                Text(demoText(MR.strings.demo_snackbar))
+                            }
+                            OverlayTooltipBox(
+                                tooltip = {
+                                    OverlayPlainTooltip {
+                                        Text(demoText(MR.strings.demo_persistent_glass_tooltip))
+                                    }
+                                },
+                                state = tooltip,
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                OutlinedButton(
+                                    onClick = { scope.launch { tooltip.show() } },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text(demoText(MR.strings.demo_tooltip))
+                                }
                             }
                         }
                     }
                 }
             }
-            cardItem(modifier = { Modifier.fillMaxWidth() }) {
-                GlassPreview(Modifier.fillMaxWidth().height(260.dp)) {
+            item {
+                GlassPreview(
+                    Modifier.fillMaxWidth()
+                        .height(260.dp)
+                        .clip(ListItemDefaults.segmentedShapes(0, 1).shape),
+                ) {
                     MenuFloatingActionButton(
                         expanded = { fab },
                         onExpandedChange = { fab = it },
@@ -714,9 +705,9 @@ internal fun OverlaysPage() {
 }
 
 @Composable
-internal fun SettingsPage(store: MutableStore<DemoPreferences>) {
+internal fun DemoSettingsPage(store: MutableStore<DemoPreferences>) {
     val describer = remember(store) { store.settingsDescriber() }
-    CardSettings(
+    SettingsPage(
         describer,
         modifier = Modifier.fillMaxSize(),
         sliderCommitMode =
@@ -738,7 +729,7 @@ internal fun SettingsCatalogPage(store: MutableStore<FeatureSettings>, manual: M
                 ),
             )
         }
-    CardSettings(
+    SettingsPage(
         composite,
         modifier = Modifier.fillMaxSize().testTag("settings-catalog"),
         contentPadding = DemoContentPadding,

@@ -1,20 +1,17 @@
 package top.ltfan.m3x.material.overlay
 
 import androidx.compose.animation.EnterExitState
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Interpolatable
-import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.abs
 import top.ltfan.m3x.compose.animation.core.withDefaultVisibilityThreshold
+import top.ltfan.m3x.compose.animation.rememberInterpolatedShape
 import top.ltfan.m3x.compose.ui.accessibility.SpatialMotionEnabled
 import top.ltfan.m3x.overlay.LocalOverlayAnimatedVisibilityScope
 
@@ -32,27 +29,8 @@ internal fun rememberMenuTransitionShape(collapsed: Shape, expanded: Shape, size
         remember(motionScheme, threshold) {
             motionScheme.slowEffectsSpec<Float>().withDefaultVisibilityThreshold(threshold)
         }
-    val progress =
-        transition.animateFloat(transitionSpec = { spec }, label = "MenuCornerProgress") {
-            if (it == EnterExitState.Visible) 1f else 0f
-        }
-    return remember(collapsed, expanded, progress) {
-        MenuTransitionShape(collapsed, expanded) { progress.value }
-    }
-}
-
-internal class MenuTransitionShape(
-    private val collapsed: Shape,
-    private val expanded: Shape,
-    private val progress: () -> Float,
-) : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density,
-    ): Outline {
-        val shape = Interpolatable.lerp(collapsed, expanded, progress().coerceIn(0f, 1f)) as Shape
-        return shape.createOutline(size, layoutDirection, density)
+    return transition.rememberInterpolatedShape(collapsed, expanded, spec) {
+        it == EnterExitState.Visible
     }
 }
 

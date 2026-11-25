@@ -14,7 +14,7 @@ import top.ltfan.m3x.settingspage.SettingsResources
 import top.ltfan.m3x.settingspage.SettingsValidation
 import top.ltfan.m3x.settingspage.SettingsValue
 
-internal object CardSettingsFixtures {
+internal object SettingsPageFixtures {
     internal class RuntimeBoundsSliderItem : SettingsItem.Item.SingleNumber<Float> {
         var maximumScale: Float by mutableFloatStateOf(2f)
         private val state = mutableFloatStateOf(1f)

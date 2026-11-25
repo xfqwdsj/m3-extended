@@ -98,7 +98,7 @@ Native timeline regression:
 Gesture ownership regression:
 [interruption and terminal playback](../modules/overlay/src/jvmTest/kotlin/OverlayGestureTakeoverTest.kt).
 Settings regression:
-[cancellation, completion and reopening](../modules/settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt).
+[cancellation, completion and reopening](../modules/settings-page-material/src/jvmTest/kotlin/SettingsPageTest.kt).
 
 ## Compose a hosted surface
 

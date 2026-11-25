@@ -78,9 +78,9 @@ Settings validation and commit contracts are usable independently of UI. `slider
 numeric presentation; the renderer decides whether to show a slider or a different editor.
 `SliderCommitMode` describes when a slider preview is submitted; it does not own gesture processing.
 
-`SettingsEditSession` and `SettingsPresentationError` support renderer-independent editing. Material
-localization belongs to the Material adapter. A custom renderer can present the same structured
-errors and retry paths without depending on Card rendering or DataStore.
+Use `SettingsEditSession` and `SettingsPresentationError` to present the same draft, structured
+errors, and retry paths in a custom renderer. The Material adapter supplies localization for its
+own UI.
 
 `asSettingsStatus` maps readiness and failures directly from the source StateFlow without
 introducing a background collector. `jsonStoreCodec` accepts the

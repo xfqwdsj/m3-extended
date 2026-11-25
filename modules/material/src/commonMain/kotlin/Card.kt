@@ -34,8 +34,8 @@ import androidx.compose.ui.graphics.Shape
 import top.ltfan.m3x.compose.material3.CardColorsLowest
 
 /**
- * The resolved shape of the nearest M3X card, including trimmed grouped corners. Shared-transition
- * descendants can apply this shape after their shared-bounds modifier.
+ * The resolved shape of the nearest M3X card. Shared-transition descendants can apply this shape
+ * after their shared-bounds modifier.
  */
 public val LocalCardShape: ProvidableCompositionLocal<Shape> = staticCompositionLocalOf {
     RectangleShape

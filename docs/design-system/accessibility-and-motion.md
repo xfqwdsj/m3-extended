@@ -159,10 +159,12 @@ Selection placement keeps tinted content aligned with its source when motion sna
 position. Velocity-driven deformation returns to zero when position motion completes, including
 interrupted or reversed drags. A queued velocity update cannot replace that final resting target.
 
-Shared container geometry and matched text use the caller's slow spatial spec; their crossfades
-and modal scrims use slow effects specs. Effects specs must avoid overshoot for bounded values.
-Corner interpolation belongs to the visibility transition and uses effects motion without bounce;
-surface and clipping share its shape.
+Shared container geometry and matched text use the caller's slow spatial spec. Their crossfades
+and modal scrims use slow effects specs. Use effects specs without overshoot for bounded values.
+
+Menus and settings editors interpolate shapes on their visibility transitions using effects motion.
+The surface and shared bounds clip use the same interpolated shape. In settings, the shared
+container remeasures and the editor content keeps its lookahead layout.
 
 Core helpers read no Material theme. Callers supply animation specifications and radius overrides;
 `DefaultEnterExitBlurRadius` provides the shared fallback. Theme-aware callers pass
@@ -176,6 +178,7 @@ composed until it finishes. Custom transitions supply spatial motion or explicit
 opacity with `fade = false` to avoid multiplying fades.
 
 Sources: [optical helpers](../../modules/animation/src/commonMain/kotlin/BlurAnimation.kt),
+[shape interpolation](../../modules/animation/src/commonMain/kotlin/InterpolatedShape.kt),
 [host integration](../../modules/material-overlay/src/commonMain/kotlin/OverlayBlur.kt), and
 [bounded background motion](../../modules/material-backdrop/src/commonMain/kotlin/BackdropAppBar.kt).
 Regressions: [optical ownership](../../modules/material/src/jvmTest/kotlin/BlurTransitionTest.kt),
@@ -183,7 +186,7 @@ Regressions: [optical ownership](../../modules/material/src/jvmTest/kotlin/BlurT
 [shared crossfading](../../modules/material/src/jvmTest/kotlin/SharedContainerFadeTest.kt),
 [shared motion specs](../../modules/material/src/jvmTest/kotlin/SharedMotionSchemeTest.kt),
 [press and release continuity](../../modules/material-backdrop/src/jvmTest/kotlin/FloatingBottomBarMotionTest.kt),
-[editor integration](../../modules/settings-page-material/src/jvmTest/kotlin/CardSettingsTest.kt), and
+[editor integration](../../modules/settings-page-material/src/jvmTest/kotlin/SettingsPageTest.kt), and
 [bounded background fallback](../../modules/material-backdrop/src/jvmTest/kotlin/BackdropScrollPresenceTest.kt).
 
 ## Platform interpretation

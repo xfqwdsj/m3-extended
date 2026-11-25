@@ -36,9 +36,6 @@
     <string name="demo_blurred_entrance_and_exit">Blurred entrance and exit</string>
     <string name="demo_control">Control</string>
     <string name="demo_panel">Panel</string>
-    <string name="demo_grouped_horizontal_cards">Grouped horizontal cards</string>
-    <string name="demo_card_number">Card %1$d</string>
-    <string name="demo_independent_groups">Independent groups</string>
     <string name="demo_section_number">Section %1$d</string>
     <string name="demo_grouped_item_number">Grouped item %1$d</string>
     <string name="demo_scrolls_beneath_the_progressive_glass_bar">Scrolls beneath the progressive glass bar</string>

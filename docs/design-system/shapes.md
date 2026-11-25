@@ -114,14 +114,13 @@ Regressions: [inheritance and overrides](../../modules/material/src/composeTest/
 [connected geometry](../../modules/material/src/composeTest/kotlin/ConnectedShapeFactoryTest.kt), and
 [rendered slots](../../modules/material/src/jvmTest/kotlin/ThemeShapeSlotIntegrationTest.kt).
 
-## S6. Grouped cards preserve the outer silhouette
+## S6. Segmented lists shape the visible section edges
 
-Single-card groups use the base shape. Multi-card groups trim internal corners of corner-based
-shapes according to position, orientation, and reversal. Horizontal Start/End follow layout
-direction. For a base shape outside `CornerBasedShape`, `CardGroupShapeFallback` can supply each
-position: without it, outer cards keep the base shape and middle cards use `RectangleShape`.
-`LocalCardShape` exposes the resolved card shape to descendants, including shared-transition content.
+Material supplies the default outer and inner corner shapes. A single row takes the outer
+corners on both ends. Section headings sit outside the row count.
+In settings, retained exiting rows keep their previous corner targets while the rows that remain
+visible take their new section positions.
 
-Source: [group shape contract](../../modules/material/src/commonMain/kotlin/CardLazyGroup.kt).
-Regressions: [fallback](../../modules/material/src/commonTest/kotlin/CardGroupShapeFallbackTest.kt) and
-[continuous grouped geometry](../../modules/material/src/composeTest/kotlin/CardGroupShapeSkiaTest.kt).
+Sources: [segmented list group](../../modules/material/src/commonMain/kotlin/SegmentedListGroup.kt) and
+[settings segment shape](../../modules/settings-page-material/src/commonMain/kotlin/SettingsSegmentShape.kt).
+Regression: [segmented sections](../../modules/material/src/composeTest/kotlin/SegmentedListGroupTest.kt).

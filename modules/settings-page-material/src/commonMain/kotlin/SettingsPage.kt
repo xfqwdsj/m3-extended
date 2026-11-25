@@ -4,19 +4,22 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope.ResizeMode
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.SeekableTransitionState
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.createChildTransition
 import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -40,15 +43,15 @@ import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -75,6 +78,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -93,6 +97,8 @@ import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -108,29 +114,23 @@ import kotlinx.coroutines.flow.drop
 import top.ltfan.m3x.compose.animation.BlurEnterExit
 import top.ltfan.m3x.compose.animation.blurTransition
 import top.ltfan.m3x.compose.animation.core.withDefaultVisibilityThreshold
+import top.ltfan.m3x.compose.animation.rememberInterpolatedShape
 import top.ltfan.m3x.compose.foundation.GroupedLazyColumn
 import top.ltfan.m3x.compose.foundation.GroupedLazyListScope
-import top.ltfan.m3x.compose.material3.CardColorsLowest
 import top.ltfan.m3x.compose.material3.ListItemColorsTransparent
 import top.ltfan.m3x.compose.material3.sharedBoundsSpec
 import top.ltfan.m3x.compose.ui.accessibility.SpatialMotionEnabled
-import top.ltfan.m3x.material.CardLazyGroup
-import top.ltfan.m3x.material.LocalCardShape
-import top.ltfan.m3x.material.LocalMaterialSurfaceRenderer
-import top.ltfan.m3x.material.MaterialSurfaceRole
-import top.ltfan.m3x.material.MaterialSurfaceStyle
 import top.ltfan.m3x.material.OutlinedButton
+import top.ltfan.m3x.material.SegmentedListGroupScope
 import top.ltfan.m3x.material.Switch
 import top.ltfan.m3x.material.TextButton
-import top.ltfan.m3x.material.card
-import top.ltfan.m3x.material.header
-import top.ltfan.m3x.material.item
 import top.ltfan.m3x.material.overlay.OverlayAlertDialogButtons
 import top.ltfan.m3x.material.overlay.OverlayAlertDialogContent
 import top.ltfan.m3x.material.overlay.OverlayDialog
 import top.ltfan.m3x.material.overlay.OverlayMenu
 import top.ltfan.m3x.material.overlay.OverlayMenuItem
 import top.ltfan.m3x.material.overlay.rememberOverlayMenuPositionProvider
+import top.ltfan.m3x.material.segmentedListGroup
 import top.ltfan.m3x.material.theme.extended
 import top.ltfan.m3x.overlay.LocalOverlayAnimatedVisibilityScope
 import top.ltfan.m3x.overlay.OverlayNavigationTransition
@@ -196,7 +196,7 @@ public typealias CustomSettingsEditor =
  * Action labels and optional error text used by [SettingsPresentationError.localizedMessage].
  * Resource adapters can localize each value. Error labels are never rendered automatically.
  */
-public class CardSettingsLabels(
+public class SettingsPageLabels(
     public val loading: Resource<String> = composeResource {
         stringResource(MR.strings.m3x_settings_loading)
     },
@@ -243,7 +243,7 @@ public class CardSettingsLabels(
 
 /** The draft is discarded whenever the editor closes without confirmation. */
 @Stable
-public class CardSettingsState {
+public class SettingsPageState {
     private var presentationState by mutableStateOf(SeekableTransitionState<String?>(null))
     public val transitionState: SeekableTransitionState<String?>
         get() = presentationState
@@ -307,6 +307,9 @@ private class SettingsVisibilityRecord(
     initiallyVisible: Boolean,
 ) {
     val visibility = MutableTransitionState(initiallyVisible)
+    var firstSegment by mutableStateOf(false)
+    var lastSegment by mutableStateOf(false)
+    var segmentShape by mutableStateOf<Shape?>(null)
 }
 
 private fun insertByVisibleNeighbors(
@@ -408,13 +411,21 @@ private fun updateVisibilityRegistry(
             row.item = item
             row.visibility.targetState = true
         }
+        val firstSegment = group.rowOrder.first { it in visibleIds }
+        val lastSegment = group.rowOrder.last { it in visibleIds }
         group.rows.values.toList().forEach { row ->
-            if (row.item.id !in visibleIds) {
-                if (row.item.id !in visibleLazyKeys) {
-                    group.rows.remove(row.item.id)
-                    group.rowOrder.remove(row.item.id)
+            when (val id = row.item.id) {
+                in visibleIds -> {
+                    row.firstSegment = id == firstSegment
+                    row.lastSegment = id == lastSegment
+                }
+
+                in visibleLazyKeys -> row.visibility.targetState = false
+                else -> {
+                    group.rows.remove(id)
+                    group.rowOrder.remove(id)
                     changed = true
-                } else row.visibility.targetState = false
+                }
             }
         }
     }
@@ -504,30 +515,14 @@ private fun visibilitySnapshot(
             }
     }
 
-/** The card optics the page applies to the cards it renders. */
-private class SettingsCardAppearance(
-    val shape: Shape,
-    val colors: CardColors,
-    val backdrop: Boolean,
-    val elevation: CardElevation,
-    val border: BorderStroke?,
-    val material: MaterialSurfaceStyle?,
-)
-
-/**
- * The page values a rendered settings card reads while the page records the content of its grouped
- * list.
- *
- * The grouped list DSL records its items outside composition, so the card and row helpers cannot
- * read the page's locals; one instance carries them instead of a long parameter list repeated on
- * every helper.
- */
-private class SettingsCardContext(
+/** Page state and presentation dependencies shared by the settings rows. */
+private class SettingsPageContext(
     val sharedTransition: SharedTransitionScope,
-    val state: CardSettingsState,
+    val state: SettingsPageState,
     val transition: Transition<String?>,
     val navigationTransition: OverlayNavigationTransition,
-    val labels: CardSettingsLabels,
+    val sharedShapes: Map<String, Shape>,
+    val labels: SettingsPageLabels,
     val sliderCommitMode: SliderCommitMode,
     val sourceStatuses: List<Pair<SettingsSource, SettingsPersistenceStatus>>,
     val coroutineScope: CoroutineScope,
@@ -535,11 +530,8 @@ private class SettingsCardContext(
 )
 
 /**
- * Grouped Material settings page. Its shared bounds need a provided SharedTransitionScope; its
- * editor needs an OverlayHost. [cardBackdrop] applies the selected surface renderer inside the
- * grouped card boundaries; disabling it uses [cardColors] directly. The backing spans grouped
- * segments with undecorated edges. [cardMaterial] supplies a renderer-specific style for each
- * segment.
+ * Material settings page with segmented rows and optional category headings. Its shared bounds use
+ * the enclosing shared transition scope, and its editor uses the enclosing OverlayHost.
  *
  * Errors are delivered to [onError] and are never rendered automatically. Persistence failures are
  * reported once per observed status transition; edit failures are reported for each failed
@@ -547,28 +539,19 @@ private class SettingsCardContext(
  * a read failure.
  */
 @Composable
-public fun CardSettings(
+public fun SettingsPage(
     store: SettingsTree,
     modifier: Modifier = Modifier,
-    state: CardSettingsState = remember { CardSettingsState() },
+    state: SettingsPageState = remember { SettingsPageState() },
     lazyListState: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(16.dp),
-    cardSpacing: Dp = 12.dp,
-    cardShape: Shape = CardDefaults.shape,
-    cardColors: CardColors = CardColorsLowest,
-    cardElevation: CardElevation = CardDefaults.cardElevation(),
-    cardBorder: BorderStroke? = null,
-    cardBackdrop: Boolean = true,
-    cardMaterial: MaterialSurfaceStyle? = null,
+    groupSpacing: Dp = 12.dp,
     editorShape: Shape = MaterialTheme.shapes.extraLarge,
     customEditor: CustomSettingsEditor? = null,
-    labels: CardSettingsLabels = remember { CardSettingsLabels() },
+    labels: SettingsPageLabels = remember { SettingsPageLabels() },
     sliderCommitMode: SliderCommitMode = SliderCommitMode.OnRelease,
     onError: (SettingsPresentationError) -> Unit = {},
 ) {
-    val resolvedCardMaterial =
-        if (!cardBackdrop) null
-        else cardMaterial ?: LocalMaterialSurfaceRenderer.current.style(MaterialSurfaceRole.Surface)
     DisposableEffect(state) {
         onDispose { state.releasePresentation() }
     }
@@ -656,22 +639,62 @@ public fun CardSettings(
                 }
             }
     }
-    val appearance =
-        SettingsCardAppearance(
-            shape = cardShape,
-            colors = cardColors,
-            backdrop = cardBackdrop,
-            elevation = cardElevation,
-            border = cardBorder,
-            material = resolvedCardMaterial,
-        )
     localSharedTransitionScope {
-        val cardContext =
-            SettingsCardContext(
+        val editors = remember(state) { mutableStateMapOf<String, SettingsEditSession>() }
+        state.activeItem?.let { editors[it.id] = state.editSession }
+        LaunchedEffect(state, transition) {
+            snapshotFlow {
+                Triple(
+                    transition.currentState,
+                    transition.targetState,
+                    transition.isRunning || isTransitionActive,
+                )
+            }
+                .collect { (current, target, running) ->
+                    if (!running && current == target) {
+                        editors.keys.toList().filter { it != target }.forEach(editors::remove)
+                    }
+                }
+        }
+        val motionScheme = MaterialTheme.motionScheme
+        val sharedShapes =
+            if (SpatialMotionEnabled) {
+                editors.keys
+                    .mapNotNull { id ->
+                        key(id) {
+                            val row =
+                                remember(id) {
+                                    visibilityGroups.values.firstNotNullOfOrNull { it.rows[id] }
+                                }
+                            val sourceShape = row?.segmentShape
+                            if (row == null || sourceShape == null) {
+                                null
+                            } else {
+                                val editorVisibility =
+                                    transition.createChildTransition(
+                                        label = "SettingsEditorShape",
+                                    ) {
+                                        it == id
+                                    }
+                                id to
+                                    editorVisibility.rememberInterpolatedShape(
+                                        start = sourceShape,
+                                        end = editorShape,
+                                        animationSpec = motionScheme.slowEffectsSpec(),
+                                        isExpanded = { it },
+                                    )
+                            }
+                        }
+                    }
+                    .toMap()
+            } else emptyMap()
+        val pageContext =
+            SettingsPageContext(
                 sharedTransition = this,
                 state = state,
                 transition = transition,
                 navigationTransition = navigationTransition,
+                sharedShapes = sharedShapes,
                 labels = labels,
                 sliderCommitMode = sliderCommitMode,
                 sourceStatuses = sourceStatuses,
@@ -685,25 +708,13 @@ public fun CardSettings(
                 contentPadding = contentPadding,
                 spacing = 0.dp,
             ) {
-                settingsLoadingCards(sourceStatuses, labels, appearance)
+                settingsLoadingRows(sourceStatuses, labels)
                 groupsForRender.forEachIndexed { groupIndex, group ->
-                    settingsGroupCard(group, groupIndex, cardSpacing, appearance, cardContext)
+                    settingsGroup(group, groupIndex, groupSpacing, pageContext)
                 }
             }
         }
 
-        val editors = remember(state) { mutableStateMapOf<String, SettingsEditSession>() }
-        state.activeItem?.let { editors[it.id] = state.editSession }
-        LaunchedEffect(state, transition) {
-            snapshotFlow {
-                Triple(transition.currentState, transition.targetState, transition.isRunning)
-            }
-                .collect { (current, target, running) ->
-                    if (!running && current == target) {
-                        editors.keys.toList().filter { it != target }.forEach(editors::remove)
-                    }
-                }
-        }
         editors.forEach { (id, session) ->
             val active = session.activeItem ?: return@forEach
             key(id) {
@@ -713,7 +724,7 @@ public fun CardSettings(
                     editorShape = editorShape,
                     eligible = { state.activeItem?.id == id && activeEligible },
                     customEditor = customEditor,
-                    context = cardContext,
+                    context = pageContext,
                     onDismiss = { state.dismiss() },
                 )
             }
@@ -748,43 +759,39 @@ private fun rememberSourceStatuses(
     }
 }
 
-/** Records the loading placeholder card of every source that has not finished reading yet. */
-private fun GroupedLazyListScope.settingsLoadingCards(
+/** Records a loading row for each source that is still reading. */
+private fun GroupedLazyListScope.settingsLoadingRows(
     sourceStatuses: List<Pair<SettingsSource, SettingsPersistenceStatus>>,
-    labels: CardSettingsLabels,
-    appearance: SettingsCardAppearance,
+    labels: SettingsPageLabels,
 ) {
     sourceStatuses.forEach { (source, status) ->
         if (status == SettingsPersistenceStatus.Loading)
-            card(shape = { appearance.shape }) {
-                item(key = "${source.id}:status-loading") {
-                    Text(labels.loading.resolve(), Modifier.padding(20.dp))
+            segmentedListGroup {
+                item(key = "${source.id}:status-loading", contentType = "settings-loading") {
+                    modifier,
+                    shapes ->
+                    SegmentedListItem(shapes = shapes, modifier = modifier) {
+                        Text(labels.loading.resolve())
+                    }
                 }
             }
     }
 }
 
-/** Records one rendered settings group as a card holding its category header and its rows. */
-private fun GroupedLazyListScope.settingsGroupCard(
+/** Records a category heading and its independently animated segments. */
+private fun GroupedLazyListScope.settingsGroup(
     group: SettingsGroupVisibilityRecord,
     groupIndex: Int,
-    cardSpacing: Dp,
-    appearance: SettingsCardAppearance,
-    context: SettingsCardContext,
+    groupSpacing: Dp,
+    context: SettingsPageContext,
 ) {
     val root = group.root
-    card(
-        shape = { appearance.shape },
-        colors = { appearance.colors },
-        backdrop = appearance.backdrop,
-        backdropMaterial = { appearance.material },
-        elevation = { appearance.elevation },
-        border = { appearance.border },
-    ) {
+    segmentedListGroup(itemSpacing = 0.dp) {
         if (root is Category) {
             header(
                 key = root.id,
-                modifier = { Modifier.settingsGroupHeader(group, groupIndex, cardSpacing) },
+                contentType = "settings-category",
+                modifier = { Modifier.settingsGroupHeader(group, groupIndex, groupSpacing) },
             ) {
                 SettingsCategoryHeader(root)
             }
@@ -792,7 +799,7 @@ private fun GroupedLazyListScope.settingsGroupCard(
         group.rowOrder
             .mapNotNull { group.rows[it] }
             .forEach { record ->
-                settingsRowItem(record, group, groupIndex, cardSpacing, context)
+                settingsRowItem(record, group, groupIndex, groupSpacing, context)
             }
     }
 }
@@ -802,7 +809,7 @@ private fun GroupedLazyListScope.settingsGroupCard(
 private fun Modifier.settingsGroupHeader(
     group: SettingsGroupVisibilityRecord,
     groupIndex: Int,
-    cardSpacing: Dp,
+    groupSpacing: Dp,
 ): Modifier {
     val root = group.root
     val reduceMotion = !SpatialMotionEnabled
@@ -815,7 +822,7 @@ private fun Modifier.settingsGroupHeader(
             if (visible) 1f else 0f
         }
     val gapPx =
-        with(LocalDensity.current) { (if (groupIndex == 0) 0.dp else cardSpacing).roundToPx() }
+        with(LocalDensity.current) { (if (groupIndex == 0) 0.dp else groupSpacing).roundToPx() }
     return blurTransition(
             { headerFraction },
             maxRadius = MaterialTheme.extended.enterExitBlurRadius,
@@ -835,41 +842,32 @@ private fun Modifier.settingsGroupHeader(
 @Composable
 private fun SettingsCategoryHeader(root: SettingsItem) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            root.resources.label.resolve(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        Text(root.resources.label.resolve())
         root.resources.description?.resolve()?.let { description ->
             Text(
                 description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
-/** Records one visible settings row of [group] as a card item. */
-private fun CardLazyGroup.settingsRowItem(
+/** Records one settings segment by its stable row ID. */
+private fun SegmentedListGroupScope.settingsRowItem(
     record: SettingsVisibilityRecord,
     group: SettingsGroupVisibilityRecord,
     groupIndex: Int,
-    cardSpacing: Dp,
-    context: SettingsCardContext,
+    groupSpacing: Dp,
+    context: SettingsPageContext,
 ) {
     val entry = record.item
     val root = group.root
-    item(
-        key = entry.id,
-        contentType = entry::class.simpleName,
-        modifier = {
+    item(key = entry.id, contentType = entry::class.simpleName) { _, _ ->
+        val modifier =
             if (groupIndex > 0 && root !is Category && group.rowOrder.firstOrNull() == entry.id) {
-                Modifier.settingsRowGap(record, root, cardSpacing)
+                Modifier.settingsRowGap(record, root, groupSpacing)
             } else Modifier
-        },
-    ) {
-        with(context.sharedTransition) { SettingsRowEntry(record, group, context) }
+        with(context.sharedTransition) { SettingsRowEntry(record, group, context, modifier) }
     }
 }
 
@@ -878,7 +876,7 @@ private fun CardLazyGroup.settingsRowItem(
 private fun Modifier.settingsRowGap(
     record: SettingsVisibilityRecord,
     root: SettingsItem,
-    cardSpacing: Dp,
+    groupSpacing: Dp,
 ): Modifier {
     val rowTransition = rememberTransition(record.visibility)
     val gap by
@@ -892,25 +890,42 @@ private fun Modifier.settingsRowGap(
             },
             label = "settings-gap-${root.id}",
         ) { visible ->
-            if (visible) cardSpacing else 0.dp
+            if (visible) groupSpacing else 0.dp
         }
     return padding(top = gap.coerceAtLeast(0.dp))
 }
 
 /**
- * The content of one settings row. It animates with the visibility of its own record and, while the
- * shared transition hands the item over to the editor, keeps the row in place as a hidden copy.
+ * Renders a settings row and animates its visibility. A hidden sizing copy reserves its space while
+ * the editor is open.
  */
 @Composable
 private fun SharedTransitionScope.SettingsRowEntry(
     record: SettingsVisibilityRecord,
     group: SettingsGroupVisibilityRecord,
-    context: SettingsCardContext,
+    context: SettingsPageContext,
+    modifier: Modifier,
 ) {
     val entry = record.item
     val motionScheme = MaterialTheme.motionScheme
     val visibleState = record.visibility
     val reduceMotion = !SpatialMotionEnabled
+    val shapes = settingsSegmentShapes(record.firstSegment, record.lastSegment)
+    SideEffect { record.segmentShape = shapes.shape }
+    val sharedShape = context.sharedShapes[entry.id]
+    val gap =
+        animateDpAsState(
+            targetValue = if (record.lastSegment) 0.dp else ListItemDefaults.SegmentedGap,
+            animationSpec =
+                if (reduceMotion) snap()
+                else
+                    motionScheme
+                        .fastSpatialSpec<Dp>()
+                        .withDefaultVisibilityThreshold(
+                            Dp.VisibilityThreshold,
+                        ),
+            label = "settings-segment-gap",
+        )
     AnimatedVisibility(
         visibleState = visibleState,
         enter =
@@ -921,7 +936,7 @@ private fun SharedTransitionScope.SettingsRowEntry(
                         MaterialTheme.motionScheme
                             .fastSpatialSpec<IntSize>()
                             .withDefaultVisibilityThreshold(IntSize.VisibilityThreshold),
-                    clip = false,
+                    clip = true,
                 ),
         exit =
             if (reduceMotion) ExitTransition.None
@@ -931,9 +946,9 @@ private fun SharedTransitionScope.SettingsRowEntry(
                         MaterialTheme.motionScheme
                             .fastSpatialSpec<IntSize>()
                             .withDefaultVisibilityThreshold(IntSize.VisibilityThreshold),
-                    clip = false,
+                    clip = true,
                 ),
-        modifier = Modifier.fillMaxWidth().testTag("settings-row:${entry.id}"),
+        modifier = modifier.fillMaxWidth().testTag("settings-row:${entry.id}"),
     ) {
         CompositionLocalProvider(
             LocalSettingsRowAvailable provides
@@ -950,7 +965,7 @@ private fun SharedTransitionScope.SettingsRowEntry(
                 maxRadius = MaterialTheme.extended.enterExitBlurRadius,
                 animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
             ) {
-                Box {
+                Box(Modifier.padding(bottom = gap.value.coerceAtLeast(0.dp))) {
                     Box(Modifier.alpha(0f).clearAndSetSemantics {}) {
                         SettingsRow(
                             entry,
@@ -958,6 +973,10 @@ private fun SharedTransitionScope.SettingsRowEntry(
                             sliderCommitMode = context.sliderCommitMode,
                             onOpen = {},
                             interactive = false,
+                            modifier = Modifier,
+                            onError = {},
+                            sharedText = null,
+                            shapes = shapes,
                         )
                     }
                     context.transition.AnimatedVisibility(
@@ -969,6 +988,11 @@ private fun SharedTransitionScope.SettingsRowEntry(
                             if (reduceMotion) fadeOut(motionScheme.fastEffectsSpec())
                             else ExitTransition.None,
                     ) {
+                        val sharedState = rememberSharedContentState("setting:${entry.id}")
+                        val morph = sharedShape.takeIf {
+                            isTransitionActive && sharedState.isMatchFound
+                        }
+                        val containerShape = morph ?: shapes.shape
                         val rowSharedText =
                             if (!SpatialMotionEnabled) null
                             else SettingsSharedText("setting:${entry.id}", this)
@@ -989,14 +1013,27 @@ private fun SharedTransitionScope.SettingsRowEntry(
                                                 fadeOut(
                                                     MaterialTheme.motionScheme.slowEffectsSpec(),
                                                 ),
-                                            sharedContentState =
-                                                rememberSharedContentState("setting:${entry.id}"),
+                                            sharedContentState = sharedState,
                                             animatedVisibilityScope = this,
+                                            resizeMode = ResizeMode.RemeasureToBounds,
                                             renderInOverlayDuringTransition =
                                                 context.state.activeItem?.id == entry.id,
+                                            clipInOverlayDuringTransition =
+                                                OverlayClip(containerShape),
                                         ),
                                 )
-                                .clip(LocalCardShape.current)
+                                .testTag("settings-segment-container:${entry.id}")
+                                .then(
+                                    if (morph == null) Modifier
+                                    else {
+                                        val colors = ListItemDefaults.segmentedColors()
+                                        val color =
+                                            if (visibleState.targetState && entry.enabled)
+                                                colors.containerColor
+                                            else colors.disabledContainerColor
+                                        Modifier.clip(morph).background(color)
+                                    },
+                                )
                                 .then(
                                     if (visibleState.targetState) Modifier
                                     else Modifier.clearAndSetSemantics {},
@@ -1004,7 +1041,7 @@ private fun SharedTransitionScope.SettingsRowEntry(
                         ) {
                             BlurEnterExit(
                                 maxRadius = MaterialTheme.extended.enterExitBlurRadius,
-                                animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                animationSpec = motionScheme.fastEffectsSpec(),
                                 fade = false,
                             ) {
                                 SettingsRow(
@@ -1018,7 +1055,9 @@ private fun SharedTransitionScope.SettingsRowEntry(
                                     },
                                     onError = context.onError,
                                     interactive = visibleState.targetState,
+                                    modifier = Modifier,
                                     sharedText = rowSharedText,
+                                    shapes = if (morph == null) shapes else sharedSettingsRowShapes,
                                 )
                             }
                         }
@@ -1047,18 +1086,20 @@ private fun SharedTransitionScope.SettingsEditorDialog(
     editorShape: Shape,
     eligible: () -> Boolean,
     customEditor: CustomSettingsEditor?,
-    context: SettingsCardContext,
+    context: SettingsPageContext,
     onDismiss: () -> Unit,
 ) {
     val state = context.state
     val labels = context.labels
+    val sharedState = rememberSharedContentState("setting:${active.id}")
+    val sharedShape = context.sharedShapes[active.id]
     OverlayDialog(
         navigationTransition = context.navigationTransition,
         onDismissRequest = onDismiss,
         modifier = Modifier.imePadding().widthIn(min = 280.dp, max = 560.dp).fillMaxWidth(),
         visible = { state.activeItem?.id == active.id },
-        sharedContentState = rememberSharedContentState("setting:${active.id}"),
-        sharedClipShape = editorShape,
+        sharedContentState = sharedState,
+        sharedClipShape = sharedShape ?: editorShape,
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
@@ -1140,13 +1181,38 @@ public fun SettingsValidation.Issue.localizedMessage(): String =
 @Composable
 public fun SettingsRow(
     item: SettingsItem.Item<*>,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
     interactive: Boolean = true,
     sliderCommitMode: SliderCommitMode = SliderCommitMode.OnRelease,
     onError: (SettingsPresentationError) -> Unit = {},
     sharedText: SettingsSharedText? = null,
+) {
+    SettingsRow(
+        item,
+        labels,
+        onOpen,
+        modifier,
+        interactive,
+        sliderCommitMode,
+        onError,
+        sharedText,
+        null,
+    )
+}
+
+@Composable
+private fun SettingsRow(
+    item: SettingsItem.Item<*>,
+    labels: SettingsPageLabels,
+    onOpen: () -> Unit,
+    modifier: Modifier,
+    interactive: Boolean,
+    sliderCommitMode: SliderCommitMode,
+    onError: (SettingsPresentationError) -> Unit,
+    sharedText: SettingsSharedText?,
+    shapes: ListItemShapes?,
 ) {
     val currentInteractive = rememberUpdatedState(interactive)
     val currentItem = rememberUpdatedState(item)
@@ -1194,6 +1260,7 @@ public fun SettingsRow(
             sliderCommitMode,
             onError,
             sharedText,
+            shapes,
         )
         if (item.resetMode == SettingsResetMode.Menu) {
             SettingsRestoreDefaultMenu(
@@ -1338,14 +1405,21 @@ private fun Modifier.restoreDefaultGestures(
 @Composable
 private fun SettingsRowContent(
     item: SettingsItem.Item<*>,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     onOpen: () -> Unit,
     modifier: Modifier,
     interactive: Boolean,
     sliderCommitMode: SliderCommitMode,
     onError: (SettingsPresentationError) -> Unit,
     sharedText: SettingsSharedText?,
+    shapes: ListItemShapes?,
 ) {
+    val sliderModifier =
+        if (shapes == null) modifier
+        else
+            modifier
+                .clip(shapes.shape)
+                .background(ListItemDefaults.segmentedColors().containerColor)
     val finite = (item as? SettingsItem.Item.SingleNumber<*>)?.type as? NumberType.Finite<*>
     val mapping = remember(finite) { finite?.sliderMappingOrNull() }
     if (finite != null && (mapping != null || finite.type == Slider)) {
@@ -1354,7 +1428,7 @@ private fun SettingsRowContent(
             finite,
             interactive,
             onOpen,
-            modifier,
+            sliderModifier,
             onError,
             sliderCommitMode,
             sharedText,
@@ -1367,14 +1441,23 @@ private fun SettingsRowContent(
             labels,
             interactive,
             onOpen,
-            modifier,
+            sliderModifier,
             onError,
             sliderCommitMode,
             sharedText,
         )
         return
     }
-    SettingsListItem(item, labels, onOpen, modifier, interactive, onError, sharedText)
+    SettingsListItem(
+        item,
+        labels,
+        onOpen,
+        modifier,
+        interactive,
+        onError,
+        sharedText,
+        shapes,
+    )
 }
 
 /** Whether either bound of the range renders as a slider instead of a plain row. */
@@ -1390,16 +1473,28 @@ private fun SettingsItem.Item.NumberRange<*>.usesSliderBounds(): Boolean {
     return startSlider || endSlider
 }
 
+// The shared surface clips the row's indication while it moves between endpoints.
+private val sharedSettingsRowShapes =
+    ListItemShapes(
+        shape = RectangleShape,
+        selectedShape = RectangleShape,
+        pressedShape = RectangleShape,
+        focusedShape = RectangleShape,
+        hoveredShape = RectangleShape,
+        draggedShape = RectangleShape,
+    )
+
 /** The plain list row of an item that neither renders nor edits as a slider. */
 @Composable
 private fun SettingsListItem(
     item: SettingsItem.Item<*>,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     onOpen: () -> Unit,
     modifier: Modifier,
     interactive: Boolean,
     onError: (SettingsPresentationError) -> Unit,
     sharedText: SettingsSharedText?,
+    shapes: ListItemShapes?,
 ) {
     val title = item.resources.label.resolve()
     val description = item.resources.description?.resolve()
@@ -1413,7 +1508,10 @@ private fun SettingsListItem(
         }
     val enabled = item.enabled && interactive
     val listItemModifier = modifier.semantics {
-        if (item is Switch) role = Role.Switch
+        if (item is Switch) {
+            role = Role.Switch
+            toggleableState = ToggleableState(item.value)
+        }
         stateDescription = summary.orEmpty()
     }
     val supportingContent: (@Composable () -> Unit)? =
@@ -1446,32 +1544,25 @@ private fun SettingsListItem(
                 )
             }
         } else null
-    if (item is Switch) {
-        ListItem(
-            checked = item.value,
-            onCheckedChange = {
-                SettingsCommit.tryCommit(item, it).reportFailure(item, onError)
-            },
-            enabled = enabled,
-            supportingContent = supportingContent,
-            leadingContent = leadingContent,
-            trailingContent = trailingContent,
-            modifier = listItemModifier,
-            colors = ListItemColorsTransparent,
-            content = { Text(title, Modifier.settingsSharedLabel(sharedText)) },
-        )
-    } else {
-        ListItem(
-            onClick = onOpen,
-            enabled = enabled,
-            supportingContent = supportingContent,
-            leadingContent = leadingContent,
-            trailingContent = trailingContent,
-            modifier = listItemModifier,
-            colors = ListItemColorsTransparent,
-            content = { Text(title, Modifier.settingsSharedLabel(sharedText)) },
-        )
-    }
+    val colors =
+        if (shapes == null) ListItemColorsTransparent else ListItemDefaults.segmentedColors()
+    SegmentedListItem(
+        onClick = {
+            if (item is Switch) {
+                SettingsCommit.tryCommit(item, !item.value).reportFailure(item, onError)
+            } else {
+                onOpen()
+            }
+        },
+        enabled = enabled,
+        supportingContent = supportingContent,
+        leadingContent = leadingContent,
+        trailingContent = trailingContent,
+        modifier = listItemModifier,
+        colors = colors,
+        shapes = shapes ?: ListItemDefaults.shapes(),
+        content = { Text(title, Modifier.settingsSharedLabel(sharedText)) },
+    )
 }
 
 @Composable
@@ -1479,7 +1570,7 @@ public fun SettingsItemEditor(
     item: SettingsItem.Item<*>,
     state: SettingsEditSession,
     custom: CustomSettingsEditor?,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
     onError: (SettingsPresentationError) -> Unit = {},
@@ -1503,7 +1594,7 @@ private fun SettingsItemEditor(
     item: SettingsItem.Item<*>,
     state: SettingsEditSession,
     custom: CustomSettingsEditor?,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
     interactive: Boolean,
@@ -1658,7 +1749,7 @@ private fun TextEditor(
 public fun NumberEditor(
     item: SettingsItem.Item.SingleNumber<*>,
     state: SettingsEditSession,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     modifier: Modifier = Modifier,
     onError: (SettingsPresentationError) -> Unit = {},
 ) {
@@ -1669,7 +1760,7 @@ public fun NumberEditor(
 private fun NumberEditor(
     item: SettingsItem.Item.SingleNumber<*>,
     state: SettingsEditSession,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     modifier: Modifier = Modifier,
     enabled: Boolean,
     onError: (SettingsPresentationError) -> Unit = {},
@@ -1717,7 +1808,7 @@ private fun NumberEditor(
 public fun RangeEditor(
     item: SettingsItem.Item.NumberRange<*>,
     state: SettingsEditSession,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     modifier: Modifier = Modifier,
     onError: (SettingsPresentationError) -> Unit = {},
 ) {
@@ -1728,7 +1819,7 @@ public fun RangeEditor(
 private fun RangeEditor(
     item: SettingsItem.Item.NumberRange<*>,
     state: SettingsEditSession,
-    labels: CardSettingsLabels,
+    labels: SettingsPageLabels,
     modifier: Modifier = Modifier,
     enabled: Boolean,
     onError: (SettingsPresentationError) -> Unit = {},
