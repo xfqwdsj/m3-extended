@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -32,6 +34,89 @@ import top.ltfan.m3x.backdrop.backdrops.rememberLayerBackdrop
 import top.ltfan.m3x.backdrop.effects.blur
 
 class BackdropGraphRenderingTest {
+    @Test
+    fun directTintMatchesOrdinaryPaintAndPreservesSurfacePhases() = runRenderTest {
+        val tint = mutableStateOf(Color.Green.copy(alpha = .6f))
+        val sourceColor = mutableStateOf(Color.Blue)
+        val sampled = mutableStateOf(false)
+        val alpha = mutableFloatStateOf(1f)
+        val shape = RoundedCornerShape(12.dp)
+        var sourceCalls = 0
+        setContent {
+            val source = rememberCanvasBackdrop {
+                sourceCalls++
+                drawRect(sourceColor.value)
+            }
+            Column(Modifier.background(Color.Red)) {
+                Box(Modifier.size(48.dp).background(tint.value, shape).testTag("ordinary"))
+                Box(
+                    Modifier.size(48.dp).testTag("direct").drawBackdrop(
+                        source,
+                        { shape },
+                        backgroundAlpha = { alpha.floatValue },
+                    ) {
+                        group {
+                            if (sampled.value) source()
+                            paintSurface(CompositingStrategy.Auto) { drawRect(tint.value) }
+                        }
+                        foreground {
+                            paintSurface(CompositingStrategy.Auto) {
+                                drawRect(Color.Yellow, Offset(16f, 16f), Size(8f, 8f))
+                            }
+                        }
+                    },
+                ) {
+                    Box(Modifier.align(Alignment.Center).size(16.dp).background(Color.White))
+                }
+            }
+        }
+        val ordinary = onNodeWithTag("ordinary")
+        val direct = onNodeWithTag("direct")
+        var pixels = direct.captureToImage().toPixelMap()
+        assertEquals(ordinary.captureToImage().toPixelMap()[24, 10], pixels[24, 10])
+        assertEquals(Color.Red, pixels[0, 0])
+        assertEquals(Color.White, pixels[25, 25])
+        assertEquals(Color.Yellow, pixels[20, 20])
+        assertEquals(0, sourceCalls)
+
+        runOnIdle { alpha.floatValue = 0f }
+        pixels = direct.captureToImage().toPixelMap()
+        assertEquals(Color.Red, pixels[24, 10])
+        assertEquals(Color.Yellow, pixels[20, 20])
+
+        runOnIdle { alpha.floatValue = .5f }
+        val faded = direct.captureToImage().toPixelMap()[24, 10]
+        assertTrue(faded.red in 0.68f..0.72f && faded.green in 0.28f..0.32f)
+
+        runOnIdle {
+            alpha.floatValue = 1f
+            tint.value = Color.Cyan.copy(alpha = .6f)
+        }
+        assertEquals(
+            ordinary.captureToImage().toPixelMap()[24, 10],
+            direct.captureToImage().toPixelMap()[24, 10],
+        )
+        assertEquals(0, sourceCalls)
+
+        runOnIdle { sampled.value = true }
+        val fromSource = direct.captureToImage().toPixelMap()[24, 10]
+        assertTrue(fromSource.blue > .99f && fromSource.red < .01f)
+        assertTrue(sourceCalls > 0)
+
+        runOnIdle { sampled.value = false }
+        assertEquals(
+            ordinary.captureToImage().toPixelMap()[24, 10],
+            direct.captureToImage().toPixelMap()[24, 10],
+        )
+        val captured = sourceCalls
+        runOnIdle { sourceColor.value = Color.Magenta }
+        direct.captureToImage()
+        assertEquals(captured, sourceCalls)
+        runOnIdle { sampled.value = true }
+        val refreshed = direct.captureToImage().toPixelMap()[24, 10]
+        assertTrue(refreshed.red in 0.38f..0.42f && refreshed.blue > .99f)
+    }
+
     @Test
     fun repeatedResolutionRefreshesTransformSamplingAndRejectsInvalidMatrices() = runRenderTest {
         val bounds = Rect(0f, 0f, 80f, 80f)

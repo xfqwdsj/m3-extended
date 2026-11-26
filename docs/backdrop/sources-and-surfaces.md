@@ -86,10 +86,14 @@ The selected result draws behind children. Children retain the original shape cl
 `foreground { ... }` draws an explicit transparent-based result above them. Primitive placement is
 explicitly ordered by this declaration.
 
-The modifier isolates compositing offscreen. `backgroundAlpha` applies once to the complete
-background result; children and foreground have independent opacity. Compositing bounds include visible
-effect coverage and outer-shadow support. Layout size and hit testing use the measured surface bounds. Caller
-transforms and larger layer outsets are retained; caller clipping can cut off extended drawing.
+The modifier isolates compositing offscreen by default. In `layerBlock`, set
+`compositingStrategy` to `CompositingStrategy.Auto` when the surface and its children can blend
+with the enclosing canvas. Compose then isolates group opacity and layer effects as needed.
+
+`backgroundAlpha` scales the complete background result once. Children and foreground have
+independent opacity. Compositing bounds include visible effect coverage and outer-shadow support.
+Layout size and hit testing use the measured surface bounds. Caller transforms and larger layer
+outsets are retained; caller clipping can cut off extended drawing.
 
 ## Export a processed surface
 

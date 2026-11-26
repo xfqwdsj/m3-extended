@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy as LayerScopeCompositingStrategy
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.layer.GraphicsLayer
@@ -36,6 +37,54 @@ import top.ltfan.m3x.backdrop.shadow.Shadow
 import top.ltfan.m3x.backdrop.shadow.shadow
 
 class SurfaceIsolationRenderingTest {
+    @Test
+    fun autoSurfaceCompositingPreservesEffectiveGroupAlpha() = runRenderTest {
+        val mode = mutableIntStateOf(0)
+        var observedLayer: GraphicsLayer? = null
+        setContent {
+            val backdrop = rememberCanvasBackdrop {}
+            Box(Modifier.size(60.dp).background(Color.Black).testTag("surface")) {
+                Box(
+                    Modifier.fillMaxSize().drawBackdrop(
+                        backdrop,
+                        { RectangleShape },
+                        layerBlock = {
+                            if (mode.intValue > 0) {
+                                compositingStrategy = LayerScopeCompositingStrategy.Auto
+                            }
+                            if (mode.intValue == 2) alpha = 0.5f
+                        },
+                    ) {
+                        group { fill(Color.White) }
+                    },
+                ) {
+                    Box(
+                        Modifier.size(30.dp).drawWithContent {
+                            observedLayer = drawContext.graphicsLayer
+                            drawRect(Color.White)
+                            drawContent()
+                        },
+                    )
+                }
+            }
+        }
+        val node = onNodeWithTag("surface")
+        assertEquals(Color.White, node.captureToImage().toPixelMap()[15, 15])
+        assertEquals(
+            CompositingStrategy.Offscreen,
+            requireNotNull(observedLayer).compositingStrategy,
+        )
+
+        runOnIdle { mode.intValue = 1 }
+        assertEquals(Color.White, node.captureToImage().toPixelMap()[15, 15])
+        assertEquals(CompositingStrategy.Auto, requireNotNull(observedLayer).compositingStrategy)
+
+        runOnIdle { mode.intValue = 2 }
+        val pixels = node.captureToImage().toPixelMap()
+        assertTrue(pixels[15, 15].red in 0.48f..0.52f)
+        assertEquals(pixels[40, 40], pixels[15, 15])
+    }
+
     @Test
     fun expandedBufferRetainsAllFourShadowMargins() = runRenderTest {
         setContent {

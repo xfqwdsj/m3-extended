@@ -1,6 +1,8 @@
 package top.ltfan.m3x.backdrop
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableIntStateOf
@@ -15,19 +17,142 @@ import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import top.ltfan.m3x.backdrop.backdrops.emptyBackdrop
 import top.ltfan.m3x.backdrop.effects.blur
 
 class RenderPlanCostTest {
+    @Test
+    fun drawOnlySurfacesKeepTheirDrawingWhileMoving() = runRenderTest {
+        val shift = mutableIntStateOf(0)
+        val tint = mutableIntStateOf(0)
+        val positions = IntArray(2)
+        val paintCalls = IntArray(2)
+        setContent {
+            Box(Modifier.size(120.dp)) {
+                repeat(2) { arm ->
+                    Box(
+                        Modifier.offset { IntOffset(arm * 42, shift.intValue) }
+                            .size(40.dp)
+                            .onGloballyPositioned { positions[arm]++ }
+                            .drawBackdrop(emptyBackdrop(), { RectangleShape }) {
+                                group {
+                                    paintSurface(CompositingStrategy.Auto) {
+                                        paintCalls[arm]++
+                                        drawRect(if (tint.intValue == 0) Color.Red else Color.Green)
+                                    }
+                                }
+                                if (arm == 1) export()
+                            },
+                    )
+                }
+            }
+        }
+        waitForIdle()
+        val initialPositions = positions.copyOf()
+        val initialDraws = paintCalls.copyOf()
+        for (offset in listOf(3, 9, 15)) {
+            runOnIdle { shift.intValue = offset }
+            waitForIdle()
+        }
+        assertTrue(positions.indices.all { positions[it] > initialPositions[it] })
+        assertTrue(paintCalls.contentEquals(initialDraws))
+
+        runOnIdle { tint.intValue++ }
+        waitForIdle()
+        assertTrue(paintCalls.indices.all { paintCalls[it] > initialDraws[it] })
+    }
+
+    @Test
+    fun independentPaintDrawsDirectlyAndSharedOutputsRetainOneRecording() = runRenderTest {
+        val mode = mutableIntStateOf(0)
+        val active = mutableSetOf<GraphicsLayer>()
+        var allocations = 0
+        var sourceCalls = 0
+        setContent {
+            val native = LocalGraphicsContext.current
+            val graphics =
+                remember(native) {
+                    object : GraphicsContext by native {
+                        override fun createGraphicsLayer() =
+                            native.createGraphicsLayer().also {
+                                active += it
+                                allocations++
+                            }
+
+                        override fun releaseGraphicsLayer(layer: GraphicsLayer) {
+                            check(active.remove(layer))
+                            native.releaseGraphicsLayer(layer)
+                        }
+                    }
+                }
+            val renderer = remember(graphics) { BackdropRenderer { graphics } }
+            DisposableEffect(renderer) { onDispose { renderer.close() } }
+            Canvas(Modifier.size(48.dp).testTag("direct-paint")) {
+                val which = mode.intValue
+                val declaration =
+                    BackdropRenderScope(1f, 1f, size, RectangleShape, LayoutDirection.Ltr).apply {
+                        group {
+                            if (which == 2) {
+                                source()
+                                effects {}
+                            }
+                            clipSurface()
+                            fill(Color.Green.copy(alpha = .6f))
+                        }
+                        if (which == 1) export()
+                    }
+                renderer.resolve(declaration, Rect(Offset.Zero, size))
+                renderer.beginFrame()
+                val output = declaration.current.index
+                assertEquals(which == 2, renderer.usesSource(output))
+                assertEquals(which == 0, renderer.canDrawDirectly(output))
+                drawRect(Color.Red)
+                if (renderer.canDrawDirectly(output)) {
+                    renderer.drawDirectly(this, output)
+                } else {
+                    val source: DrawScope.(Rect) -> Unit = { bounds ->
+                        sourceCalls++
+                        drawRect(Color.Blue, bounds.topLeft, bounds.size)
+                    }
+                    renderer.draw(this, source = source)
+                    if (which == 1) renderer.prepare(this, declaration.exportedImage, source)
+                }
+            }
+        }
+        val node = onNodeWithTag("direct-paint")
+        val direct = node.captureToImage().toPixelMap()[24, 24]
+        assertEquals(0, allocations)
+        assertEquals(0, sourceCalls)
+        assertTrue(direct.red in 0.38f..0.42f && direct.green in 0.58f..0.62f)
+
+        runOnIdle { mode.intValue = 1 }
+        assertEquals(direct, node.captureToImage().toPixelMap()[24, 24])
+        assertEquals(1, active.size)
+        assertEquals(0, sourceCalls)
+
+        runOnIdle { mode.intValue = 2 }
+        val sampled = node.captureToImage().toPixelMap()[24, 24]
+        assertTrue(sourceCalls > 0)
+        assertTrue(sampled.blue in 0.38f..0.42f && sampled.red < .01f)
+
+        runOnIdle { mode.intValue = 0 }
+        assertEquals(direct, node.captureToImage().toPixelMap()[24, 24])
+        assertTrue(active.isEmpty())
+    }
+
     @Test
     fun serialEffectsShareOneFilteredRecording() = runRenderTest {
         val mode = mutableIntStateOf(0)

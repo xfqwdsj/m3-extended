@@ -26,6 +26,7 @@ import androidx.compose.ui.util.unpackInt1
 import androidx.compose.ui.util.unpackInt2
 import kotlin.math.ceil
 import kotlin.math.floor
+import top.ltfan.m3x.backdrop.RenderImageNode.Process as ProcessNode
 import top.ltfan.m3x.backdrop.highlight.HighlightSdfHost
 import top.ltfan.m3x.backdrop.internal.SurfaceClipPath
 import top.ltfan.m3x.backdrop.internal.clipOutline
@@ -97,6 +98,9 @@ internal constructor(
     private var imageInputs = BooleanArray(0)
     private var inlinedSources = BooleanArray(0)
     private var inlineDrawing = BooleanArray(0)
+    private var directDrawing = BooleanArray(0)
+    private var sourceInputs = BooleanArray(0)
+    private var positionInputs = BooleanArray(0)
     private var fused = BooleanArray(0)
     private var resolvedScope: BackdropRenderScope? = null
 
@@ -171,6 +175,9 @@ internal constructor(
             inlinedSources = BooleanArray(graph.size)
             fused = BooleanArray(graph.size)
             inlineDrawing = BooleanArray(graph.size)
+            directDrawing = BooleanArray(graph.size)
+            sourceInputs = BooleanArray(graph.size)
+            positionInputs = BooleanArray(graph.size)
         }
         reachable.fill(false)
         fun visit(index: Int) {
@@ -415,6 +422,7 @@ internal constructor(
             aliases[index] = aliases[input]
         }
         resolveFilterRecordings()
+        resolveDrawing()
         markIncompatibleOutputs()
         val layerIterator = layers.iterator()
         while (layerIterator.hasNext()) {
@@ -555,7 +563,13 @@ internal constructor(
                 fused[source] = true
             }
         }
+    }
+
+    private fun resolveDrawing() {
         inlineDrawing.fill(false)
+        directDrawing.fill(false)
+        sourceInputs.fill(false)
+        positionInputs.fill(false)
         imageInputs.fill(false)
         fun retain(index: Int) {
             imageInputs[aliases[index]] = true
@@ -576,27 +590,38 @@ internal constructor(
             }
         }
         for (index in graph.indices) {
-            if (
-                requests[index] == null ||
-                    aliases[index] != index ||
-                    imageInputs[index] ||
-                    consumers[index] != 1 ||
-                    fused[index]
-            )
-                continue
-            inlineDrawing[index] =
-                when (val node = graph[index]) {
-                    RenderImageNode.Empty,
-                    RenderImageNode.Source -> true
-                    is RenderImageNode.SurfaceClip,
-                    is RenderImageNode.ShapeClip,
-                    is RenderImageNode.Clip,
-                    is RenderImageNode.Transform -> true
-                    is RenderImageNode.Paint -> node.compositingStrategy == Auto
-                    is RenderImageNode.Primitive<*> -> node.primitive.compositingStrategy == Auto
-                    is RenderImageNode.Composite -> node.alpha == 1f && node.blendMode == SrcOver
-                    else -> false
-                }
+            if (requests[index] == null || aliases[index] != index) continue
+            val node = graph[index]
+            val canInline =
+                consumers[index] == 1 &&
+                    !fused[index] &&
+                    when (node) {
+                        Empty,
+                        Source,
+                        is SurfaceClip,
+                        is ShapeClip,
+                        is Clip,
+                        is Transform -> true
+                        is RenderImageNode.Paint -> node.compositingStrategy == Auto
+                        is Primitive<*> -> node.primitive.compositingStrategy == Auto
+                        is Composite -> node.alpha == 1f && node.blendMode == SrcOver
+                        else -> false
+                    }
+            inlineDrawing[index] = canInline && !imageInputs[index]
+            var usesSource = node === Source
+            // Primitives and drawWithContent callbacks can depend on placement.
+            var usesPosition = usesSource || node is Primitive<*> || node is DrawWithContent
+            // The direct path folds local paint and geometry into the enclosing recording.
+            var drawsDirectly = canInline && node !== Source && node !is Primitive<*>
+            forEachInput(index) { input ->
+                val selected = aliases[input]
+                usesSource = usesSource || sourceInputs[selected]
+                usesPosition = usesPosition || positionInputs[selected]
+                drawsDirectly = drawsDirectly && inlineDrawing[selected] && directDrawing[selected]
+            }
+            sourceInputs[index] = usesSource
+            positionInputs[index] = usesPosition
+            directDrawing[index] = drawsDirectly
         }
     }
 
@@ -634,24 +659,31 @@ internal constructor(
             effects = filterPlans[index]?.passes?.map { it.effect }.orEmpty(),
         )
 
-    private fun directInputs(index: Int): List<Int> =
+    private inline fun forEachInput(index: Int, use: (Int) -> Unit) {
         when (val node = graph[index]) {
-            is RenderImageNode.Isolation -> listOf(node.input)
-            is RenderImageNode.DrawWithContent -> listOf(node.input)
-            is RenderImageNode.SurfaceClip -> listOf(node.input)
-            is RenderImageNode.ShapeClip -> listOf(node.input)
-            is RenderImageNode.Paint -> listOfNotNull(node.input)
-            is RenderImageNode.Process -> listOf(filterInputs[index])
-            is RenderImageNode.Composite -> listOf(node.destination, node.source)
-            is RenderImageNode.Mask -> listOf(node.input, node.mask)
-            is RenderImageNode.Clip -> listOf(node.input)
-            is RenderImageNode.Transform -> listOf(node.input)
-            is RenderImageNode.Primitive<*> -> node.inputs.map { it.image.index }
-            else -> emptyList()
+            is Isolation -> use(node.input)
+            is DrawWithContent -> use(node.input)
+            is SurfaceClip -> use(node.input)
+            is ShapeClip -> use(node.input)
+            is RenderImageNode.Paint -> node.input?.let(use)
+            is ProcessNode -> use(filterInputs[index])
+            is Composite -> {
+                use(node.destination)
+                use(node.source)
+            }
+            is Mask -> {
+                use(node.input)
+                use(node.mask)
+            }
+            is Clip -> use(node.input)
+            is Transform -> use(node.input)
+            is Primitive<*> -> node.inputs.forEach { use(it.image.index) }
+            else -> Unit
         }
+    }
 
     private fun collectInputVersions(index: Int, versions: MutableList<Long>) {
-        for (input in directInputs(index)) {
+        forEachInput(index) { input ->
             val selected = aliases[input]
             if (inlineDrawing[selected]) collectInputVersions(selected, versions)
             else versions.add(outputVersions[selected])
@@ -712,6 +744,12 @@ internal constructor(
     public fun outputBounds(image: BackdropImage? = null): Rect = domains[imageIndex(image)]
 
     internal fun outputBounds(index: Int): Rect = domains[index]
+
+    internal fun usesSource(index: Int): Boolean = sourceInputs[aliases[index]]
+
+    internal fun usesPosition(index: Int): Boolean = positionInputs[aliases[index]]
+
+    internal fun canDrawDirectly(index: Int): Boolean = directDrawing[aliases[index]]
 
     private fun imageIndex(image: BackdropImage?): Int {
         check(resolved) { "Resolve a declaration before accessing its images" }
@@ -818,6 +856,29 @@ internal constructor(
         }
     }
 
+    internal fun drawDirectly(target: DrawScope, index: Int) {
+        val selected = aliases[index]
+        check(directDrawing[selected])
+        val domain = domains[index]
+        if (domain.isEmpty) return
+        layers.remove(selected)?.let { layer ->
+            context().releaseGraphicsLayer(layer)
+            outputVersions[selected] = 0L
+        }
+        val request = checkNotNull(requests[selected])
+        observeNode.observe(selected) {
+            with(target) {
+                clipRect(domain.left, domain.top, domain.right, domain.bottom) {
+                    clipRect(request.left, request.top, request.right, request.bottom) {
+                        withSurfaceDrawScope { surface ->
+                            drawNode(selected, surface) { error("Direct drawing has no source") }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun render(
         index: Int,
         target: DrawScope,
@@ -913,22 +974,28 @@ internal constructor(
         source: DrawScope.(Rect) -> Unit,
     ) {
         layer.record(scope.density, scope.layoutDirection, storage) {
-            val ds =
-                object : DrawScope by this {
-                    override val size: Size
-                        get() = scope.size
-                }
             translate(-layer.topLeft.x.toFloat(), -layer.topLeft.y.toFloat()) {
                 clipRect(request.left, request.top, request.right, request.bottom) {
-                    val storageSize = drawContext.size
-                    drawContext.size = scope.size
-                    try {
-                        if (input != null) drawLayer(input) else drawNode(index, ds, source)
-                    } finally {
-                        drawContext.size = storageSize
+                    withSurfaceDrawScope { surface ->
+                        if (input != null) drawLayer(input) else drawNode(index, surface, source)
                     }
                 }
             }
+        }
+    }
+
+    private inline fun DrawScope.withSurfaceDrawScope(draw: (DrawScope) -> Unit) {
+        val surface =
+            object : DrawScope by this {
+                override val size: Size
+                    get() = scope.size
+            }
+        val previousSize = drawContext.size
+        drawContext.size = scope.size
+        try {
+            draw(surface)
+        } finally {
+            drawContext.size = previousSize
         }
     }
 

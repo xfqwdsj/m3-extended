@@ -271,7 +271,6 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
 
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
         this.coordinates = coordinates
-        markAllNodesDirty()
         val density = requireDensity()
         val next =
             Geometry(
@@ -280,6 +279,16 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
                 density.fontScale,
                 requireLayoutDirection(),
             )
+        val scope = renderScope
+        if (
+            geometry == next &&
+                scope != null &&
+                parameters.exported == null &&
+                !renderer.usesPosition(scope.current.index) &&
+                scope.foregroundImage?.let { renderer.usesPosition(it.index) } != true
+        )
+            return
+        markAllNodesDirty()
         updateGeometry(next)
         parameters.exported?.layerCoordinates = coordinates
         invalidateDraw()
@@ -400,6 +409,14 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
         resolvePending()
         if (renderScope == null) resolve(geometry)
         val scope = renderScope!!
+        val background = scope.current.index
+        val foreground = scope.foregroundImage?.index
+        val exported = parameters.exported
+        val exportImage = scope.exportedImage?.index ?: background
+        val usesSource =
+            renderer.usesSource(background) ||
+                foreground?.let(renderer::usesSource) == true ||
+                (exported != null && renderer.usesSource(exportImage))
         if (alpha == 1f) releasePresentationLayers()
         val window = currentValueOf(LocalWindowInfo)
         val entries =
@@ -420,7 +437,7 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
             graphDirty = false
             graphFrame++
             if (dirtyAllNodes) renderer.beginFrame() else renderer.beginFrame(dirtyNodeIndices)
-            sourceRenderer.beginFrame()
+            if (usesSource) sourceRenderer.beginFrame() else sourceRenderer.release()
         }
         try {
             val drawSource: DrawScope.(Rect) -> Unit = { request ->
@@ -430,7 +447,7 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
                     }
                 }
             }
-            fun DrawScope.prepareBackground(index: Int = scope.current.index) {
+            fun DrawScope.prepareBackground(index: Int = background) {
                 if (alpha == 0f) return
                 if (alpha == 1f) return
                 val extension = renderer.extension
@@ -459,42 +476,41 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
                 }
             }
 
-            fun DrawScope.drawBackground(index: Int = scope.current.index) {
+            fun DrawScope.drawBackground(index: Int = background) {
                 if (alpha == 0f) return
                 if (alpha == 1f) renderer.draw(this, index, drawSource)
                 else drawLayer(presentationLayers.getValue(index).layer)
             }
 
-            // Record selected graph images before entering presentation or export recording.
-            if (recordGraph) {
-                if (alpha > 0f) renderer.prepare(this, source = drawSource)
+            if (alpha > 0f) {
+                if (alpha == 1f && exported == null && renderer.canDrawDirectly(background)) {
+                    renderer.drawDirectly(this, background)
+                } else {
+                    // Prepare retained images before entering presentation or export recording.
+                    if (recordGraph) renderer.prepare(this, background, drawSource)
+                    prepareBackground()
+                    drawBackground()
+                }
             }
-            prepareBackground()
-            drawBackground()
             val outline = parameters.shape.shape.createOutline(size, layoutDirection, this)
             val canvas = drawContext.canvas
             canvas.save()
             canvas.clipOutline(outline, contentPath)
             drawContent()
             canvas.restore()
-            if (recordGraph) {
-                val foreground = scope.foregroundImage
-                if (foreground != null) renderer.prepare(this, foreground.index, drawSource)
+            if (foreground != null) {
+                if (exported == null && renderer.canDrawDirectly(foreground)) {
+                    renderer.drawDirectly(this, foreground)
+                } else {
+                    if (recordGraph) renderer.prepare(this, foreground, drawSource)
+                    renderer.draw(this, foreground, drawSource)
+                }
             }
-            scope.foregroundImage?.let { renderer.draw(this, it.index, drawSource) }
-            if (recordGraph) {
-                if (parameters.exported != null && alpha > 0f)
-                    renderer.prepare(
-                        this,
-                        scope.exportedImage?.index ?: scope.current.index,
-                        drawSource,
-                    )
-            }
-            parameters.exported?.let { exported ->
-                val image = scope.exportedImage?.index ?: scope.current.index
-                prepareBackground(image)
+            if (exported != null) {
+                if (recordGraph && alpha > 0f) renderer.prepare(this, exportImage, drawSource)
+                prepareBackground(exportImage)
                 val extension = renderer.extension
-                val visible = renderer.outputBounds(image)
+                val visible = renderer.outputBounds(exportImage)
                 val offset = Offset(extension.left, extension.top)
                 exported.layerOffset = offset
                 // Exported content becomes a finite pixel source for the next consumer. Round
@@ -518,7 +534,7 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
                 ) {
                     drawContext.canvas.save()
                     drawContext.canvas.translate(extension.left, extension.top)
-                    drawBackground(image)
+                    drawBackground(exportImage)
                     drawContext.canvas.restore()
                 }
             }
@@ -526,7 +542,7 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
             markAllNodesDirty()
             throw failure
         } finally {
-            if (recordGraph) sourceRenderer.endFrame()
+            if (recordGraph && usesSource) sourceRenderer.endFrame()
             if (recordGraph && !graphDirty) {
                 dirtyAllNodes = false
                 dirtyNodeIndices.clear()

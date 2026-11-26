@@ -43,7 +43,17 @@ internal class InverseLayerScope : GraphicsLayerScope {
     override var renderEffect: RenderEffect? = null
     override var blendMode: BlendMode = BlendMode.SrcOver
     override var colorFilter: ColorFilter? = null
-    override var compositingStrategy: CompositingStrategy = CompositingStrategy.Auto
+    private var explicitCompositingStrategy: CompositingStrategy? = null
+
+    val usesAutomaticCompositing: Boolean
+        get() = explicitCompositingStrategy == CompositingStrategy.Auto
+
+    override var compositingStrategy: CompositingStrategy
+        get() = explicitCompositingStrategy ?: CompositingStrategy.Auto
+        set(value) {
+            explicitCompositingStrategy = value
+        }
+
     override var outsets: LayerOutsets = LayerOutsets.Zero
 
     private var matrix: Matrix? = null
@@ -89,7 +99,7 @@ internal class InverseLayerScope : GraphicsLayerScope {
         renderEffect = null
         blendMode = BlendMode.SrcOver
         colorFilter = null
-        compositingStrategy = CompositingStrategy.Auto
+        explicitCompositingStrategy = null
         outsets = LayerOutsets.Zero
 
         matrix = null

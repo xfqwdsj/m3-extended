@@ -136,11 +136,17 @@ observed drawing inputs. Dirty versions propagate only through consuming nodes. 
 `LayerBackdrop` publishes a source revision after successful recording, replacement, clearing and
 detachment, so equal bounds or object identity never imply equal pixels.
 Background, foreground and export retain independent snapshot observations in their drawing order,
-so reused recordings keep their dependencies when opacity or child content changes. Position,
-geometry, interaction membership and resource refreshes also invalidate recording. A visibility
+so reused recordings keep their dependencies when opacity or child content changes. Geometry,
+interaction membership and resource refreshes also invalidate recording. A visibility
 transition prepares the active outputs and releases unused source-boundary resources.
-Background alpha one presents the selected graph layer directly. Fractional background alpha
-applies once through a receiver-owned presentation layer; returning to one releases that layer.
+The modifier can draw source-independent, single-consumer SrcOver operations and geometry commands
+into the enclosing layer without a graph recording. Direct drawing applies to the background at
+alpha one and to the foreground independently. A receiver with an export layer uses recorded
+outputs. For a tint independent of the source, start from a transparent `group { }` and call
+`fill` inside it.
+
+Fractional background alpha applies once through a receiver-owned presentation layer. Returning to
+one releases that layer.
 The selected export image is prepared before export recording, preserving the same graph-image
 sharing across background and export.
 Ordinary intermediate layers store the outward-rounded pixels requested from that node, with
@@ -182,8 +188,10 @@ retained derived state whose equality separates structural from parameter depend
 
 Visual producers are observed by drawing or effect resolution. Explicit producers avoid reading
 replaced style defaults, and inherited producers resolve locals at the modifier's use position.
-Position-only updates invalidate coordinate-dependent source sampling; changes to size, density,
-font scale, layout direction, or observed geometry inputs resolve the graph before drawing.
+Position-only updates invalidate receivers that sample a source, export a layer, or execute a
+primitive or `drawWithContent` callback. Receivers with surface-local drawing reuse it during
+translation. Changes to size, density, font scale, layout direction, or observed geometry inputs
+resolve the graph before drawing.
 Sampling extension is resolved before isolation placement so recording and isolation use consistent origins.
 
 Surface isolation captures size, density, and layout direction during measurement, then configures

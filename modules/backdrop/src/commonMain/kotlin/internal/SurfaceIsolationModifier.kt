@@ -131,7 +131,9 @@ internal class SurfaceIsolationNode(
                 ceil(outsets.bottom.toPx()).toInt(),
             )
         }
-        layer.compositingStrategy = CompositingStrategy.Offscreen
+        layer.compositingStrategy =
+            if (scope.usesAutomaticCompositing) CompositingStrategy.Auto
+            else CompositingStrategy.Offscreen
         layer.alpha = scope.alpha
         layer.shadowElevation = scope.shadowElevation
         layer.ambientShadowColor = scope.ambientShadowColor
