@@ -43,38 +43,12 @@ public fun DrawScope.backdropFillRoom(
     val towardsContent = side.carriesContent
     val pastContentSide = maxOf(0f, -span.start)
     val pastFarSide = maxOf(0f, span.endInclusive - thickness)
-    val insets =
-        when (side) {
-            BackdropSide.Top ->
-                BackdropInsets(
-                    top = pastFarSide.toDp(),
-                    bottom = pastContentSide.toDp(),
-                )
-            BackdropSide.Bottom ->
-                BackdropInsets(
-                    top = pastContentSide.toDp(),
-                    bottom = pastFarSide.toDp(),
-                )
-            BackdropSide.Left ->
-                BackdropInsets(
-                    left = pastFarSide.toDp(),
-                    right = pastContentSide.toDp(),
-                )
-            BackdropSide.Right ->
-                BackdropInsets(
-                    left = pastContentSide.toDp(),
-                    right = pastFarSide.toDp(),
-                )
-        }
+    val insets = coveredInsets(side, pastContentSide, pastFarSide)
     val leading = if (towardsContent) pastFarSide else pastContentSide
     return BackdropFillRoom(
         insets = insets,
         leading = leading,
-        domain =
-            Size(
-                surfaceSize.width + insets.left.toPx() + insets.right.toPx(),
-                surfaceSize.height + insets.top.toPx() + insets.bottom.toPx(),
-            ),
+        domain = insets.expand(surfaceSize, this),
     )
 }
 

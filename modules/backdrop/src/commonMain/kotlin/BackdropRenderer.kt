@@ -27,12 +27,16 @@ import androidx.compose.ui.util.unpackInt2
 import kotlin.math.ceil
 import kotlin.math.floor
 import top.ltfan.m3x.backdrop.RenderImageNode.Process as ProcessNode
-import top.ltfan.m3x.backdrop.highlight.HighlightSdfHost
+import top.ltfan.m3x.backdrop.internal.BackdropPrimitiveRuntime
+import top.ltfan.m3x.backdrop.internal.FailureCollector
 import top.ltfan.m3x.backdrop.internal.SurfaceClipPath
 import top.ltfan.m3x.backdrop.internal.clipOutline
 import top.ltfan.m3x.backdrop.internal.clipToExtendedShape
 import top.ltfan.m3x.backdrop.internal.extendedSurfaceClipBounds
+import top.ltfan.m3x.backdrop.internal.hasFiniteEdges
+import top.ltfan.m3x.backdrop.internal.hasFiniteSize
 import top.ltfan.m3x.backdrop.internal.inverseSourceTransform
+import top.ltfan.m3x.backdrop.internal.isOrdered
 import top.ltfan.m3x.backdrop.internal.pixelAligned
 
 /**
@@ -49,7 +53,7 @@ public class BackdropRenderer
 internal constructor(
     private val context: () -> GraphicsContext,
     private val observeNode: NodeObserver,
-    private val highlightSdfHost: HighlightSdfHost? = null,
+    private val primitiveRuntime: BackdropPrimitiveRuntime? = null,
 ) : AutoCloseable {
     public constructor(
         context: () -> GraphicsContext,
@@ -142,14 +146,7 @@ internal constructor(
         resolved = false
         frameReady = false
         require(
-            requested.left.isFinite() &&
-                requested.top.isFinite() &&
-                requested.right.isFinite() &&
-                requested.bottom.isFinite() &&
-                requested.width.isFinite() &&
-                requested.height.isFinite() &&
-                requested.left <= requested.right &&
-                requested.top <= requested.bottom,
+            requested.hasFiniteEdges && requested.hasFiniteSize && requested.isOrdered,
         ) {
             "Requested bounds must be finite and non-inverted"
         }
@@ -723,7 +720,7 @@ internal constructor(
         }
         val selected =
             instance
-                ?: node.createInstance(this.context, highlightSdfHost).also {
+                ?: node.createInstance(this.context, primitiveRuntime).also {
                     primitives[index] = it
                 }
         try {
@@ -1169,15 +1166,11 @@ internal constructor(
     }
 
     private fun closePrimitives() {
-        var failure: Throwable? = null
+        val failures = FailureCollector()
         for (index in primitives.keys.toList()) {
-            try {
-                primitives.remove(index)!!.close()
-            } catch (problem: Throwable) {
-                if (failure == null) failure = problem else failure.addSuppressed(problem)
-            }
+            failures.run { primitives.remove(index)!!.close() }
         }
-        failure?.let { throw it }
+        failures.throwIfFailed()
     }
 
     /** Releases recorded layers and refreshes primitives while retaining resolved geometry. */
@@ -1206,29 +1199,26 @@ internal constructor(
     public override fun close() {
         resolved = false
         frameReady = false
-        var failure: Throwable? = null
-        fun dispose(block: () -> Unit) {
-            try {
-                block()
-            } catch (problem: Throwable) {
-                if (failure == null) failure = problem else failure.addSuppressed(problem)
-            }
-        }
+        val failures = FailureCollector()
         if (layers.isNotEmpty()) {
-            dispose {
+            failures.run {
                 val graphics = context()
-                layers.values.forEach { layer -> dispose { graphics.releaseGraphicsLayer(layer) } }
+                layers.values.forEach { layer ->
+                    failures.run { graphics.releaseGraphicsLayer(layer) }
+                }
             }
             layers.clear()
         }
         effectLayers.values.forEach { owned ->
-            owned.fastForEach { layer -> dispose { context().releaseGraphicsLayer(layer) } }
+            owned.fastForEach { layer ->
+                failures.run { context().releaseGraphicsLayer(layer) }
+            }
         }
         effectLayers.clear()
-        dispose { closePrimitives() }
+        failures.run { closePrimitives() }
         primitiveContexts.clear()
         primitiveNeedsPrepare.clear()
-        effects.values.forEach { effect -> dispose { effect.reset() } }
+        effects.values.forEach { effect -> failures.run { effect.reset() } }
         effects.clear()
         filterPlans.fill(null)
         filterRequests.fill(null)
@@ -1243,7 +1233,7 @@ internal constructor(
         interactionFrame.clear()
         extension = None
         visible = Zero
-        failure?.let { throw it }
+        failures.throwIfFailed()
     }
 }
 
@@ -1270,14 +1260,7 @@ private fun Rect.hasBounds(left: Float, top: Float, right: Float, bottom: Float)
 
 private fun validate(rect: Rect) {
     require(
-        rect.left.isFinite() &&
-            rect.top.isFinite() &&
-            rect.right.isFinite() &&
-            rect.bottom.isFinite() &&
-            rect.width.isFinite() &&
-            rect.height.isFinite() &&
-            rect.left <= rect.right &&
-            rect.top <= rect.bottom,
+        rect.hasFiniteEdges && rect.hasFiniteSize && rect.isOrdered,
     ) {
         "Invalid render bounds: $rect"
     }

@@ -29,12 +29,13 @@ Sources: [runtime](../modules/runtime/build.gradle.kts), [UI](../modules/ui/buil
 
 ## Presentation and rendering
 
-`shape` owns double-precision path segments, closed contours, and their Compose Path and SVG
-output. `capsule` uses those segments to generate continuous rounded shapes. `overlay` is the
-design-independent presentation layer. `backdrop` contains the Compose rendering kernel, source capture and effect
-graph independently of Material and overlay presentation. `overlay-backdrop` joins the overlay and
-Backdrop layers through the host's extension contract. Design-specific components and rendering
-adapters consume these foundations rather than introducing parallel host ownership.
+`shape` owns double-precision path segments, closed contours, curve flattening, and their Compose
+Path and SVG output. `capsule` uses those segments to generate continuous rounded shapes. `overlay`
+is the design-independent presentation layer. `backdrop` contains the Compose rendering kernel,
+source capture and effect graph independently of Material and overlay presentation.
+`overlay-backdrop` joins the overlay and Backdrop layers through the host's extension contract.
+Design-specific components and rendering adapters consume these foundations and preserve host
+ownership.
 
 Applications own the enclosing hosts. Components consume those hosts, and adapters participate in
 their lifecycle. The integration must preserve the host's ordering, input and transition contracts.

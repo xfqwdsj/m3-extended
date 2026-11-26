@@ -26,6 +26,8 @@ import top.ltfan.m3x.backdrop.RenderImageNode
 import top.ltfan.m3x.backdrop.effects.blur
 import top.ltfan.m3x.backdrop.interaction.InteractionLighting
 import top.ltfan.m3x.backdrop.interaction.interactionLight
+import top.ltfan.m3x.backdrop.internal.BoundaryFlatness
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometryProvider
 import top.ltfan.m3x.backdrop.internal.ShapeProvider
 import top.ltfan.m3x.backdrop.isRuntimeShaderSupported
 import top.ltfan.m3x.backdrop.primitive
@@ -39,7 +41,7 @@ private const val DefaultEnvironmentGain = 1.46f
 private val DefaultDirection = HighlightDirection()
 
 /** Maximum curve-to-segment deviation in local pixels for contour highlights. */
-public const val HighlightFlatness: Float = .2f
+public const val HighlightFlatness: Float = BoundaryFlatness
 
 private val DefaultDisabledAngles
     get() = emptySet<ClosedFloatingPointRange<Float>>()
@@ -314,7 +316,7 @@ internal fun BackdropImageScope.highlightWithConfig(
 ) {
     requireAlpha(alpha)
     environment?.let(::checkImage)
-    val highlight = EnvironmentHighlightPrimitive(config, lensBoundaryCache)
+    val highlight = EnvironmentHighlightPrimitive(config, boundaryGeometryCache)
     if (environment == null || !isRuntimeShaderSupported()) {
         primitive(highlight, alpha = alpha, blendMode = blendMode)
         return

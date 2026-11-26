@@ -8,19 +8,19 @@ import androidx.compose.ui.unit.IntRect
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
 import top.ltfan.m3x.backdrop.highlight.HighlightSdfField
 import top.ltfan.m3x.backdrop.highlight.HighlightSdfLayout
 import top.ltfan.m3x.backdrop.highlight.bakeHighlightCpuSdf
 import top.ltfan.m3x.backdrop.highlight.bakeHighlightGpuSdf
+import top.ltfan.m3x.backdrop.highlight.environmentHighlightTileShader
 import top.ltfan.m3x.backdrop.highlight.uploadHighlightSdf
-import top.ltfan.m3x.backdrop.internal.environmentHighlightTileShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 
 internal class HighlightSdfHdrTest {
     @Test
     fun textureSamplePreservesRadianceInTheExistingF16ShaderHarness() = runBlocking {
         initializeTestGraphics()
-        val geometry = HighlightBoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 40f, 32f)))
+        val geometry = BoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 40f, 32f)))
         val layout = HighlightSdfLayout(listOf(IntRect(0, 0, 40, 32)), 2, 8f)
         uploadHighlightSdf(layout, bakeHighlightCpuSdf(layout, geometry)).use {
             assertExtendedRange(geometry, it)
@@ -32,7 +32,7 @@ internal class HighlightSdfHdrTest {
         }
     }
 
-    private fun assertExtendedRange(geometry: HighlightBoundaryGeometry, field: HighlightSdfField) {
+    private fun assertExtendedRange(geometry: BoundaryGeometry, field: HighlightSdfField) {
         val shader =
             RuntimeShader(
                 environmentHighlightTileShader(

@@ -459,12 +459,13 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
                 layer.topLeft = IntOffset(-extension.left.toInt(), -extension.top.toInt())
                 layer.alpha = alpha
                 if (presentation.recordedFrame != graphFrame) {
+                    val extendedSize = extension.expand(scope.size)
                     layer.record(
                         Density(density, fontScale),
                         layoutDirection,
                         IntSize(
-                            ceil(scope.size.width + extension.left + extension.right).toInt(),
-                            ceil(scope.size.height + extension.top + extension.bottom).toInt(),
+                            ceil(extendedSize.width).toInt(),
+                            ceil(extendedSize.height).toInt(),
                         ),
                     ) {
                         drawContext.canvas.save()
@@ -525,11 +526,12 @@ private class RenderBackdropNode(var parameters: RenderBackdropElement) :
                             ceil(bounds.right),
                             ceil(bounds.bottom),
                         )
+                val extendedSize = extension.expand(size)
                 recordLayer(
                     exported.graphicsLayer,
                     IntSize(
-                        ceil(size.width + extension.left + extension.right).toInt(),
-                        ceil(size.height + extension.top + extension.bottom).toInt(),
+                        ceil(extendedSize.width).toInt(),
+                        ceil(extendedSize.height).toInt(),
                     ),
                 ) {
                     drawContext.canvas.save()

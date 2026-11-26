@@ -1,13 +1,10 @@
-package top.ltfan.m3x.backdrop.internal
+package top.ltfan.m3x.backdrop.highlight
 
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
-import top.ltfan.m3x.backdrop.highlight.HighlightDirection
-import top.ltfan.m3x.backdrop.highlight.angularDirectionShader
-import top.ltfan.m3x.backdrop.highlight.exclusionShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 
 /** Shades one nearest-contour response from a prefiltered environment image. */
 internal fun environmentHighlightTileShader(
-    boundary: HighlightBoundaryGeometry,
+    boundary: BoundaryGeometry,
     segmentCapacity: Int = boundary.segmentCount,
     segmentGroupSize: Int = 0,
     certifiedNormalsOnly: Boolean = false,

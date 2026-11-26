@@ -21,13 +21,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.DragHandleColors
 import androidx.compose.material3.DragHandleShapes
 import androidx.compose.material3.DragHandleSizes
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDragHandle as MaterialVerticalDragHandle
 import androidx.compose.material3.VerticalDragHandleDefaults as MaterialVerticalDragHandleDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import top.ltfan.m3x.material.theme.extended
 
 /**
  * [Material Design drag
@@ -87,7 +85,7 @@ public object VerticalDragHandleDefaults {
         draggedShape: Shape? = null,
     ): DragHandleShapes =
         MaterialVerticalDragHandleDefaults.shapes(
-            shape = shape ?: MaterialTheme.extended.shapes.full,
+            shape = resolvedFullShape(shape),
             pressedShape = pressedShape,
             draggedShape = draggedShape,
         )

@@ -12,8 +12,10 @@ import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
-import top.ltfan.m3x.backdrop.highlight.HighlightSdfHost
+import top.ltfan.m3x.backdrop.internal.BackdropPrimitiveRuntime
+import top.ltfan.m3x.backdrop.internal.FailureCollector
 import top.ltfan.m3x.backdrop.internal.createRuntimeShaderEffect
+import top.ltfan.m3x.backdrop.internal.hasFiniteEdges
 
 internal class PrimitiveGeometry(
     override val density: Density,
@@ -77,12 +79,7 @@ internal class PrimitiveImage(
             "Primitive input origin must be finite"
         }
         val storageBounds = bounds.translate(origin)
-        require(
-            storageBounds.left.isFinite() &&
-                storageBounds.top.isFinite() &&
-                storageBounds.right.isFinite() &&
-                storageBounds.bottom.isFinite(),
-        ) {
+        require(storageBounds.hasFiniteEdges) {
             "Primitive input bounds must be finite"
         }
         return createRuntimeShaderEffect(
@@ -96,7 +93,7 @@ internal class PrimitiveImage(
 
 internal class PrimitiveResources(
     private val context: () -> GraphicsContext,
-    val highlightSdfHost: HighlightSdfHost?,
+    val primitiveRuntime: BackdropPrimitiveRuntime?,
 ) : BackdropRenderResources {
     constructor(context: () -> GraphicsContext) : this(context, null)
 
@@ -154,17 +151,10 @@ internal class PrimitiveResources(
     private fun cleanup(refresh: Boolean) {
         cleaning = true
         try {
-            var failure: Throwable? = null
-            fun attempt(action: () -> Unit) {
-                try {
-                    action()
-                } catch (problem: Throwable) {
-                    if (failure == null) failure = problem else failure.addSuppressed(problem)
-                }
-            }
-            for (pool in pools) attempt { if (refresh) pool.refresh() else pool.close() }
-            for (layer in layers.toList()) attempt { releaseGraphicsLayer(layer) }
-            failure?.let { throw it }
+            val failures = FailureCollector()
+            for (pool in pools) failures.run { if (refresh) pool.refresh() else pool.close() }
+            for (layer in layers.toList()) failures.run { releaseGraphicsLayer(layer) }
+            failures.throwIfFailed()
         } finally {
             cleaning = false
         }
@@ -189,11 +179,11 @@ internal interface PrimitiveInstance {
 
 internal fun <P : BackdropPrimitive<P>> RenderImageNode.Primitive<P>.createInstance(
     graphics: () -> GraphicsContext,
-    highlightSdfHost: HighlightSdfHost?,
+    primitiveRuntime: BackdropPrimitiveRuntime?,
 ): PrimitiveInstance {
     val type = primitive::class
     val key = primitive.rendererKey
-    val resources = PrimitiveResources(graphics, highlightSdfHost)
+    val resources = PrimitiveResources(graphics, primitiveRuntime)
     val renderer =
         try {
             primitive.createRenderer(resources)

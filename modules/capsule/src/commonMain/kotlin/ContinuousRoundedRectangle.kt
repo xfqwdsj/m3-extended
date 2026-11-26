@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.RectangleShape
@@ -42,14 +41,9 @@ public constructor(
         bottomEnd: Float,
         bottomStart: Float,
         layoutDirection: LayoutDirection,
-    ): Outline {
-        val corners = RoundedCorners(topStart, topEnd, bottomEnd, bottomStart)
-        if (corners.isZero) {
-            return Outline.Rectangle(Rect(0f, 0f, size.width, size.height))
-        }
-
-        return corners.physicalCorners(size, layoutDirection).createOutline(size, continuity)
-    }
+    ): Outline =
+        RoundedCorners(topStart, topEnd, bottomEnd, bottomStart)
+            .createContinuousOutline(size, continuity, layoutDirection)
 
     override fun createContour(
         size: Size,
@@ -101,24 +95,18 @@ public constructor(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ContinuousRoundedRectangle) return false
-
-        if (topStart != other.topStart) return false
-        if (topEnd != other.topEnd) return false
-        if (bottomEnd != other.bottomEnd) return false
-        if (bottomStart != other.bottomStart) return false
-        if (continuity != other.continuity) return false
-
-        return true
+        return continuousRoundedRectangleEquals(
+            other,
+            topStart,
+            topEnd,
+            bottomEnd,
+            bottomStart,
+            continuity,
+        )
     }
 
-    override fun hashCode(): Int {
-        var result = topStart.hashCode()
-        result = 31 * result + topEnd.hashCode()
-        result = 31 * result + bottomEnd.hashCode()
-        result = 31 * result + bottomStart.hashCode()
-        result = 31 * result + continuity.hashCode()
-        return result
-    }
+    override fun hashCode(): Int =
+        continuousRoundedRectangleHashCode(topStart, topEnd, bottomEnd, bottomStart, continuity)
 
     override fun toString(): String {
         return "ContinuousRoundedRectangle(topStart=$topStart, topEnd=$topEnd, bottomEnd=$bottomEnd, " +
@@ -162,8 +150,6 @@ private data class ContinuousRectangleImpl(
         return "ContinuousRectangle(continuity=$continuity)"
     }
 }
-
-private val FullCornerSize = CornerSize(50)
 
 @Stable public val ContinuousCapsule: ContinuousRoundedRectangle = ContinuousCapsule()
 

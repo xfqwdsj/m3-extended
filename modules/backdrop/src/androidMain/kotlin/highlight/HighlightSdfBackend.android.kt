@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import top.ltfan.m3x.backdrop.BackdropImageInput
 import top.ltfan.m3x.backdrop.RuntimeShader
 import top.ltfan.m3x.backdrop.asAndroidRuntimeShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 
 internal actual val highlightGpuSdfAvailable: Boolean
     get() = Build.VERSION.SDK_INT >= 34
@@ -50,7 +51,7 @@ internal actual fun uploadHighlightSdf(
 
 internal actual suspend fun bakeHighlightGpuSdf(
     layout: HighlightSdfLayout,
-    geometry: HighlightBoundaryGeometry,
+    geometry: BoundaryGeometry,
 ): HighlightSdfField? =
     if (Build.VERSION.SDK_INT >= 34)
         sdfGpuSlots.withPermit {
@@ -89,7 +90,7 @@ private fun bitmapField(
 @RequiresApi(34)
 private suspend fun bakeHardwareField(
     layout: HighlightSdfLayout,
-    geometry: HighlightBoundaryGeometry,
+    geometry: BoundaryGeometry,
 ): HighlightSdfField? {
     val width = layout.size.width
     val height = layout.size.height

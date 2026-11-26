@@ -35,13 +35,13 @@ import org.jetbrains.skia.Shader
 import org.jetbrains.skia.Surface
 import top.ltfan.m3x.backdrop.effects.colorFilter
 import top.ltfan.m3x.backdrop.effects.vibrancy
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
 import top.ltfan.m3x.backdrop.highlight.HighlightDirection
+import top.ltfan.m3x.backdrop.highlight.environmentHighlightTileShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 import top.ltfan.m3x.backdrop.internal.LightingShader
 import top.ltfan.m3x.backdrop.internal.SourceBoundaryShader
 import top.ltfan.m3x.backdrop.internal.TintShader
 import top.ltfan.m3x.backdrop.internal.colorUniformComponents
-import top.ltfan.m3x.backdrop.internal.environmentHighlightTileShader
 import top.ltfan.m3x.backdrop.internal.setHdrColor
 
 class HdrRenderingTest : PlatformGraphicsTest() {
@@ -64,7 +64,7 @@ class HdrRenderingTest : PlatformGraphicsTest() {
 
     @Test
     fun contourHighlightPreservesExtendedColorGain() {
-        val boundary = HighlightBoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 16f, 16f)))
+        val boundary = BoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 16f, 16f)))
         val shader =
             RuntimeShader(
                 environmentHighlightTileShader(

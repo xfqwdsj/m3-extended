@@ -1,7 +1,6 @@
 package top.ltfan.m3x.backdrop
 
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.util.fastForEach
@@ -53,10 +52,7 @@ public fun BackdropImageScope.surface(block: BackdropSurfaceScope.() -> Unit = {
             val bounds =
                 Rect(
                     room.extension.originInNode,
-                    Size(
-                        room.size.width + room.extension.left + room.extension.right,
-                        room.size.height + room.extension.top + room.extension.bottom,
-                    ),
+                    room.drawingSize,
                 )
             val explicitFill = config.fill
             if (explicitFill != null) explicitFill(this, bounds)

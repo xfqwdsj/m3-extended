@@ -1,6 +1,7 @@
 package top.ltfan.m3x.backdrop.shadow
 
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
@@ -16,9 +17,10 @@ import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.ceil
-import kotlin.math.max
 import top.ltfan.m3x.backdrop.BackdropRenderResources
 import top.ltfan.m3x.backdrop.internal.blur
 import top.ltfan.m3x.backdrop.internal.clipOutline
@@ -60,17 +62,7 @@ internal class ShadowRenderer(private val resources: BackdropRenderResources) {
     }
 
     fun bounds(scope: DrawScope, config: Shadow.Config): Rect =
-        with(scope) {
-            val support = maskBlurSupport(config.radius.toPx())
-            val x = config.offset.x.toPx()
-            val y = config.offset.y.toPx()
-            Rect(
-                -support - max(-x, 0f),
-                -support - max(-y, 0f),
-                size.width + support + max(x, 0f),
-                size.height + support + max(y, 0f),
-            )
-        }
+        outerShadowBounds(config, scope.size, scope)
 
     fun draw(scope: DrawScope, outline: Outline, config: Shadow.Config) =
         with(scope) {
@@ -150,3 +142,28 @@ internal class ShadowRenderer(private val resources: BackdropRenderResources) {
         innerBlur = null
     }
 }
+
+internal fun requireValidShadow(radius: Dp, offset: DpOffset, alpha: Float) {
+    require(radius.value.isFinite() && radius.value >= 0f) {
+        "Shadow radius must be finite and non-negative"
+    }
+    require(offset.x.value.isFinite() && offset.y.value.isFinite()) {
+        "Shadow offsets must be finite"
+    }
+    require(alpha.isFinite() && alpha in 0f..1f) {
+        "Shadow alpha must be finite and in 0..1"
+    }
+}
+
+internal fun outerShadowBounds(config: Shadow.Config, size: Size, density: Density): Rect =
+    with(density) {
+        val support = maskBlurSupport(config.radius.toPx())
+        val x = config.offset.x.toPx()
+        val y = config.offset.y.toPx()
+        Rect(
+            -support - maxOf(-x, 0f),
+            -support - maxOf(-y, 0f),
+            size.width + support + maxOf(x, 0f),
+            size.height + support + maxOf(y, 0f),
+        )
+    }

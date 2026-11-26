@@ -1,28 +1,23 @@
 package top.ltfan.m3x.backdrop.effects
 
 import androidx.annotation.FloatRange
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import top.ltfan.m3x.backdrop.BackdropEffectScope
 import top.ltfan.m3x.backdrop.BackdropEffectScopeImpl
 import top.ltfan.m3x.backdrop.BackdropLens
 import top.ltfan.m3x.backdrop.RuntimeShader
-import top.ltfan.m3x.backdrop.highlight.BoundaryGeometryProvider
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
-import top.ltfan.m3x.backdrop.highlight.bindBoundary
-import top.ltfan.m3x.backdrop.highlight.boundaryUniformCapacity
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometryCache
 import top.ltfan.m3x.backdrop.internal.RoundedRectRefractionShader
 import top.ltfan.m3x.backdrop.internal.RoundedRectRefractionWithDispersionShader
+import top.ltfan.m3x.backdrop.internal.bindBoundary
 import top.ltfan.m3x.backdrop.internal.contourLensSampling
 import top.ltfan.m3x.backdrop.internal.lensRefractionShader
 import top.ltfan.m3x.backdrop.internal.lensSampling
+import top.ltfan.m3x.backdrop.internal.shaderUniformCapacity
 import top.ltfan.m3x.backdrop.isRuntimeShaderSupported
-import top.ltfan.m3x.compose.shape.ContourShape
 
 /** Refracts near the resolved silhouette. Rectangles and circular corners use an analytic path. */
 public fun BackdropEffectScope.lens(
@@ -37,7 +32,7 @@ private fun BackdropEffectScope.applyLens(
     refractionAmount: Float,
     depthEffect: Boolean,
     chromaticAberration: Boolean,
-    boundaries: LensBoundaryCache? = null,
+    boundaries: BoundaryGeometryCache? = null,
 ) {
     require(refractionHeight.isFinite() && refractionHeight >= 0f) {
         "refractionHeight must be finite and non-negative."
@@ -51,8 +46,12 @@ private fun BackdropEffectScope.applyLens(
     val effectSize = size
     if (effectSize.isEmpty()) return
     val scope = this as BackdropEffectScopeImpl
+    val cache = boundaries ?: scope.boundaryGeometryCache
+    val entry = cache.resolve(shape, effectSize, layoutDirection, this)
     val resolved =
-        (boundaries ?: scope.lensBoundaryCache).get(shape, effectSize, layoutDirection, this)
+        entry.memoized(LensResolvedBoundaryKey) {
+            ResolvedLensBoundary(entry.geometry, effectSize)
+        }
     val boundary = resolved.geometry
     if (boundary.isEmpty) return
     val radii = resolved.radii
@@ -88,10 +87,9 @@ private fun BackdropEffectScope.applyLens(
     }
 }
 
-internal class ContourLens(private val boundary: HighlightBoundaryGeometry) {
-    private val capacity = boundaryUniformCapacity(boundary.segmentCount)
-    private val groupSize =
-        if (!boundary.isAnalytic && !boundary.usesConvexSupport && capacity >= 32) 8 else 0
+internal class ContourLens(private val boundary: BoundaryGeometry) {
+    private val capacity = shaderUniformCapacity(boundary.segmentCount)
+    private val groupSize = boundary.segmentGroupSize(capacity)
 
     private val singleSample by lazy { createShader(dispersion = false) }
     private val dispersed by lazy { createShader(dispersion = true) }
@@ -128,61 +126,16 @@ internal class ContourLens(private val boundary: HighlightBoundaryGeometry) {
     }
 }
 
-internal class ResolvedLensBoundary(val geometry: HighlightBoundaryGeometry, size: Size) {
-    val radii: FloatArray? = geometry.centeredCircularRadii(size)
+internal class ResolvedLensBoundary(val geometry: BoundaryGeometry, size: Size) {
+    val radii: FloatArray? =
+        geometry.circularCornerRadii?.takeIf {
+            geometry.bounds == Rect(Offset.Zero, size) &&
+                it.all { radius -> radius <= size.minDimension / 2f }
+        }
     val contour: ContourLens by lazy { ContourLens(geometry) }
 }
 
-/** Reuses flattened geometry across optics updates while observing outline and contour state. */
-internal class LensBoundaryCache : BoundaryGeometryProvider {
-    private data class Key(
-        val shape: Shape,
-        val size: Size,
-        val direction: LayoutDirection,
-        val density: Density,
-    )
-
-    private var key: Key? = null
-    private var geometry: State<ResolvedLensBoundary>? = null
-
-    fun get(
-        shape: Shape,
-        size: Size,
-        direction: LayoutDirection,
-        density: Density,
-    ): ResolvedLensBoundary {
-        val fixedDensity = Density(density.density, density.fontScale)
-        val next = Key(shape, size, direction, fixedDensity)
-        if (key != next) {
-            geometry = derivedStateOf {
-                val outline =
-                    HighlightBoundaryGeometry(shape.createOutline(size, direction, fixedDensity))
-                val boundary =
-                    if (outline.isAnalytic) outline
-                    else
-                        (shape as? ContourShape)
-                            ?.createContour(size, direction, fixedDensity)
-                            ?.takeIf { it.loops.size == 1 }
-                            ?.let(::HighlightBoundaryGeometry) ?: outline
-                ResolvedLensBoundary(boundary, size)
-            }
-            key = next
-        }
-        return checkNotNull(geometry).value
-    }
-
-    override fun geometry(
-        shape: Shape,
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density,
-    ): HighlightBoundaryGeometry = get(shape, size, layoutDirection, density).geometry
-
-    fun clear() {
-        geometry = null
-        key = null
-    }
-}
+private object LensResolvedBoundaryKey
 
 /**
  * Applies dp distances with the same shape, validation and platform contract as the pixel overload.
@@ -195,7 +148,7 @@ public fun BackdropEffectScope.lens(config: BackdropLens): Unit =
         config.chromaticAberration,
     )
 
-internal fun BackdropEffectScope.lens(config: BackdropLens, boundaries: LensBoundaryCache) =
+internal fun BackdropEffectScope.lens(config: BackdropLens, boundaries: BoundaryGeometryCache) =
     applyLens(
         config.refractionHeight.toPx(),
         config.refractionAmount.toPx(),
@@ -204,7 +157,7 @@ internal fun BackdropEffectScope.lens(config: BackdropLens, boundaries: LensBoun
         boundaries,
     )
 
-private fun contourSafeInterior(boundary: HighlightBoundaryGeometry, height: Float): Rect {
+private fun contourSafeInterior(boundary: BoundaryGeometry, height: Float): Rect {
     val margin = height + maxOf(1f, boundary.coordinateScale * .000002f)
     return boundary.contourFreeBounds.deflate(margin).takeUnless { it.isEmpty } ?: Rect.Zero
 }

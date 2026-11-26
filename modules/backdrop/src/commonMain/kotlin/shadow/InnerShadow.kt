@@ -6,6 +6,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.lerp
@@ -17,7 +18,6 @@ import androidx.compose.ui.util.lerp
 import top.ltfan.m3x.backdrop.BackdropGeometry
 import top.ltfan.m3x.backdrop.BackdropImageScope
 import top.ltfan.m3x.backdrop.BackdropPrimitive
-import top.ltfan.m3x.backdrop.BackdropPrimitiveDrawContext
 import top.ltfan.m3x.backdrop.BackdropPrimitiveRenderer
 import top.ltfan.m3x.backdrop.BackdropRenderResources
 import top.ltfan.m3x.backdrop.primitive
@@ -37,15 +37,7 @@ public sealed interface InnerShadow {
         @param:FloatRange(from = 0.0, to = 1.0) public val alpha: Float = 1f,
     ) : InnerShadow {
         init {
-            require(radius.value.isFinite() && radius.value >= 0f) {
-                "Shadow radius must be finite and non-negative"
-            }
-            require(offset.x.value.isFinite() && offset.y.value.isFinite()) {
-                "Shadow offsets must be finite"
-            }
-            require(alpha.isFinite() && alpha in 0f..1f) {
-                "Shadow alpha must be finite and in 0..1"
-            }
+            requireValidShadow(radius, offset, alpha)
         }
     }
 
@@ -103,27 +95,13 @@ private data class InnerShadowPrimitive(val config: InnerShadow.Config) :
     ): BackdropPrimitiveRenderer<InnerShadowPrimitive> = Renderer(resources)
 
     private class Renderer(resources: BackdropRenderResources) :
-        BackdropPrimitiveRenderer<InnerShadowPrimitive> {
-        private val renderer = ShadowRenderer(resources)
-
-        override fun draw(
+        ShadowPrimitiveRenderer<InnerShadowPrimitive>(resources) {
+        override fun drawShadow(
             scope: DrawScope,
+            outline: Outline,
             primitive: InnerShadowPrimitive,
-            context: BackdropPrimitiveDrawContext,
         ) {
-            renderer.draw(
-                scope,
-                context.shape.createOutline(context.size, context.layoutDirection, context.density),
-                primitive.config,
-            )
-        }
-
-        override fun refresh() {
-            renderer.release()
-        }
-
-        override fun release() {
-            renderer.release()
+            renderer.draw(scope, outline, primitive.config)
         }
     }
 }

@@ -15,16 +15,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.ltfan.m3x.backdrop.internal.BackdropPrimitiveRuntime
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 
 internal class HighlightSdfHost(
-    val scope: () -> CoroutineScope,
+    override val scope: () -> CoroutineScope,
     val settings: () -> HighlightSdfSettings,
-)
+) : BackdropPrimitiveRuntime
 
 /** Owns the work and the complete field for one contour renderer. Calls are confined to Compose. */
 internal class HighlightSdfPreparation(private val host: HighlightSdfHost) {
     private data class Key(
-        val geometry: HighlightBoundaryGeometry,
+        val geometry: BoundaryGeometry,
         val size: Size,
         val density: Float,
         val fontScale: Float,
@@ -44,7 +46,7 @@ internal class HighlightSdfPreparation(private val host: HighlightSdfHost) {
     private var current: HighlightSdfField? = null
 
     fun field(
-        geometry: HighlightBoundaryGeometry,
+        geometry: BoundaryGeometry,
         size: Size,
         density: Float,
         fontScale: Float,
@@ -132,7 +134,7 @@ internal class HighlightSdfPreparation(private val host: HighlightSdfHost) {
 
     private suspend fun prepare(
         layout: HighlightSdfLayout,
-        geometry: HighlightBoundaryGeometry,
+        geometry: BoundaryGeometry,
         preference: HighlightSdfBackend,
         backend: HighlightSdfBackend,
         expected: Int,

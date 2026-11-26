@@ -31,13 +31,11 @@ import androidx.compose.material3.FilterChip as MaterialFilterChip
 import androidx.compose.material3.FilterChipDefaults as MaterialFilterChipDefaults
 import androidx.compose.material3.InputChip as MaterialInputChip
 import androidx.compose.material3.InputChipDefaults as MaterialInputChipDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.SelectableChipElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import top.ltfan.m3x.material.theme.extended
 
 /**
  * [Material Design filter chip](https://m3.material.io/components/chips/overview)
@@ -320,7 +318,7 @@ public object FilterChipDefaults {
     ): ChipShapes =
         MaterialFilterChipDefaults.shapes(
             shape = shape,
-            selectedShape = selectedShape ?: MaterialTheme.extended.shapes.full,
+            selectedShape = resolvedFullShape(selectedShape),
             pressedShape = pressedShape,
         )
 }
@@ -345,7 +343,7 @@ public object InputChipDefaults {
     ): ChipShapes =
         MaterialInputChipDefaults.shapes(
             shape = shape,
-            selectedShape = selectedShape ?: MaterialTheme.extended.shapes.full,
+            selectedShape = resolvedFullShape(selectedShape),
             pressedShape = pressedShape,
         )
 }

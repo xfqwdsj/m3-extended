@@ -1,5 +1,7 @@
-package top.ltfan.m3x.backdrop.highlight
+package top.ltfan.m3x.backdrop.internal
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -13,20 +15,80 @@ import androidx.compose.ui.util.fastIsFinite
 import kotlin.math.abs
 import kotlin.math.sqrt
 import top.ltfan.m3x.backdrop.RuntimeShader
-import top.ltfan.m3x.backdrop.internal.FlattenedBoundaryGeometry
-import top.ltfan.m3x.backdrop.internal.convexBoundaryShaderFunctions
-import top.ltfan.m3x.backdrop.internal.genericBoundaryShaderFunctions
 import top.ltfan.m3x.compose.shape.Contour
+import top.ltfan.m3x.compose.shape.ContourShape
 import top.ltfan.m3x.compose.shape.toPath
 
-/** Supplies one cached boundary representation to both optical effects and contour lighting. */
+/** Maximum curve-to-segment deviation used by shared boundary shader geometry. */
+internal const val BoundaryFlatness: Float = .2f
+
+/** Supplies the boundary representation resolved for one shape and render context. */
 internal fun interface BoundaryGeometryProvider {
     fun geometry(
         shape: Shape,
         size: Size,
         layoutDirection: LayoutDirection,
         density: Density,
-    ): HighlightBoundaryGeometry
+    ): BoundaryGeometry
+}
+
+/** Caches the resolved boundary and derived effect state for one declaration key. */
+internal class BoundaryGeometryCache : BoundaryGeometryProvider {
+    private data class Key(
+        val shape: Shape,
+        val size: Size,
+        val layoutDirection: LayoutDirection,
+        val density: Density,
+    )
+
+    internal class Entry(val geometry: BoundaryGeometry) {
+        private val derived = mutableMapOf<Any, Any>()
+
+        @Suppress("UNCHECKED_CAST")
+        internal fun <T : Any> memoized(key: Any, create: () -> T): T =
+            derived[key] as? T ?: create().also { derived[key] = it }
+    }
+
+    private var key: Key? = null
+    private var entry: State<Entry>? = null
+
+    fun resolve(
+        shape: Shape,
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): Entry {
+        val fixedDensity = Density(density.density, density.fontScale)
+        val next = Key(shape, size, layoutDirection, fixedDensity)
+        if (key != next) {
+            entry = derivedStateOf {
+                val outlineGeometry =
+                    BoundaryGeometry(shape.createOutline(size, layoutDirection, fixedDensity))
+                val geometry =
+                    if (outlineGeometry.isAnalytic) outlineGeometry
+                    else
+                        (shape as? ContourShape)
+                            ?.createContour(size, layoutDirection, fixedDensity)
+                            ?.takeIf { it.loops.size == 1 }
+                            ?.let(::BoundaryGeometry) ?: outlineGeometry
+                Entry(geometry)
+            }
+            key = next
+        }
+        return checkNotNull(entry).value
+    }
+
+    override fun geometry(
+        shape: Shape,
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density,
+    ): BoundaryGeometry = resolve(shape, size, layoutDirection, density).geometry
+
+    fun clear() {
+        entry = null
+        key = null
+    }
 }
 
 internal enum class BoundaryShaderKind {
@@ -35,8 +97,8 @@ internal enum class BoundaryShaderKind {
     Segments,
 }
 
-/** Cached analytic or flattened representation shared by contour rendering and exclusions. */
-internal class HighlightBoundaryGeometry
+/** Cached analytic or flattened boundary representation for boundary-driven rendering. */
+internal class BoundaryGeometry
 private constructor(
     private val outline: Outline?,
     contour: Contour?,
@@ -111,10 +173,8 @@ private constructor(
             size.height <= coordinateScale &&
             allNormalsCertified
 
-    /** The fast lens model selects a circular corner by surface quadrant. */
-    internal fun centeredCircularRadii(size: Size): FloatArray? = analyticRadii?.takeIf {
-        bounds == Rect(Offset.Zero, size) && it.all { radius -> radius <= size.minDimension / 2f }
-    }
+    internal val circularCornerRadii: FloatArray?
+        get() = analyticRadii
 
     internal val isAnalytic: Boolean
         get() = analyticRadii != null
@@ -260,7 +320,7 @@ private constructor(
         }
     }
 
-    internal fun highlightSegmentGroupSize(segmentCapacity: Int): Int =
+    internal fun segmentGroupSize(segmentCapacity: Int): Int =
         if (!isAnalytic && segmentCapacity >= 32) 8 else 0
 
     internal fun shaderFunctions(
@@ -421,6 +481,25 @@ private constructor(
         val position: Offset,
         val signedDistance: Float,
     )
+}
+
+internal fun BoundaryGeometry.bindBoundary(
+    shader: RuntimeShader,
+    capacity: Int,
+    groupSize: Int,
+) {
+    configureShader(shader)
+    if (!isAnalytic) {
+        shader.setFloatUniform("segments", paddedSegments(capacity))
+        shader.setFloatUniform("segmentNormalSigns", paddedNormalSigns(capacity))
+        if (groupSize == 0 && usesConvexSupport)
+            shader.setFloatUniform(
+                "supportLines",
+                cpuGeometry().paddedConvexSupportLines(capacity),
+            )
+    }
+    if (groupSize > 0)
+        shader.setFloatUniform("segmentGroupBounds", segmentGroupBounds(capacity, groupSize))
 }
 
 internal fun analyticBoundaryShaderFunctions(): String =

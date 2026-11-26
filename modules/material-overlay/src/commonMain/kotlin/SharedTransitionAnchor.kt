@@ -2,8 +2,6 @@ package top.ltfan.m3x.material.overlay
 
 import androidx.compose.animation.SharedTransitionScope.ResizeMode
 import androidx.compose.animation.SharedTransitionScope.SharedContentState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
@@ -14,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import top.ltfan.m3x.compose.animation.blurEnterExit
-import top.ltfan.m3x.compose.material3.sharedBoundsSpec
 import top.ltfan.m3x.compose.ui.accessibility.SpatialMotionEnabled
 import top.ltfan.m3x.material.theme.extended
 import top.ltfan.m3x.overlay.LocalOverlayHost
@@ -107,18 +104,15 @@ internal fun SharedTransitionAnchor(
         exit = scaleOut(targetScale = 1f, animationSpec = motionScheme.slowEffectsSpec()),
     ) {
         val animatedVisibilityScope = this
-        with(sharedTransitionScope) {
+        context(sharedTransitionScope) {
             Box(
                 modifier =
-                    modifier.sharedBounds(
-                        boundsTransform = { _, _ -> motionScheme.sharedBoundsSpec() },
-                        enter = fadeIn(MaterialTheme.motionScheme.slowEffectsSpec()),
-                        exit = fadeOut(MaterialTheme.motionScheme.slowEffectsSpec()),
+                    modifier.sharedBoundsWithMotion(
                         sharedContentState = sharedContentState,
                         animatedVisibilityScope = animatedVisibilityScope,
                         resizeMode = ResizeMode.RemeasureToBounds,
                         renderInOverlayDuringTransition = renderInOverlayDuringTransition,
-                        clipInOverlayDuringTransition = OverlayClip(shape),
+                        shape = shape,
                     ),
                 content = {
                     Box(

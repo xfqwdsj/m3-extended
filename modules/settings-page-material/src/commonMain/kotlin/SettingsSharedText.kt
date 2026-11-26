@@ -2,16 +2,13 @@ package top.ltfan.m3x.settingspage.material
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope.ResizeMode
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import top.ltfan.m3x.compose.material3.sharedBoundsSpec
 import top.ltfan.m3x.compose.ui.accessibility.SpatialMotionEnabled
+import top.ltfan.m3x.material.overlay.sharedBoundsWithMotion
 import top.ltfan.m3x.overlay.LocalSharedTransitionScope
 
 /**
@@ -75,14 +72,10 @@ internal fun Modifier.settingsSharedValue(
 @Composable
 private fun Modifier.settingsSharedText(sharedText: SettingsSharedText, key: String): Modifier {
     if (!SpatialMotionEnabled) return this
-    val motionScheme = MaterialTheme.motionScheme
     val sharedTransitionScope = LocalSharedTransitionScope.current ?: return this
     with(sharedTransitionScope) {
-        return wrapContentWidth(Alignment.Start)
-            .sharedBounds(
-                boundsTransform = { _, _ -> motionScheme.sharedBoundsSpec() },
-                enter = fadeIn(MaterialTheme.motionScheme.slowEffectsSpec()),
-                exit = fadeOut(MaterialTheme.motionScheme.slowEffectsSpec()),
+        return this@settingsSharedText.wrapContentWidth(Alignment.Start)
+            .sharedBoundsWithMotion(
                 sharedContentState = rememberSharedContentState(key),
                 animatedVisibilityScope = sharedText.animatedVisibilityScope,
                 resizeMode = ResizeMode.scaleToBounds(),

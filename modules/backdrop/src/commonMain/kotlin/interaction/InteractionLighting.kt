@@ -26,9 +26,9 @@ import top.ltfan.m3x.backdrop.BackdropPrimitiveDrawContext
 import top.ltfan.m3x.backdrop.BackdropPrimitiveRenderer
 import top.ltfan.m3x.backdrop.BackdropRenderResources
 import top.ltfan.m3x.backdrop.PrimitiveContext
-import top.ltfan.m3x.backdrop.highlight.HighlightLinearColor
-import top.ltfan.m3x.backdrop.highlight.toHighlightLinearExtendedSrgb
+import top.ltfan.m3x.backdrop.internal.LinearExtendedSrgbColor
 import top.ltfan.m3x.backdrop.internal.clipOutline
+import top.ltfan.m3x.backdrop.internal.toLinearExtendedSrgb
 import top.ltfan.m3x.backdrop.primitive
 import top.ltfan.m3x.backdrop.requireAlpha
 
@@ -99,7 +99,7 @@ internal class InteractionLightEntry(
     var color: Color by mutableStateOf(color)
         private set
 
-    var linearColor: HighlightLinearColor by mutableStateOf(color.toHighlightLinearExtendedSrgb())
+    var linearColor: LinearExtendedSrgbColor by mutableStateOf(color.toLinearExtendedSrgb())
         private set
 
     var falloff: BackdropCurve by mutableStateOf(falloff)
@@ -108,7 +108,7 @@ internal class InteractionLightEntry(
     fun updateColor(value: Color) {
         if (color == value) return
         color = value
-        linearColor = value.toHighlightLinearExtendedSrgb()
+        linearColor = value.toLinearExtendedSrgb()
     }
 }
 

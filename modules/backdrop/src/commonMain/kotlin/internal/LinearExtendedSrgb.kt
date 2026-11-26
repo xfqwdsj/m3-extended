@@ -1,4 +1,4 @@
-package top.ltfan.m3x.backdrop.highlight
+package top.ltfan.m3x.backdrop.internal
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.colorspace.adapt
 import kotlin.math.abs
 import kotlin.math.pow
 
-internal data class HighlightLinearColor(
+internal data class LinearExtendedSrgbColor(
     val red: Float,
     val green: Float,
     val blue: Float,
@@ -18,13 +18,13 @@ internal data class HighlightLinearColor(
 /**
  * Converts known sRGB transfer functions without passing extended values through a clamping path.
  */
-internal fun Color.toHighlightLinearExtendedSrgb(): HighlightLinearColor {
+internal fun Color.toLinearExtendedSrgb(): LinearExtendedSrgbColor {
     val space = colorSpace
     if (space === ColorSpaces.LinearExtendedSrgb || space === ColorSpaces.LinearSrgb) {
-        return HighlightLinearColor(red, green, blue, alpha)
+        return LinearExtendedSrgbColor(red, green, blue, alpha)
     }
     if (space === ColorSpaces.ExtendedSrgb || space === ColorSpaces.Srgb) {
-        return HighlightLinearColor(
+        return LinearExtendedSrgbColor(
             red = decodeSrgb(red),
             green = decodeSrgb(green),
             blue = decodeSrgb(blue),
@@ -47,7 +47,7 @@ internal fun Color.toHighlightLinearExtendedSrgb(): HighlightLinearColor {
         if (space is Rgb) target.getInverseTransform()
         else target.adapt(Illuminant.D50).let { (it as Rgb).getInverseTransform() }
     val converted = multiply3x3(targetInverse, xyz[0], xyz[1], xyz[2])
-    return HighlightLinearColor(converted[0], converted[1], converted[2], alpha)
+    return LinearExtendedSrgbColor(converted[0], converted[1], converted[2], alpha)
 }
 
 private fun multiply3x3(matrix: FloatArray, x: Float, y: Float, z: Float): FloatArray =
@@ -58,7 +58,7 @@ private fun multiply3x3(matrix: FloatArray, x: Float, y: Float, z: Float): Float
     )
 
 /** Encodes linear extended-sRGB channels without clamping values outside the display range. */
-internal fun encodeHighlightExtendedSrgb(value: Float): Float =
+internal fun encodeExtendedSrgb(value: Float): Float =
     sign(value) *
         if (abs(value) <= .0031308f) abs(value) * 12.92f
         else 1.055f * abs(value).toDouble().pow(1.0 / 2.4).toFloat() - .055f

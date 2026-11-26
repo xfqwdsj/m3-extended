@@ -9,20 +9,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.COpaquePointer
-import kotlinx.cinterop.DoubleVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.StableRef
-import kotlinx.cinterop.alloc
 import kotlinx.cinterop.asStableRef
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.staticCFunction
-import kotlinx.cinterop.toKString
-import kotlinx.cinterop.value
 import platform.AppKit.NSWindow
 import platform.AppKit.NSWindowDidBecomeKeyNotification
 import platform.AppKit.NSWindowDidChangeBackingPropertiesNotification
@@ -33,9 +26,7 @@ import platform.AppKit.NSWindowDidExitFullScreenNotification
 import platform.AppKit.NSWindowDidMoveNotification
 import platform.AppKit.NSWindowDidResizeNotification
 import platform.AppKit.NSWindowWillCloseNotification
-import platform.Foundation.NSInvocation
 import platform.Foundation.NSKeyValueObservingOptionNew
-import platform.Foundation.NSMethodSignature
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSNotificationName
 import platform.Foundation.NSOperationQueue
@@ -112,15 +103,7 @@ private fun readWindowCornerRadii(window: NSWindow, density: Density): CornerRad
     val bottom = invokeDoubleGetter(window, "_bottomCornerRadius")
     val fallback = invokeDoubleGetter(window, "_cornerRadius")
     val scale = invokeDoubleGetter(window, "backingScaleFactor") ?: return null
-    if (!scale.isFinite() || scale <= 0.0 || !density.density.isFinite() || density.density <= 0f)
-        return null
-    fun radius(value: Double?): Dp? =
-        value
-            ?.let { it * scale / density.density }
-            ?.takeIf { it.isFinite() && it >= 0.0 }
-            ?.toFloat()
-            ?.takeIf { it.isFinite() }
-            ?.dp
+    fun radius(value: Double?): Dp? = value?.let { radiusToDp(it, scale, density) }
     val topRadius = radius(top ?: fallback)
     val bottomRadius = radius(bottom ?: fallback)
     return CornerRadii(topRadius, topRadius, bottomRadius, bottomRadius).takeIf {
@@ -170,28 +153,4 @@ private fun styleChanged(
     context: COpaquePointer?,
 ) {
     context?.asStableRef<() -> Unit>()?.get()?.invoke()
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private fun invokeDoubleGetter(target: NSObject, name: String): Double? = memScoped {
-    val selector = NSSelectorFromString(name)
-    if (!target.respondsToSelector(selector)) return@memScoped null
-    // Darwin exposes a forward declaration; Foundation provides the complete Objective-C class.
-    @Suppress("CAST_NEVER_SUCCEEDS")
-    val signature =
-        target.methodSignatureForSelector(selector) as? NSMethodSignature ?: return@memScoped null
-    if (
-        signature.numberOfArguments != 2uL ||
-            signature.methodReturnType?.toKString() != "d" ||
-            signature.methodReturnLength != 8uL
-    ) {
-        return@memScoped null
-    }
-    val invocation = NSInvocation.invocationWithMethodSignature(signature)
-    invocation.selector = selector
-    invocation.target = target
-    invocation.invoke()
-    val value = alloc<DoubleVar>()
-    invocation.getReturnValue(value.ptr)
-    value.value.takeIf { it.isFinite() && it >= 0.0 }
 }

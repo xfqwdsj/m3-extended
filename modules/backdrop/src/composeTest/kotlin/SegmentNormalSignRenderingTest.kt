@@ -14,7 +14,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 import top.ltfan.m3x.backdrop.internal.FlattenedBoundaryGeometry
 import top.ltfan.m3x.backdrop.internal.genericBoundaryShaderFunctions
 
@@ -86,7 +86,7 @@ class SegmentNormalSignRenderingTest : PlatformGraphicsTest() {
                 largeCoordinatePath(),
             )
         for (path in fixtures) {
-            val boundary = HighlightBoundaryGeometry(Outline.Generic(path))
+            val boundary = BoundaryGeometry(Outline.Generic(path))
             val geometry = boundary.cpuGeometry()
             var capacity = 16
             while (capacity < geometry.segmentCount) capacity *= 2
@@ -121,7 +121,7 @@ class SegmentNormalSignRenderingTest : PlatformGraphicsTest() {
     @Test
     fun adjacentUncertifiedSegmentsKeepTheirOwnNormals() {
         val geometry = FlattenedBoundaryGeometry.fromPath(thinNotchPath())
-        val boundary = HighlightBoundaryGeometry(Outline.Generic(thinNotchPath()))
+        val boundary = BoundaryGeometry(Outline.Generic(thinNotchPath()))
         val points =
             listOf(
                 Offset(15.92f, 8.25f),
@@ -156,7 +156,7 @@ class SegmentNormalSignRenderingTest : PlatformGraphicsTest() {
 
     @Test
     fun paddedNormalSignsAreCachedPerGeometry() {
-        val boundary = HighlightBoundaryGeometry(Outline.Generic(RectanglePath))
+        val boundary = BoundaryGeometry(Outline.Generic(RectanglePath))
         val first = boundary.paddedNormalSigns(8)
         val second = boundary.paddedNormalSigns(8)
         assertSame(first, second)

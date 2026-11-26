@@ -22,6 +22,7 @@ import org.jetbrains.skia.impl.use
 import top.ltfan.m3x.backdrop.BackdropImageInput
 import top.ltfan.m3x.backdrop.RuntimeShader
 import top.ltfan.m3x.backdrop.asSkikoRuntimeShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 import top.ltfan.m3x.backdrop.internal.runtimeShaderInputFilter
 
 internal actual val highlightGpuSdfAvailable: Boolean = true
@@ -70,7 +71,7 @@ internal actual fun uploadHighlightSdf(
 
 internal actual suspend fun bakeHighlightGpuSdf(
     layout: HighlightSdfLayout,
-    geometry: HighlightBoundaryGeometry,
+    geometry: BoundaryGeometry,
 ): HighlightSdfField? {
     val shader = geometry.createSdfBakeShader()
     val filters = mutableListOf<ImageFilter>()

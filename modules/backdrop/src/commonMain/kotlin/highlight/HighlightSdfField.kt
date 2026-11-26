@@ -13,6 +13,10 @@ import kotlinx.coroutines.ensureActive
 import top.ltfan.m3x.backdrop.BackdropImageInput
 import top.ltfan.m3x.backdrop.BuiltinRuntimeShader
 import top.ltfan.m3x.backdrop.RuntimeShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
+import top.ltfan.m3x.backdrop.internal.analyticBoundaryShaderFunctions
+import top.ltfan.m3x.backdrop.internal.bindBoundary
+import top.ltfan.m3x.backdrop.internal.shaderUniformCapacity
 
 internal class HighlightSdfLayout(outputs: List<IntRect>, val divisor: Int, maximumWidth: Float) {
     // The extra texel on each side supplies the bilinear footprint at tile and outline edges.
@@ -97,12 +101,12 @@ internal expect fun uploadHighlightSdf(
 
 internal expect suspend fun bakeHighlightGpuSdf(
     layout: HighlightSdfLayout,
-    geometry: HighlightBoundaryGeometry,
+    geometry: BoundaryGeometry,
 ): HighlightSdfField?
 
 internal suspend fun bakeHighlightCpuSdf(
     layout: HighlightSdfLayout,
-    geometry: HighlightBoundaryGeometry,
+    geometry: BoundaryGeometry,
     cullFarSamples: Boolean = true,
 ): IntArray {
     val pixels = IntArray(layout.size.width * layout.size.height)
@@ -137,11 +141,11 @@ internal suspend fun bakeHighlightCpuSdf(
 private fun encodeSdfChannel(value: Float): Int =
     (128f + value.coerceIn(-1f, 1f) * 127f).roundToInt()
 
-internal fun HighlightBoundaryGeometry.createSdfBakeShader(): RuntimeShader {
+internal fun BoundaryGeometry.createSdfBakeShader(): RuntimeShader {
     if (isAnalytic) return AnalyticSdfBakeShader.create().also { configureShader(it) }
 
-    val capacity = boundaryUniformCapacity(segmentCount)
-    val groupSize = highlightSegmentGroupSize(capacity)
+    val capacity = shaderUniformCapacity(segmentCount)
+    val groupSize = segmentGroupSize(capacity)
     val functions = shaderFunctions(capacity, groupSize)
     return RuntimeShader(
             sdfBakeSource(functions, "nearestBoundaryWithPosition(p, sdfRange, closest)"),
@@ -153,25 +157,6 @@ private val AnalyticSdfBakeShader by lazy {
     BuiltinRuntimeShader(
         sdfBakeSource(analyticBoundaryShaderFunctions(), "nearestBoundaryWithPosition(p, closest)"),
     )
-}
-
-internal fun HighlightBoundaryGeometry.bindBoundary(
-    shader: RuntimeShader,
-    capacity: Int,
-    groupSize: Int,
-) {
-    configureShader(shader)
-    if (!isAnalytic) {
-        shader.setFloatUniform("segments", paddedSegments(capacity))
-        shader.setFloatUniform("segmentNormalSigns", paddedNormalSigns(capacity))
-        if (groupSize == 0 && usesConvexSupport)
-            shader.setFloatUniform(
-                "supportLines",
-                cpuGeometry().paddedConvexSupportLines(capacity),
-            )
-    }
-    if (groupSize > 0)
-        shader.setFloatUniform("segmentGroupBounds", segmentGroupBounds(capacity, groupSize))
 }
 
 // Expanded segment AABBs cover the entire distance range, including the interpolation footprint.

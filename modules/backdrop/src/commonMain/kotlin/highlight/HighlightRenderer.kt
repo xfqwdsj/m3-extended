@@ -28,22 +28,16 @@ import top.ltfan.m3x.backdrop.BackdropRenderResources
 import top.ltfan.m3x.backdrop.PrimitiveResources
 import top.ltfan.m3x.backdrop.RuntimeShader
 import top.ltfan.m3x.backdrop.RuntimeShaderVariantCache
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometryCache
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometryProvider
+import top.ltfan.m3x.backdrop.internal.BoundaryShaderKind
+import top.ltfan.m3x.backdrop.internal.bindBoundary
 import top.ltfan.m3x.backdrop.internal.clipOutline
-import top.ltfan.m3x.backdrop.internal.environmentHighlightTileShader
-import top.ltfan.m3x.backdrop.internal.highlightDirectionUsesSharedCurve
 import top.ltfan.m3x.backdrop.internal.setRuntimeShader
+import top.ltfan.m3x.backdrop.internal.shaderUniformCapacity
 import top.ltfan.m3x.backdrop.isRuntimeShaderSupported
 import top.ltfan.m3x.backdrop.shaderControls
-import top.ltfan.m3x.compose.shape.Contour
-import top.ltfan.m3x.compose.shape.ContourShape
 import top.ltfan.m3x.compose.shape.toPath
-
-internal fun boundaryUniformCapacity(candidateCount: Int): Int {
-    require(candidateCount >= 0)
-    var capacity = 1
-    while (capacity < candidateCount) capacity *= 2
-    return capacity
-}
 
 private data class ShaderSignature(
     val boundaryKind: BoundaryShaderKind?,
@@ -60,16 +54,16 @@ private data class ShaderSignature(
 /** Generates environment-lit contour pixels into receiver-owned layers. */
 internal class EnvironmentHighlightRenderer(
     private val resources: BackdropRenderResources,
-    private val boundaryProvider: BoundaryGeometryProvider? = null,
+    boundaryProvider: BoundaryGeometryProvider? = null,
 ) {
     private var highlightLayer: GraphicsLayer? = null
     private val additionalLayers = mutableListOf<GraphicsLayer>()
     private val tiles = HighlightTiles()
     private val sdf =
-        (resources as? PrimitiveResources)?.highlightSdfHost?.let(::HighlightSdfPreparation)
-    private var boundaryOutline: Outline? = null
-    private var boundaryContour: Contour? = null
-    private var boundaryGeometry: HighlightBoundaryGeometry? = null
+        ((resources as? PrimitiveResources)?.primitiveRuntime as? HighlightSdfHost)?.let(
+            ::HighlightSdfPreparation,
+        )
+    private val boundaryGeometries = boundaryProvider ?: BoundaryGeometryCache()
     private var surfaceSize = Size.Zero
     private var shaderSignature: ShaderSignature? = null
     private var currentShader: RuntimeShader? = null
@@ -86,9 +80,6 @@ internal class EnvironmentHighlightRenderer(
     ) {
         if (surfaceSize != scope.size) {
             surfaceSize = scope.size
-            boundaryOutline = null
-            boundaryContour = null
-            boundaryGeometry = null
         }
         with(scope) {
             when (highlight) {
@@ -116,9 +107,6 @@ internal class EnvironmentHighlightRenderer(
         runtimeShaderCache.clear()
         shaderSignature = null
         currentShader = null
-        boundaryOutline = null
-        boundaryContour = null
-        boundaryGeometry = null
         clipPath = null
     }
 
@@ -146,7 +134,13 @@ internal class EnvironmentHighlightRenderer(
         require((width * maximumWidthScale).isFinite()) {
             "direction-scaled highlight width must remain finite in pixels"
         }
-        val geometry = boundaryGeometry(outline, context)
+        val geometry =
+            boundaryGeometries.geometry(
+                context.shape,
+                context.size,
+                context.layoutDirection,
+                context.density,
+            )
         if (geometry.isEmpty) {
             refresh()
             return
@@ -163,8 +157,8 @@ internal class EnvironmentHighlightRenderer(
 
         val angular = highlight.direction as? HighlightDirection.Angular
         val angularCapacity = angular?.profile?.capacity ?: 0
-        val segmentCapacity = boundaryUniformCapacity(geometry.segmentCount)
-        val segmentGroupSize = geometry.highlightSegmentGroupSize(segmentCapacity)
+        val segmentCapacity = shaderUniformCapacity(geometry.segmentCount)
+        val segmentGroupSize = geometry.segmentGroupSize(segmentCapacity)
         val sharedDirectionCurve = highlightDirectionUsesSharedCurve(highlight.direction)
         val boundaryKind = if (field == null) geometry.shaderKind(segmentGroupSize) else null
         val signature =
@@ -363,44 +357,6 @@ internal class EnvironmentHighlightRenderer(
         } finally {
             canvas.restore()
         }
-    }
-
-    private fun boundaryGeometry(
-        outline: Outline,
-        context: BackdropPrimitiveDrawContext,
-    ): HighlightBoundaryGeometry {
-        boundaryProvider
-            ?.geometry(context.shape, context.size, context.layoutDirection, context.density)
-            ?.let { shared ->
-                if (boundaryGeometry !== shared) {
-                    boundaryOutline = outline
-                    boundaryContour = null
-                    boundaryGeometry = shared
-                }
-                return shared
-            }
-        val cached = boundaryGeometry?.takeIf { boundaryOutline == outline }
-        if (cached?.isAnalytic == true) return cached
-
-        val outlineGeometry =
-            if (cached == null && outline !is Outline.Generic) HighlightBoundaryGeometry(outline)
-            else null
-        val contour =
-            if (outlineGeometry?.isAnalytic == true) null
-            else
-                (context.shape as? ContourShape)
-                    ?.createContour(context.size, context.layoutDirection, context.density)
-                    // Path normalization resolves the fill boundary when loops overlap or nest.
-                    ?.takeIf { it.loops.size == 1 }
-        if (cached != null && boundaryContour == contour) return cached
-
-        val resolved =
-            if (contour != null) HighlightBoundaryGeometry(contour)
-            else outlineGeometry ?: HighlightBoundaryGeometry(outline)
-        boundaryOutline = outline
-        boundaryContour = contour
-        boundaryGeometry = resolved
-        return resolved
     }
 
     private fun outputLayer(index: Int): GraphicsLayer {

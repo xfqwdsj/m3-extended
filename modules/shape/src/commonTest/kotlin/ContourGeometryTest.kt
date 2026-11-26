@@ -82,4 +82,43 @@ class ContourGeometryTest {
             Contour(listOf(arc, PathSegment.Line(arc.end + Point(0.1, 0.0), arc.start)))
         }
     }
+
+    @Test
+    fun flattenedContoursHonorRequestedFlatness() {
+        val curve =
+            PathSegment.Cubic(Point.Zero, Point(0.0, 10.0), Point(10.0, 10.0), Point(10.0, 0.0))
+        val contour = Contour(listOf(curve, PathSegment.Line(curve.end, curve.start)))
+
+        val coarse = assertNotNull(contour.toFlattenedContour(flatness = 1f))
+        val fine = assertNotNull(contour.toFlattenedContour(flatness = .01f))
+        assertTrue(fine.loops.single().size > coarse.loops.single().size)
+        assertTrue(fine.loops.single().all { it is PathSegment.Line })
+        assertFailsWith<IllegalArgumentException> { contour.toFlattenedContour(flatness = -1f) }
+    }
+
+    @Test
+    fun flattenedContoursRejectUnboundedArcSubdivision() {
+        val arc = PathSegment.Arc(Point.Zero, 10.0, 0.0, PI * .5)
+        val contour = Contour(listOf(arc, PathSegment.Line(arc.end, arc.start)))
+
+        assertFailsWith<IllegalArgumentException> { contour.toFlattenedContour(flatness = 0f) }
+        assertFailsWith<IllegalArgumentException> { contour.toFlattenedContour(flatness = 1e-12f) }
+    }
+
+    @Test
+    fun flattenedContoursPreserveZeroLengthSegmentSeams() {
+        val degenerate = Point(.0009, 0.0)
+        val contour =
+            Contour(
+                listOf(
+                    PathSegment.Line(Point(0.0, 10.0), Point.Zero),
+                    PathSegment.Line(degenerate, degenerate),
+                    PathSegment.Line(Point(.0018, 0.0), Point(.0018, 10.0)),
+                    PathSegment.Line(Point(.0018, 10.0), Point(0.0, 10.0)),
+                ),
+            )
+
+        val flattened = assertNotNull(contour.toFlattenedContour())
+        assertTrue(flattened.loops.single().any { it.start == it.end })
+    }
 }

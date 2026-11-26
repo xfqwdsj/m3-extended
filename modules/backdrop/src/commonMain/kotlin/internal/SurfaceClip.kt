@@ -50,7 +50,7 @@ internal fun DrawScope.clipToExtendedShape(
     val top = extension.top
     val right = extension.right
     val bottom = extension.bottom
-    val extendedSize = Size(surfaceSize.width + left + right, surfaceSize.height + top + bottom)
+    val extendedSize = extension.expand(surfaceSize)
     if (extendedSize.width <= 0f || extendedSize.height <= 0f) return
     when (val outline = shape.createOutline(surfaceSize, layoutDirection, this)) {
         is Rectangle ->
@@ -120,11 +120,7 @@ internal fun extendedSurfaceClipBounds(
     density: Density,
     layoutDirection: LayoutDirection,
 ): Rect {
-    val extendedSize =
-        Size(
-            surfaceSize.width + extension.left + extension.right,
-            surfaceSize.height + extension.top + extension.bottom,
-        )
+    val extendedSize = extension.expand(surfaceSize)
     if (extendedSize.width <= 0f || extendedSize.height <= 0f) return Rect.Zero
     return when (val outline = shape.createOutline(surfaceSize, layoutDirection, density)) {
         is Rectangle ->

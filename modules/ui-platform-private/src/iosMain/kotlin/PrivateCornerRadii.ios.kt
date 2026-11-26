@@ -11,24 +11,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.uikit.LocalUIView
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
-import kotlinx.cinterop.DoubleVar
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.toKString
-import kotlinx.cinterop.value
 import platform.CoreGraphics.CGRectMake
-import platform.Foundation.NSInvocation
-import platform.Foundation.NSMethodSignature
-import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIColor
 import platform.UIKit.UIView
 import platform.UIKit.UIViewAutoresizingFlexibleHeight
 import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.UIKit.UIWindow
-import platform.darwin.NSObject
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
 import top.ltfan.m3x.compose.ui.layout.CornerRadii
@@ -69,38 +58,8 @@ private fun currentUIViewOrNull(): UIView? {
 private fun readDisplayCorners(window: UIWindow?, density: Density): CornerRadii? {
     val screen = window?.windowScene?.screen ?: return null
     val points = invokeDoubleGetter(screen, "_displayCornerRadius") ?: return null
-    if (!screen.scale.isFinite() || screen.scale <= 0.0) return null
-    if (!density.density.isFinite() || density.density <= 0f) return null
-    val radius =
-        (points * screen.scale / density.density)
-            .takeIf { it.isFinite() && it >= 0.0 }
-            ?.toFloat()
-            ?.takeIf { it.isFinite() }
-            ?.dp ?: return null
+    val radius = radiusToDp(points, screen.scale, density) ?: return null
     return CornerRadii(radius, radius, radius, radius)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private fun invokeDoubleGetter(target: NSObject, name: String): Double? = memScoped {
-    val selector = NSSelectorFromString(name)
-    if (!target.respondsToSelector(selector)) return@memScoped null
-    @Suppress("CAST_NEVER_SUCCEEDS")
-    val signature =
-        target.methodSignatureForSelector(selector) as? NSMethodSignature ?: return@memScoped null
-    if (
-        signature.numberOfArguments != 2uL ||
-            signature.methodReturnType?.toKString() != "d" ||
-            signature.methodReturnLength != 8uL
-    ) {
-        return@memScoped null
-    }
-    val invocation = NSInvocation.invocationWithMethodSignature(signature)
-    invocation.selector = selector
-    invocation.target = target
-    invocation.invoke()
-    val value = alloc<DoubleVar>()
-    invocation.getReturnValue(value.ptr)
-    value.value.takeIf { it.isFinite() && it >= 0.0 }
 }
 
 @OptIn(ExperimentalForeignApi::class)

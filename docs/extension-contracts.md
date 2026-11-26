@@ -17,6 +17,8 @@ accessibility and dismissal rules.
 `withDefaultVisibilityThreshold` fills an omitted spring threshold while preserving explicit
 thresholds, stiffness, damping and non-spring specifications.
 `MotionScheme.sharedBoundsSpec` chooses the Material role and physical rectangle tolerance.
+`Modifier.sharedBoundsWithMotion` applies that timing within a `SharedTransitionScope` context,
+using the matching crossfade and either a caller clip or the nearest parent clip.
 `rewindTransition` rewinds an existing seekable segment without replacing child timings.
 Foreground blur/fade helpers remain separate from app-bar background blur and fill transitions.
 
@@ -25,6 +27,7 @@ Foreground blur/fade helpers remain separate from app-bar background blur and fi
 
 Sources: [Flow bridge](../modules/runtime/src/commonMain/kotlin/FlowAsMutableState.kt),
 [spring threshold](../modules/animation-core/src/commonMain/kotlin/VisibilityThreshold.kt),
+[shared bounds](../modules/material-overlay/src/commonMain/kotlin/SharedTransitionBounds.kt),
 [rewind](../modules/animation/src/commonMain/kotlin/RewindTransition.kt), and
 [overlay focus](../modules/overlay/src/commonMain/kotlin/OverlayInternals.kt).
 

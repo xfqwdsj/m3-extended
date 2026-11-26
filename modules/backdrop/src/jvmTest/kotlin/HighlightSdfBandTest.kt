@@ -11,10 +11,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
 import top.ltfan.m3x.backdrop.highlight.HighlightSdfLayout
 import top.ltfan.m3x.backdrop.highlight.HighlightTiles
 import top.ltfan.m3x.backdrop.highlight.bakeHighlightCpuSdf
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 import top.ltfan.m3x.capsule.ContinuousCapsule
 
 internal class HighlightSdfBandTest {
@@ -23,7 +23,7 @@ internal class HighlightSdfBandTest {
         for ((width, height) in listOf(360 to 96, 945 to 252, 560 to 360, 1600 to 1000)) {
             val size = Size(width.toFloat(), height.toFloat())
             val geometry =
-                HighlightBoundaryGeometry(
+                BoundaryGeometry(
                     requireNotNull(
                         ContinuousCapsule.createContour(size, LayoutDirection.Ltr, Density(1f)),
                     ),

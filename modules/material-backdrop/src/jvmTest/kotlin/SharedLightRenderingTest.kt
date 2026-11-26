@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -56,6 +57,11 @@ import top.ltfan.m3x.material.overlay.MaterialOverlay
 import top.ltfan.m3x.overlay.OverlayHandle
 import top.ltfan.m3x.overlay.OverlayHost
 import top.ltfan.m3x.overlay.OverlayHostState
+
+private fun ComposeUiTest.targetBrightness(): Float {
+    val pixels = onNodeWithTag("target").captureToImage().toPixelMap()
+    return pixels[pixels.width / 2, pixels.height / 2].red
+}
 
 class SharedLightRenderingTest {
     private fun material(
@@ -111,19 +117,15 @@ class SharedLightRenderingTest {
             }
         }
         mainClock.advanceTimeBy(32)
-        fun brightness(): Float {
-            val pixels = onNodeWithTag("target").captureToImage().toPixelMap()
-            return pixels[pixels.width / 2, pixels.height / 2].red
-        }
-        val before = brightness()
+        val before = targetBrightness()
         runOnIdle { scope.launch { interactions.emit(press) } }
         mainClock.advanceTimeBy(32)
-        val pressed = brightness()
+        val pressed = targetBrightness()
         runOnIdle { scope.launch { interactions.emit(PressInteraction.Release(press)) } }
         mainClock.advanceTimeBy(64)
-        val fading = brightness()
+        val fading = targetBrightness()
         mainClock.advanceTimeBy(240)
-        val released = brightness()
+        val released = targetBrightness()
         assertTrue(pressed > before + 0.02f)
         assertTrue(fading in (before + 0.001f)..(pressed - 0.001f))
         assertTrue(abs(released - before) < 0.005f)
@@ -170,17 +172,13 @@ class SharedLightRenderingTest {
             }
         }
         mainClock.advanceTimeBy(32)
-        fun brightness(): Float {
-            val pixels = onNodeWithTag("target").captureToImage().toPixelMap()
-            return pixels[pixels.width / 2, pixels.height / 2].red
-        }
-        val before = brightness()
+        val before = targetBrightness()
         runOnIdle { scope.launch { interactions.emit(press) } }
         mainClock.advanceTimeBy(32)
-        val pressed = brightness()
+        val pressed = targetBrightness()
         runOnIdle { scope.launch { interactions.emit(PressInteraction.Release(press)) } }
         mainClock.advanceTimeBy(16)
-        val released = brightness()
+        val released = targetBrightness()
 
         assertTrue(pressed > before + 0.02f)
         assertTrue(abs(released - before) < 0.005f)
@@ -274,14 +272,10 @@ class SharedLightRenderingTest {
             }
         }
         mainClock.advanceTimeBy(32)
-        fun brightness(): Float {
-            val pixels = onNodeWithTag("target").captureToImage().toPixelMap()
-            return pixels[pixels.width / 2, pixels.height / 2].red
-        }
-        val before = brightness()
+        val before = targetBrightness()
         runOnIdle { scope.launch { interactions.emit(press) } }
         mainClock.advanceTimeBy(32)
-        val after = brightness()
+        val after = targetBrightness()
         assertTrue(after > before + 0.02f)
     }
 
@@ -343,16 +337,12 @@ class SharedLightRenderingTest {
             }
         }
 
-        fun brightness(): Float {
-            val pixels = onNodeWithTag("target").captureToImage().toPixelMap()
-            return pixels[pixels.width / 2, pixels.height / 2].red
-        }
         fun pressAndRelease(): Float {
             val press = PressInteraction.Press(Offset(60f, 32f))
             runOnIdle { scope.launch { interactions.emit(press) } }
             mainClock.advanceTimeBy(32)
             waitForIdle()
-            val value = brightness()
+            val value = targetBrightness()
             runOnIdle { scope.launch { interactions.emit(PressInteraction.Release(press)) } }
             mainClock.advanceTimeBy(240)
             waitForIdle()
@@ -419,14 +409,10 @@ class SharedLightRenderingTest {
         }
         runOnIdle { scope.launch { interactions.emit(PressInteraction.Press(Offset(60f, 32f))) } }
         waitForIdle()
-        fun brightness(): Float {
-            val pixels = onNodeWithTag("target").captureToImage().toPixelMap()
-            return pixels[pixels.width / 2, pixels.height / 2].red
-        }
-        val nonmodal = brightness()
+        val nonmodal = targetBrightness()
         runOnIdle { modal = true }
         waitForIdle()
-        val modalValue = brightness()
+        val modalValue = targetBrightness()
 
         assertTrue(nonmodal > 0.02f)
         assertTrue(modalValue < nonmodal * 0.1f)

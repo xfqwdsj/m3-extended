@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import top.ltfan.m3x.backdrop.effects.blur
 import top.ltfan.m3x.backdrop.effects.coverRamp
@@ -112,10 +111,7 @@ public fun BackdropImageScope.progressiveBlur(
                     drawRect(
                         ramp.brush(Color.White, start, end),
                         room.extension.originInNode,
-                        Size(
-                            room.size.width + room.extension.left + room.extension.right,
-                            room.size.height + room.extension.top + room.extension.bottom,
-                        ),
+                        room.drawingSize,
                     )
                 }
             }

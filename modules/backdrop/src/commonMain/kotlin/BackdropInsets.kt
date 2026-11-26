@@ -2,6 +2,8 @@ package top.ltfan.m3x.backdrop
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -28,6 +30,15 @@ public data class BackdropInsets(
     public val isZero: Boolean
         get() = left == 0.dp && top == 0.dp && right == 0.dp && bottom == 0.dp
 
+    /** Expands a surface size by these physical insets. */
+    public fun expand(size: Size, density: Density): Size =
+        with(density) {
+            Size(
+                size.width + left.toPx() + right.toPx(),
+                size.height + top.toPx() + bottom.toPx(),
+            )
+        }
+
     public companion object {
 
         /** No extension: the effect region is the surface's own rectangle. */
@@ -48,3 +59,20 @@ public data class BackdropInsets(
             BackdropInsets(left = left, right = right)
     }
 }
+
+/** Physical insets that cover a ramp reaching past either end of [side]. */
+internal fun Density.coveredInsets(
+    side: BackdropSide,
+    pastContentSide: Float,
+    pastFarSide: Float,
+): BackdropInsets =
+    when (side) {
+        BackdropSide.Top ->
+            BackdropInsets(top = pastFarSide.toDp(), bottom = pastContentSide.toDp())
+        BackdropSide.Bottom ->
+            BackdropInsets(top = pastContentSide.toDp(), bottom = pastFarSide.toDp())
+        BackdropSide.Left ->
+            BackdropInsets(left = pastFarSide.toDp(), right = pastContentSide.toDp())
+        BackdropSide.Right ->
+            BackdropInsets(left = pastContentSide.toDp(), right = pastFarSide.toDp())
+    }

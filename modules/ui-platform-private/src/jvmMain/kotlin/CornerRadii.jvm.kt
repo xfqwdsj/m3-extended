@@ -13,7 +13,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.sun.jna.Callback
 import com.sun.jna.Memory
 import com.sun.jna.NativeLibrary
@@ -201,16 +200,7 @@ private object CocoaCornerReader {
         val bottom = values[1] ?: fallback
         if (top == null && bottom == null) return null
         val backingScale = invokeDoubleGetter(target, "backingScaleFactor") ?: return null
-        if (!backingScale.isFinite() || backingScale <= 0.0) return null
-        if (!density.density.isFinite() || density.density <= 0f) return null
-        fun radius(points: Double?): Dp? =
-            points
-                ?.takeIf { it.isFinite() && it >= 0.0 }
-                ?.let { it * backingScale / density.density }
-                ?.takeIf { it.isFinite() && it >= 0.0 }
-                ?.toFloat()
-                ?.takeIf { it.isFinite() }
-                ?.dp
+        fun radius(points: Double?): Dp? = points?.let { radiusToDp(it, backingScale, density) }
         val radii = CornerRadii(radius(top), radius(top), radius(bottom), radius(bottom))
         return radii.takeIf {
             it.topLeft != null ||

@@ -12,8 +12,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.util.fastFold
 import androidx.compose.ui.util.fastForEachIndexed
 import kotlin.math.ceil
-import top.ltfan.m3x.backdrop.effects.LensBoundaryCache
 import top.ltfan.m3x.backdrop.effects.gaussianSupport
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometryCache
+import top.ltfan.m3x.backdrop.internal.hasFiniteEdges
+import top.ltfan.m3x.backdrop.internal.isOrdered
 import top.ltfan.m3x.backdrop.internal.pixelAligned
 import top.ltfan.m3x.backdrop.internal.requiresSampledEffectInputImage
 
@@ -42,7 +44,7 @@ internal abstract class BackdropEffectScopeImpl : BackdropEffectScope, RuntimeSh
 
     internal class Pass(var effect: RenderEffect, var inputBounds: Rect)
 
-    internal val lensBoundaryCache = LensBoundaryCache()
+    internal val boundaryGeometryCache = BoundaryGeometryCache()
     internal val passes = mutableListOf<Pass>()
     internal val requiresInputImage: Boolean
         get() = stages.firstOrNull()?.requiresInputImage == true && requiresSampledEffectInputImage
@@ -345,15 +347,10 @@ internal abstract class BackdropEffectScopeImpl : BackdropEffectScope, RuntimeSh
     }
 
     private fun validate(rect: Rect) {
-        require(
-            rect.left.isFinite() &&
-                rect.top.isFinite() &&
-                rect.right.isFinite() &&
-                rect.bottom.isFinite(),
-        ) {
+        require(rect.hasFiniteEdges) {
             "Sampling regions must have finite bounds: $rect"
         }
-        require(rect.left <= rect.right && rect.top <= rect.bottom) {
+        require(rect.isOrdered) {
             "Sampling region is inverted: $rect"
         }
     }
@@ -375,7 +372,7 @@ internal abstract class BackdropEffectScopeImpl : BackdropEffectScope, RuntimeSh
         stageVisibleBounds = Rect.Zero
         samplingBounds = Rect.Zero
         runtimeShaderCache.clear()
-        lensBoundaryCache.clear()
+        boundaryGeometryCache.clear()
         nativeBlurs.clear()
         nativeBlurIndex = 0
     }

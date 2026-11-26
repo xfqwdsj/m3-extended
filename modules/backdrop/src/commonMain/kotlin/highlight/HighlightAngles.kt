@@ -5,6 +5,7 @@ import androidx.compose.ui.util.fastCoerceIn
 import top.ltfan.m3x.backdrop.BackdropCurve
 import top.ltfan.m3x.backdrop.BackdropRenderDsl
 import top.ltfan.m3x.backdrop.RuntimeShader
+import top.ltfan.m3x.backdrop.internal.shaderUniformCapacity
 import top.ltfan.m3x.backdrop.shaderControls
 
 /** Relative angles are measured clockwise from HighlightDirection.angle. */
@@ -35,7 +36,7 @@ internal constructor(
     entries: List<HighlightAngleSegment>,
 ) {
     private val entries = entries.toTypedArray()
-    internal val capacity: Int = boundaryUniformCapacity(entries.size)
+    internal val capacity: Int = shaderUniformCapacity(entries.size)
     private val spans = FloatArray(capacity * 4)
     private val ranges = FloatArray(capacity * 2)
     private val curves = FloatArray(capacity * 4)

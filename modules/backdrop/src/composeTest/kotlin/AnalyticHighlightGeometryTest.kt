@@ -20,19 +20,19 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import top.ltfan.m3x.backdrop.highlight.BoundaryShaderKind
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
 import top.ltfan.m3x.backdrop.highlight.HighlightTiles
-import top.ltfan.m3x.backdrop.highlight.bindBoundary
-import top.ltfan.m3x.backdrop.highlight.boundaryUniformCapacity
 import top.ltfan.m3x.backdrop.highlight.createSdfBakeShader
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
+import top.ltfan.m3x.backdrop.internal.BoundaryShaderKind
+import top.ltfan.m3x.backdrop.internal.bindBoundary
 import top.ltfan.m3x.backdrop.internal.convexBoundaryShaderFunctions
+import top.ltfan.m3x.backdrop.internal.shaderUniformCapacity
 
 class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
     @Test
     fun asymmetricCircularCornersLeaveRoomForTheWholeBandAroundTheExcludedInterior() {
         val geometry =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Rounded(
                     RoundRect(
                         0f,
@@ -106,7 +106,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
                 Offset(44f, 36f),
             )
         for (outline in outlines) {
-            val boundary = HighlightBoundaryGeometry(outline)
+            val boundary = BoundaryGeometry(outline)
             assertTrue(boundary.isAnalytic)
             assertEquals(0, boundary.segmentCount)
             assertEquals(boundary.shaderFunctions(1), boundary.shaderFunctions(8))
@@ -117,11 +117,11 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
     @Test
     fun analyticUniformUpdatesReuseOneShaderForDifferentSizesAndRadii() {
         val first =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Rounded(RoundRect(Rect(2f, 3f, 34f, 25f), CornerRadius(7f))),
             )
         val second =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Rounded(RoundRect(Rect(4f, 1f, 48f, 39f), CornerRadius(14f))),
             )
         val source = first.shaderFunctions(1) + probeMain()
@@ -138,7 +138,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
     @Test
     fun convexCutCornersUseSupportingLinesInsideAndFiniteSegmentsOutside() {
         val boundary =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 CutCornerShape(9f).createOutline(Size(44f, 36f), LayoutDirection.Rtl, Density(1f)),
             )
         assertTrue(boundary.usesConvexSupport)
@@ -174,7 +174,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
                 lineTo(0f, 30f)
                 close()
             }
-        val boundary = HighlightBoundaryGeometry(Outline.Generic(path))
+        val boundary = BoundaryGeometry(Outline.Generic(path))
         assertFalse(boundary.usesConvexSupport)
         assertEquals(BoundaryShaderKind.Segments, boundary.shaderKind(0))
     }
@@ -191,9 +191,9 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
                 }
                 close()
             }
-        val boundary = HighlightBoundaryGeometry(Outline.Generic(path))
+        val boundary = BoundaryGeometry(Outline.Generic(path))
         assertTrue(boundary.usesConvexSupport)
-        val capacity = boundaryUniformCapacity(boundary.segmentCount)
+        val capacity = shaderUniformCapacity(boundary.segmentCount)
         val points = listOf(Offset(32f, 32f), Offset(59.5f, 32f), Offset(65f, 48f))
         for (point in points) {
             val shader = RuntimeShader(boundary.shaderFunctions(capacity) + probeMain())
@@ -202,7 +202,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
             assertShaderBoundary(boundary, shader, point, capacity)
         }
 
-        val groupSize = boundary.highlightSegmentGroupSize(capacity)
+        val groupSize = boundary.segmentGroupSize(capacity)
         assertEquals(8, groupSize)
         val functions = boundary.shaderFunctions(capacity, groupSize)
         for (point in points) {
@@ -223,8 +223,8 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
 
     @Test
     fun analyticSdfBakesKeepIndependentBounds() {
-        val first = HighlightBoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 20f, 20f)))
-        val second = HighlightBoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 32f, 32f)))
+        val first = BoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 20f, 20f)))
+        val second = BoundaryGeometry(Outline.Rectangle(Rect(0f, 0f, 32f, 32f)))
         val point = Offset(14f, 14f)
         val firstBake = first.createSdfBakeShader()
         val secondBake = second.createSdfBakeShader()
@@ -240,7 +240,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
     @Test
     fun invalidRoundedAndEllipticalOutlinesKeepFlattenedFallback() {
         val invalid =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Rounded(
                     RoundRect(
                         0f,
@@ -255,7 +255,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
                 ),
             )
         val elliptical =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Rounded(
                     RoundRect(
                         0f,
@@ -270,7 +270,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
                 ),
             )
         val generic =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Generic(Path().apply { addRect(Rect(0f, 0f, 20f, 20f)) }),
             )
         assertFalse(invalid.isAnalytic)
@@ -284,7 +284,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
     @Test
     fun overlappingRoundedCornerRegionsApplyEveryContainmentConstraint() {
         val boundary =
-            HighlightBoundaryGeometry(
+            BoundaryGeometry(
                 Outline.Rounded(
                     RoundRect(
                         0f,
@@ -308,7 +308,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
         assertEquals(0f, render(shader)[0])
     }
 
-    private fun assertGpuMatchesCpu(boundary: HighlightBoundaryGeometry, point: Offset) {
+    private fun assertGpuMatchesCpu(boundary: BoundaryGeometry, point: Offset) {
         val shader = RuntimeShader(boundary.shaderFunctions(1) + probeMain())
         boundary.configureShader(shader)
         shader.setFloatUniform("probePoint", point.x, point.y)
@@ -316,7 +316,7 @@ class AnalyticHighlightGeometryTest : PlatformGraphicsTest() {
     }
 
     private fun assertShaderBoundary(
-        boundary: HighlightBoundaryGeometry,
+        boundary: BoundaryGeometry,
         shader: RuntimeShader,
         point: Offset,
         capacity: Int = 1,

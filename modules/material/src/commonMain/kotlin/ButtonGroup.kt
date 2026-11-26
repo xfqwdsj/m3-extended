@@ -216,7 +216,7 @@ public object ButtonGroupDefaults {
         return upstream.copy(
             shape = shape ?: themedConnectedShape(upstream.shape, true),
             pressedShape = pressedShape ?: themedConnectedShape(upstream.pressedShape, true),
-            checkedShape = checkedShape ?: MaterialTheme.extended.shapes.full,
+            checkedShape = resolvedFullShape(checkedShape),
         )
     }
 
@@ -231,7 +231,7 @@ public object ButtonGroupDefaults {
         return upstream.copy(
             shape = shape ?: themedConnectedShape(upstream.shape, null),
             pressedShape = pressedShape ?: themedConnectedShape(upstream.pressedShape, null),
-            checkedShape = checkedShape ?: MaterialTheme.extended.shapes.full,
+            checkedShape = resolvedFullShape(checkedShape),
         )
     }
 
@@ -246,7 +246,7 @@ public object ButtonGroupDefaults {
         return upstream.copy(
             shape = shape ?: themedConnectedShape(upstream.shape, false),
             pressedShape = pressedShape ?: themedConnectedShape(upstream.pressedShape, false),
-            checkedShape = checkedShape ?: MaterialTheme.extended.shapes.full,
+            checkedShape = resolvedFullShape(checkedShape),
         )
     }
 

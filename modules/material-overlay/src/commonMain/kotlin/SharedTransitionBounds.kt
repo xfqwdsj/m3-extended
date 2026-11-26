@@ -1,6 +1,7 @@
 package top.ltfan.m3x.material.overlay
 
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.SharedTransitionScope.ResizeMode
 import androidx.compose.animation.SharedTransitionScope.SharedContentState
 import androidx.compose.animation.fadeIn
@@ -14,6 +15,46 @@ import top.ltfan.m3x.compose.material3.sharedBoundsSpec
 import top.ltfan.m3x.compose.ui.accessibility.SpatialMotionEnabled
 import top.ltfan.m3x.overlay.LocalOverlayAnimatedVisibilityScope
 import top.ltfan.m3x.overlay.LocalSharedTransitionScope
+
+/**
+ * Applies the M3X shared-bounds timing and crossfade. [shape] clips the bounds in the transition
+ * overlay; `null` inherits the nearest parent clip.
+ */
+@Composable
+context(sharedTransitionScope: SharedTransitionScope)
+public fun Modifier.sharedBoundsWithMotion(
+    sharedContentState: SharedContentState,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    resizeMode: ResizeMode = ResizeMode.RemeasureToBounds,
+    renderInOverlayDuringTransition: Boolean = true,
+    shape: Shape? = null,
+): Modifier {
+    val motionScheme = MaterialTheme.motionScheme
+    return with(sharedTransitionScope) {
+        if (shape == null) {
+            this@sharedBoundsWithMotion.sharedBounds(
+                boundsTransform = { _, _ -> motionScheme.sharedBoundsSpec() },
+                enter = fadeIn(motionScheme.slowEffectsSpec()),
+                exit = fadeOut(motionScheme.slowEffectsSpec()),
+                sharedContentState = sharedContentState,
+                animatedVisibilityScope = animatedVisibilityScope,
+                resizeMode = resizeMode,
+                renderInOverlayDuringTransition = renderInOverlayDuringTransition,
+            )
+        } else {
+            this@sharedBoundsWithMotion.sharedBounds(
+                boundsTransform = { _, _ -> motionScheme.sharedBoundsSpec() },
+                enter = fadeIn(motionScheme.slowEffectsSpec()),
+                exit = fadeOut(motionScheme.slowEffectsSpec()),
+                sharedContentState = sharedContentState,
+                animatedVisibilityScope = animatedVisibilityScope,
+                resizeMode = resizeMode,
+                renderInOverlayDuringTransition = renderInOverlayDuringTransition,
+                clipInOverlayDuringTransition = OverlayClip(shape),
+            )
+        }
+    }
+}
 
 /**
  * Marks [this] as the overlay side of the shared bounds identified by [sharedContentState], so an
@@ -47,22 +88,16 @@ public fun Modifier.overlaySharedBounds(
     renderInOverlayDuringTransition: Boolean = true,
 ): Modifier {
     if (sharedContentState == null || !SpatialMotionEnabled) return this
-    val motionScheme = MaterialTheme.motionScheme
     val sharedTransitionScope = LocalSharedTransitionScope.current ?: return this
     val animatedVisibilityScope = LocalOverlayAnimatedVisibilityScope.current ?: return this
-    with(sharedTransitionScope) {
-        val bounds =
-            this@overlaySharedBounds.sharedBounds(
-                boundsTransform = { _, _ -> motionScheme.sharedBoundsSpec() },
-                enter = fadeIn(MaterialTheme.motionScheme.slowEffectsSpec()),
-                exit = fadeOut(MaterialTheme.motionScheme.slowEffectsSpec()),
-                sharedContentState = sharedContentState,
-                animatedVisibilityScope = animatedVisibilityScope,
-                resizeMode = resizeMode,
-                renderInOverlayDuringTransition = renderInOverlayDuringTransition,
-                clipInOverlayDuringTransition = OverlayClip(shape),
-            )
-        return bounds
+    return context(sharedTransitionScope) {
+        this@overlaySharedBounds.sharedBoundsWithMotion(
+            sharedContentState = sharedContentState,
+            animatedVisibilityScope = animatedVisibilityScope,
+            resizeMode = resizeMode,
+            renderInOverlayDuringTransition = renderInOverlayDuringTransition,
+            shape = shape,
+        )
     }
 }
 
@@ -94,17 +129,13 @@ public fun Modifier.sharedTransitionBounds(
     resizeMode: ResizeMode = ResizeMode.RemeasureToBounds,
 ): Modifier {
     if (!SpatialMotionEnabled) return this
-    val motionScheme = MaterialTheme.motionScheme
     val sharedTransitionScope = LocalSharedTransitionScope.current ?: return this
-    with(sharedTransitionScope) {
-        return this@sharedTransitionBounds.sharedBounds(
-            boundsTransform = { _, _ -> motionScheme.sharedBoundsSpec() },
-            enter = fadeIn(MaterialTheme.motionScheme.slowEffectsSpec()),
-            exit = fadeOut(MaterialTheme.motionScheme.slowEffectsSpec()),
+    return context(sharedTransitionScope) {
+        this@sharedTransitionBounds.sharedBoundsWithMotion(
             sharedContentState = sharedContentState,
             animatedVisibilityScope = animatedVisibilityScope,
             resizeMode = resizeMode,
-            clipInOverlayDuringTransition = OverlayClip(shape),
+            shape = shape,
         )
     }
 }

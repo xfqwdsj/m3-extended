@@ -352,7 +352,7 @@ public object ToggleButtonDefaults {
     ): ToggleButtonShapes =
         MaterialToggleButtonDefaults.shapesFor(MaterialToggleButtonDefaults.size)
             .copy(
-                shape = shape ?: MaterialTheme.extended.shapes.full,
+                shape = resolvedFullShape(shape),
                 pressedShape = pressedShape,
                 checkedShape = checkedShape,
             )

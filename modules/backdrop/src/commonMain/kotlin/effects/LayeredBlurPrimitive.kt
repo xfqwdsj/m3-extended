@@ -2,7 +2,6 @@ package top.ltfan.m3x.backdrop.effects
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
@@ -129,10 +128,7 @@ internal data class LayeredBlurPrimitive(
                     drawRect(
                         checkNotNull(branch.brush),
                         Offset(-extension.left, -extension.top),
-                        Size(
-                            context.size.width + extension.left + extension.right,
-                            context.size.height + extension.top + extension.bottom,
-                        ),
+                        extension.expand(context.size),
                         blendMode = BlendMode.DstIn,
                     )
                 }

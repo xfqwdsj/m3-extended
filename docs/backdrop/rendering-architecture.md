@@ -275,9 +275,13 @@ contribution are combined in linear extended-sRGB before premultiplied output. P
 runtime shaders use a native inner stroke with the configured width and color.
 
 Follow [HighlightRenderer](../../modules/backdrop/src/commonMain/kotlin/highlight/HighlightRenderer.kt),
-[HighlightBoundaryGeometry](../../modules/backdrop/src/commonMain/kotlin/highlight/HighlightBoundaryGeometry.kt),
-and [FlattenedBoundaryGeometry](../../modules/backdrop/src/commonMain/kotlin/internal/FlattenedBoundaryGeometry.kt)
-when changing this path. [Styles and decorations](styles-and-decorations.md) covers the public parameters, and [Backdrop integration](../backdrops.md#configure-contour-highlight-preparation) describes SDF preparation.
+[BoundaryGeometry](../../modules/backdrop/src/commonMain/kotlin/internal/BoundaryGeometry.kt),
+[FlattenedBoundaryGeometry](../../modules/backdrop/src/commonMain/kotlin/internal/FlattenedBoundaryGeometry.kt),
+and the shared [flattened contour](../../modules/shape/src/commonMain/kotlin/FlattenedContour.kt)
+implementation when changing this path. [Styles and decorations](styles-and-decorations.md) covers the
+public parameters, and
+[Backdrop integration](../backdrops.md#configure-contour-highlight-preparation) describes SDF
+preparation.
 
 ## Platform adapters
 

@@ -1,5 +1,7 @@
 package top.ltfan.m3x.backdrop
 
+import top.ltfan.m3x.backdrop.internal.FailureCollector
+
 /**
  * Retains renderer state by keys with immutable equality and hash behavior. Each entry owns a
  * separate layer owner and shader namespace. Parameter changes update the retained value; callers
@@ -57,7 +59,7 @@ internal constructor(
     public fun retainOnly(keys: Set<K>) {
         checkAccess()
         changing = true
-        var failure: Throwable? = null
+        val failures = FailureCollector()
         try {
             val iterator = entries.iterator()
             while (iterator.hasNext()) {
@@ -65,16 +67,12 @@ internal constructor(
                 if (entry.key in keys) continue
                 val value = entry.value
                 iterator.remove()
-                try {
-                    release(value, refresh = false)
-                } catch (problem: Throwable) {
-                    if (failure == null) failure = problem else failure.addSuppressed(problem)
-                }
+                failures.run { release(value, refresh = false) }
             }
         } finally {
             changing = false
         }
-        failure?.let { throw it }
+        failures.throwIfFailed()
     }
 
     /** Disposes all retained values and releases their layers and shader caches. */
@@ -83,19 +81,15 @@ internal constructor(
     internal fun refresh() {
         checkAccess()
         changing = true
-        var failure: Throwable? = null
+        val failures = FailureCollector()
         try {
             for (entry in entries.values) {
-                try {
-                    release(entry, refresh = true)
-                } catch (problem: Throwable) {
-                    if (failure == null) failure = problem else failure.addSuppressed(problem)
-                }
+                failures.run { release(entry, refresh = true) }
             }
         } finally {
             changing = false
         }
-        failure?.let { throw it }
+        failures.throwIfFailed()
     }
 
     internal fun close() {
@@ -110,18 +104,12 @@ internal constructor(
     private fun release(entry: Entry<V>, refresh: Boolean) {
         val value = entry.value
         entry.value = null
-        var failure: Throwable? = null
-        try {
-            if (value != null) dispose(value)
-        } catch (problem: Throwable) {
-            failure = problem
-        }
-        try {
+        val failures = FailureCollector()
+        if (value != null) failures.run { dispose(value) }
+        failures.run {
             if (refresh) entry.resources.releaseLayers() else entry.resources.close()
-        } catch (problem: Throwable) {
-            if (failure == null) failure = problem else failure.addSuppressed(problem)
         }
-        failure?.let { throw it }
+        failures.throwIfFailed()
     }
 
     private fun checkAccess() {

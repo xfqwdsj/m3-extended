@@ -118,7 +118,6 @@ import top.ltfan.m3x.compose.animation.rememberInterpolatedShape
 import top.ltfan.m3x.compose.foundation.GroupedLazyColumn
 import top.ltfan.m3x.compose.foundation.GroupedLazyListScope
 import top.ltfan.m3x.compose.material3.ListItemColorsTransparent
-import top.ltfan.m3x.compose.material3.sharedBoundsSpec
 import top.ltfan.m3x.compose.ui.accessibility.SpatialMotionEnabled
 import top.ltfan.m3x.material.OutlinedButton
 import top.ltfan.m3x.material.SegmentedListGroupScope
@@ -130,6 +129,7 @@ import top.ltfan.m3x.material.overlay.OverlayDialog
 import top.ltfan.m3x.material.overlay.OverlayMenu
 import top.ltfan.m3x.material.overlay.OverlayMenuItem
 import top.ltfan.m3x.material.overlay.rememberOverlayMenuPositionProvider
+import top.ltfan.m3x.material.overlay.sharedBoundsWithMotion
 import top.ltfan.m3x.material.segmentedListGroup
 import top.ltfan.m3x.material.theme.extended
 import top.ltfan.m3x.overlay.LocalOverlayAnimatedVisibilityScope
@@ -1001,25 +1001,13 @@ private fun SharedTransitionScope.SettingsRowEntry(
                             Modifier.then(
                                     if (reduceMotion) Modifier
                                     else
-                                        Modifier.sharedBounds(
-                                            boundsTransform = { _, _ ->
-                                                motionScheme.sharedBoundsSpec()
-                                            },
-                                            enter =
-                                                fadeIn(
-                                                    MaterialTheme.motionScheme.slowEffectsSpec(),
-                                                ),
-                                            exit =
-                                                fadeOut(
-                                                    MaterialTheme.motionScheme.slowEffectsSpec(),
-                                                ),
+                                        Modifier.sharedBoundsWithMotion(
                                             sharedContentState = sharedState,
                                             animatedVisibilityScope = this,
                                             resizeMode = ResizeMode.RemeasureToBounds,
                                             renderInOverlayDuringTransition =
                                                 context.state.activeItem?.id == entry.id,
-                                            clipInOverlayDuringTransition =
-                                                OverlayClip(containerShape),
+                                            shape = containerShape,
                                         ),
                                 )
                                 .testTag("settings-segment-container:${entry.id}")

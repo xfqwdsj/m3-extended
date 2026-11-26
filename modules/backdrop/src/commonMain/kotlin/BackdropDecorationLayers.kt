@@ -2,12 +2,14 @@ package top.ltfan.m3x.backdrop
 
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.ceil
 import kotlin.math.floor
+import top.ltfan.m3x.backdrop.internal.hasFiniteEdges
+import top.ltfan.m3x.backdrop.internal.isOrdered
+import top.ltfan.m3x.backdrop.internal.recordSurfaceLayer
 
 /**
  * Records an explicitly owned layer in surface coordinates. Storage rounds [bounds] outward to
@@ -26,12 +28,8 @@ public inline fun BackdropDecorationDrawContext.recordLayer(
     val right = ceil(bounds.right)
     val bottom = ceil(bounds.bottom)
     require(
-        left.isFinite() &&
-            top.isFinite() &&
-            right.isFinite() &&
-            bottom.isFinite() &&
-            left <= right &&
-            top <= bottom &&
+        bounds.hasFiniteEdges &&
+            bounds.isOrdered &&
             left.toDouble() >= Int.MIN_VALUE &&
             top.toDouble() >= Int.MIN_VALUE &&
             right.toDouble() <= Int.MAX_VALUE &&
@@ -42,20 +40,16 @@ public inline fun BackdropDecorationDrawContext.recordLayer(
         "Decoration layer bounds must fit ordered finite pixel storage"
     }
     val surfaceSize = size
-    layer.topLeft = IntOffset(left.toInt(), top.toInt())
-    layer.record(
+    layer.recordSurfaceLayer(
         density,
         layoutDirection,
+        surfaceSize,
+        IntOffset(left.toInt(), top.toInt()),
         IntSize((right - left).toInt(), (bottom - top).toInt()),
-    ) {
-        val previous = drawContext.size
-        drawContext.size = surfaceSize
-        try {
-            translate(-left, -top) { block() }
-        } finally {
-            drawContext.size = previous
-        }
-    }
+        -left,
+        -top,
+        block,
+    )
 }
 
 @PublishedApi

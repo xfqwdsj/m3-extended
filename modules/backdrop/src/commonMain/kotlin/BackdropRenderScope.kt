@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import top.ltfan.dslutilities.DslBuilder
 import top.ltfan.dslutilities.DslList
 import top.ltfan.dslutilities.DslValue
-import top.ltfan.m3x.backdrop.effects.LensBoundaryCache
 import top.ltfan.m3x.backdrop.effects.runtimeShaderEffect
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometryCache
 
 /** An image handle within one declaration. Its evaluating renderer owns the rendering resources. */
 @Immutable
@@ -179,8 +179,8 @@ internal constructor(
     private val interactionLightsPresent: () -> Boolean = { true },
     internal val resolveStyle: () -> BackdropStyle = { BackdropStyle.Default },
 ) {
-    internal val lensBoundaryCache: LensBoundaryCache
-        get() = owner.lensBoundaryCache
+    internal val boundaryGeometryCache: BoundaryGeometryCache
+        get() = owner.boundaryGeometryCache
 
     /** Measured surface pixels; declaration reads make graph structure depend on resizing. */
     public val size: Size
@@ -313,10 +313,7 @@ internal constructor(
             drawRect(
                 color,
                 room.extension.originInNode,
-                Size(
-                    room.size.width + room.extension.left + room.extension.right,
-                    room.size.height + room.extension.top + room.extension.bottom,
-                ),
+                room.drawingSize,
             )
         }
 
@@ -326,10 +323,7 @@ internal constructor(
             drawRect(
                 brush,
                 room.extension.originInNode,
-                Size(
-                    room.size.width + room.extension.left + room.extension.right,
-                    room.size.height + room.extension.top + room.extension.bottom,
-                ),
+                room.drawingSize,
                 alpha = alpha,
             )
         }
@@ -445,10 +439,7 @@ internal constructor(
                 drawRect(
                     Color.White,
                     room.extension.originInNode,
-                    Size(
-                        room.size.width + room.extension.left + room.extension.right,
-                        room.size.height + room.extension.top + room.extension.bottom,
-                    ),
+                    room.drawingSize,
                     alpha = weight,
                 )
             }
@@ -505,7 +496,7 @@ internal fun requireAlpha(alpha: Float) {
 }
 
 internal class BackdropGraphOwner(var size: Size) {
-    val lensBoundaryCache = LensBoundaryCache()
+    val boundaryGeometryCache = BoundaryGeometryCache()
     var declaring: Boolean = true
     var readsSize: Boolean = false
 }

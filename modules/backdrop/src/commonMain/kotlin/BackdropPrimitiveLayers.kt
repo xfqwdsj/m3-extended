@@ -2,12 +2,14 @@ package top.ltfan.m3x.backdrop
 
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.ceil
 import kotlin.math.floor
+import top.ltfan.m3x.backdrop.internal.hasFiniteEdges
+import top.ltfan.m3x.backdrop.internal.isOrdered
+import top.ltfan.m3x.backdrop.internal.recordSurfaceLayer
 
 /**
  * Records an owned [layer] in surface-local coordinates using the resolved graph storage. The
@@ -25,8 +27,9 @@ public inline fun BackdropPrimitiveDrawContext.recordLayer(
     checkActivePrimitiveDraw()
     val surfaceSize = size
     val room = extension
-    val width = ceil(surfaceSize.width + room.left + room.right)
-    val height = ceil(surfaceSize.height + room.top + room.bottom)
+    val expanded = room.expand(surfaceSize)
+    val width = ceil(expanded.width)
+    val height = ceil(expanded.height)
     require(
         width.isFinite() &&
             height.isFinite() &&
@@ -37,16 +40,16 @@ public inline fun BackdropPrimitiveDrawContext.recordLayer(
     ) {
         "Primitive layer storage must fit non-negative pixel dimensions"
     }
-    layer.topLeft = IntOffset(-room.left.toInt(), -room.top.toInt())
-    layer.record(density, layoutDirection, IntSize(width.toInt(), height.toInt())) {
-        val previous = drawContext.size
-        drawContext.size = surfaceSize
-        try {
-            translate(room.left, room.top) { block() }
-        } finally {
-            drawContext.size = previous
-        }
-    }
+    layer.recordSurfaceLayer(
+        density,
+        layoutDirection,
+        surfaceSize,
+        IntOffset(-room.left.toInt(), -room.top.toInt()),
+        IntSize(width.toInt(), height.toInt()),
+        room.left,
+        room.top,
+        block,
+    )
 }
 
 /**
@@ -60,12 +63,7 @@ internal inline fun BackdropPrimitiveDrawContext.recordLayerRegion(
 ) {
     checkActivePrimitiveDraw()
     require(
-        region.left.isFinite() &&
-            region.top.isFinite() &&
-            region.right.isFinite() &&
-            region.bottom.isFinite() &&
-            region.left <= region.right &&
-            region.top <= region.bottom,
+        region.hasFiniteEdges && region.isOrdered,
     ) {
         "Primitive layer region must be finite and non-inverted"
     }
@@ -84,16 +82,16 @@ internal inline fun BackdropPrimitiveDrawContext.recordLayerRegion(
         "Primitive layer region must fit non-negative pixel dimensions"
     }
     val surfaceSize = size
-    layer.topLeft = IntOffset(left.toInt(), top.toInt())
-    layer.record(density, layoutDirection, IntSize(width.toInt(), height.toInt())) {
-        val previous = drawContext.size
-        drawContext.size = surfaceSize
-        try {
-            translate(-left, -top) { block() }
-        } finally {
-            drawContext.size = previous
-        }
-    }
+    layer.recordSurfaceLayer(
+        density,
+        layoutDirection,
+        surfaceSize,
+        IntOffset(left.toInt(), top.toInt()),
+        IntSize(width.toInt(), height.toInt()),
+        -left,
+        -top,
+        block,
+    )
 }
 
 @PublishedApi

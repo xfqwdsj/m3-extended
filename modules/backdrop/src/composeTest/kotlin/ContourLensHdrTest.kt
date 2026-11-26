@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import top.ltfan.m3x.backdrop.effects.ContourLens
-import top.ltfan.m3x.backdrop.highlight.HighlightBoundaryGeometry
+import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 
 internal class ContourLensHdrTest {
     @Test
@@ -17,7 +17,7 @@ internal class ContourLensHdrTest {
         initializeTestGraphics()
         val outline =
             CutCornerShape(24.dp).createOutline(Size(64f, 64f), LayoutDirection.Ltr, Density(1f))
-        val contour = ContourLens(HighlightBoundaryGeometry(outline))
+        val contour = ContourLens(BoundaryGeometry(outline))
         val source =
             RuntimeShader(
                 "half4 main(float2 p) { return half4(1.25 + p.x / 32.0, 0.1 + p.y / 64.0, -0.1, 0.75); }",

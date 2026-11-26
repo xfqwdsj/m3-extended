@@ -79,12 +79,7 @@ internal class BackdropSourceRenderer(private val context: () -> GraphicsContext
             val inverse = inverseSourceTransform(transform, inverseSourceTransformScratch)
             val request = inverse.map(samplingBounds)
             require(
-                request.left.isFinite() &&
-                    request.top.isFinite() &&
-                    request.right.isFinite() &&
-                    request.bottom.isFinite() &&
-                    request.width.isFinite() &&
-                    request.height.isFinite(),
+                request.hasFiniteEdges && request.width.isFinite() && request.height.isFinite(),
             ) {
                 "Source sampling request must be finite"
             }

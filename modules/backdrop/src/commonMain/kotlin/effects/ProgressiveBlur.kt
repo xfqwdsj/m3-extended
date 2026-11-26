@@ -17,6 +17,7 @@ import top.ltfan.m3x.backdrop.BackdropSide
 import top.ltfan.m3x.backdrop.BuiltinRuntimeShader
 import top.ltfan.m3x.backdrop.backdropCurveShader
 import top.ltfan.m3x.backdrop.backdropRampEnds
+import top.ltfan.m3x.backdrop.coveredInsets
 import top.ltfan.m3x.backdrop.isRuntimeShaderSupported
 import top.ltfan.m3x.backdrop.shaderControls
 import top.ltfan.m3x.backdrop.side
@@ -286,23 +287,6 @@ public fun BackdropEffectScope.coverRamp(ramp: BackdropRamp, edge: BackdropEdge)
         ),
     )
 }
-
-/** The room a ramp's two ends reach past a surface, on the sides a physical edge names. */
-private fun Density.coveredInsets(
-    side: BackdropSide,
-    pastContentSide: Float,
-    pastFarSide: Float,
-): BackdropInsets =
-    when (side) {
-        BackdropSide.Top ->
-            BackdropInsets(top = pastFarSide.toDp(), bottom = pastContentSide.toDp())
-        BackdropSide.Bottom ->
-            BackdropInsets(top = pastContentSide.toDp(), bottom = pastFarSide.toDp())
-        BackdropSide.Left ->
-            BackdropInsets(left = pastFarSide.toDp(), right = pastContentSide.toDp())
-        BackdropSide.Right ->
-            BackdropInsets(left = pastContentSide.toDp(), right = pastFarSide.toDp())
-    }
 
 internal fun validateProgressiveBlur(radius: Float, ramp: BackdropRamp) {
     require(radius.isFinite() && radius >= 0f) {

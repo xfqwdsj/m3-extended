@@ -3,7 +3,6 @@ package top.ltfan.m3x.backdrop
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.structuralEqualityPolicy
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import top.ltfan.m3x.backdrop.effects.colorControls
@@ -71,7 +70,7 @@ internal fun BackdropImageScope.styleEffects(
     val blur = style::blur
     val layered = blurTopology(blur)
     val ramp = fill?.let(::fillRamp)
-    val boundaries = lensBoundaryCache
+    val boundaries = boundaryGeometryCache
     if (layered.value) {
         effects { colorControls(style.colorControls()) }
         layeredBlur(blur, layered)
@@ -113,11 +112,7 @@ internal fun DrawScope.drawStyledFill(
     val alpha = value.alpha ?: 1f
     requireAlpha(alpha)
     val origin = room.extension.originInNode
-    val domain =
-        Size(
-            room.size.width + room.extension.left + room.extension.right,
-            room.size.height + room.extension.top + room.extension.bottom,
-        )
+    val domain = room.drawingSize
     val ramp = value.ramp
     if (ramp == null) drawRect(brush, origin, domain, alpha = alpha)
     else

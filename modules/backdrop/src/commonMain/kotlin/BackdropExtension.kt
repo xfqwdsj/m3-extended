@@ -26,6 +26,13 @@ public data class BackdropExtension(
     public val originInNode: Offset
         get() = Offset(-left, -top)
 
+    /** Expands a surface size by this recording room. */
+    public fun expand(size: Size): Size =
+        Size(
+            size.width + left + right,
+            size.height + top + bottom,
+        )
+
     public companion object {
 
         /** The effects stay inside the surface's own rectangle. */
@@ -41,4 +48,8 @@ public data class BackdropExtension(
 public data class BackdropRoom(
     public val size: Size,
     public val extension: BackdropExtension,
-)
+) {
+    /** The full rectangle recorded by the layer, including sampling room. */
+    public val drawingSize: Size
+        get() = extension.expand(size)
+}

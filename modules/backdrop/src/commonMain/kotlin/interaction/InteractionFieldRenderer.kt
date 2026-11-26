@@ -15,8 +15,9 @@ import kotlin.math.ceil
 import kotlin.math.sqrt
 import top.ltfan.m3x.backdrop.BackdropCurve
 import top.ltfan.m3x.backdrop.RuntimeShaderVariantCache
-import top.ltfan.m3x.backdrop.highlight.encodeHighlightExtendedSrgb
+import top.ltfan.m3x.backdrop.internal.encodeExtendedSrgb
 import top.ltfan.m3x.backdrop.internal.setRuntimeShader
+import top.ltfan.m3x.backdrop.internal.shaderUniformCapacity
 import top.ltfan.m3x.backdrop.isRuntimeShaderSupported
 
 /** Reuses shader programs and uniform storage while shared source positions move. */
@@ -155,9 +156,9 @@ internal class InteractionFieldRenderer {
             val color =
                 if (alpha > 0f) {
                     Color(
-                        encodeHighlightExtendedSrgb(red / totalWeight),
-                        encodeHighlightExtendedSrgb(green / totalWeight),
-                        encodeHighlightExtendedSrgb(blue / totalWeight),
+                        encodeExtendedSrgb(red / totalWeight),
+                        encodeExtendedSrgb(green / totalWeight),
+                        encodeExtendedSrgb(blue / totalWeight),
                         alpha,
                         ColorSpaces.ExtendedSrgb,
                     )
@@ -169,8 +170,7 @@ internal class InteractionFieldRenderer {
 
     private fun ensureSoftwareSources(count: Int) {
         if (count <= softwareCurves.size) return
-        var capacity = maxOf(4, softwareCurves.size)
-        while (capacity < count) capacity *= 2
+        val capacity = shaderUniformCapacity(count, minimum = 4)
         softwareSources = FloatArray(capacity * 8)
         softwareCurves = arrayOfNulls(capacity)
     }

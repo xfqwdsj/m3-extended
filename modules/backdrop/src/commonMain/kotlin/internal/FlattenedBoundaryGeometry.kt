@@ -3,52 +3,27 @@ package top.ltfan.m3x.backdrop.internal
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathIterator
-import androidx.compose.ui.graphics.PathOperation
-import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastIsFinite
-import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.acos
-import kotlin.math.ceil
-import kotlin.math.hypot
 import kotlin.math.sqrt
-import top.ltfan.m3x.backdrop.highlight.HighlightFlatness
 import top.ltfan.m3x.compose.shape.Contour
 import top.ltfan.m3x.compose.shape.PathSegment
-
-private typealias AppendSegment = (Float, Float, Float, Float) -> Unit
+import top.ltfan.m3x.compose.shape.PathSegments
+import top.ltfan.m3x.compose.shape.toFlattenedContour
 
 private const val CERTIFICATE_GROUP_SIZE = 8
 private const val CERTIFICATE_INDEX_MINIMUM_SEGMENTS = 32
 
 /**
- * A line approximation of a filled path boundary. Subdivision uses [HighlightFlatness] as its
- * tolerance in the contour shader's local pixel coordinates.
+ * A line approximation of a filled path boundary. Subdivision uses [BoundaryFlatness] as its
+ * tolerance in boundary-renderer local pixel coordinates.
  */
-internal class FlattenedBoundaryGeometry private constructor(source: BoundarySource) {
-    private sealed interface BoundarySource {
-        val bounds: Rect
-
-        fun flatten(add: AppendSegment)
-    }
-
-    private class PathSource(private val path: Path) : BoundarySource {
-        override val bounds: Rect
-            get() = path.getBounds()
-
-        override fun flatten(add: AppendSegment) = flattenPath(path, add)
-    }
-
-    private class ContourSource(private val contour: Contour) : BoundarySource {
-        override val bounds: Rect
-            get() = contour.conservativeBounds
-
-        override fun flatten(add: AppendSegment) = flattenContour(contour, add)
-    }
-
-    internal val bounds: Rect = source.bounds
+internal class FlattenedBoundaryGeometry
+private constructor(
+    internal val bounds: Rect,
+    loops: List<PathSegments>?,
+) {
 
     /** Four floats per segment: start x/y followed by end x/y. */
     internal val segments: FloatArray
@@ -386,7 +361,6 @@ internal class FlattenedBoundaryGeometry private constructor(source: BoundarySou
     }
 
     init {
-        // Subdivision appends primitive coordinates without allocating boxed Float values.
         var coordinates = FloatArray(64)
         var coordinateCount = 0
         require(
@@ -411,344 +385,33 @@ internal class FlattenedBoundaryGeometry private constructor(source: BoundarySou
             }
         }
 
-        source.flatten(::add)
+        loops.orEmpty().forEach { loop ->
+            loop.forEach { segment ->
+                if (segment is PathSegment.Line) {
+                    add(
+                        segment.start.x.toFloat(),
+                        segment.start.y.toFloat(),
+                        segment.end.x.toFloat(),
+                        segment.end.y.toFloat(),
+                    )
+                }
+            }
+        }
         segments = coordinates.copyOf(coordinateCount)
     }
 
     internal companion object {
-        internal fun fromPath(path: Path): FlattenedBoundaryGeometry {
-            val normalized = Path()
-            return FlattenedBoundaryGeometry(
-                PathSource(
-                    if (normalized.op(path, Path(), PathOperation.Union)) normalized else path,
-                ),
+        internal fun fromPath(path: Path): FlattenedBoundaryGeometry =
+            FlattenedBoundaryGeometry(
+                path.getBounds(),
+                path.toFlattenedContour(BoundaryFlatness)?.loops,
             )
-        }
 
         internal fun fromContour(contour: Contour): FlattenedBoundaryGeometry =
-            FlattenedBoundaryGeometry(ContourSource(contour))
-
-        private fun flattenPath(path: Path, add: AppendSegment) {
-            val iterator = PathIterator(path, PathIterator.ConicEvaluation.AsConic)
-            val points = FloatArray(8)
-            var contourX = 0f
-            var contourY = 0f
-            var currentX = 0f
-            var currentY = 0f
-            var hasContour = false
-
-            fun closeContour() {
-                if (hasContour) add(currentX, currentY, contourX, contourY)
-                hasContour = false
-            }
-
-            while (iterator.hasNext()) {
-                when (iterator.next(points)) {
-                    Move -> {
-                        closeContour()
-                        contourX = points[0]
-                        contourY = points[1]
-                        currentX = contourX
-                        currentY = contourY
-                        hasContour = true
-                    }
-                    Line -> {
-                        if (!hasContour) {
-                            contourX = points[0]
-                            contourY = points[1]
-                            currentX = contourX
-                            currentY = contourY
-                            hasContour = true
-                        }
-                        add(points[0], points[1], points[2], points[3])
-                        currentX = points[2]
-                        currentY = points[3]
-                    }
-                    Quadratic -> {
-                        if (!hasContour) {
-                            contourX = points[0]
-                            contourY = points[1]
-                            currentX = contourX
-                            currentY = contourY
-                            hasContour = true
-                        }
-                        flattenQuadratic(
-                            points[0],
-                            points[1],
-                            points[2],
-                            points[3],
-                            points[4],
-                            points[5],
-                            add,
-                        )
-                        currentX = points[4]
-                        currentY = points[5]
-                    }
-                    Cubic -> {
-                        if (!hasContour) {
-                            contourX = points[0]
-                            contourY = points[1]
-                            currentX = contourX
-                            currentY = contourY
-                            hasContour = true
-                        }
-                        flattenCubic(
-                            points[0],
-                            points[1],
-                            points[2],
-                            points[3],
-                            points[4],
-                            points[5],
-                            points[6],
-                            points[7],
-                            add,
-                        )
-                        currentX = points[6]
-                        currentY = points[7]
-                    }
-                    Close -> {
-                        closeContour()
-                        currentX = contourX
-                        currentY = contourY
-                    }
-                    Conic -> {
-                        if (!hasContour) {
-                            contourX = points[0]
-                            contourY = points[1]
-                            currentX = contourX
-                            currentY = contourY
-                            hasContour = true
-                        }
-                        flattenConic(
-                            points[0],
-                            points[1],
-                            points[2],
-                            points[3],
-                            points[4],
-                            points[5],
-                            points[6],
-                            add,
-                        )
-                        currentX = points[4]
-                        currentY = points[5]
-                    }
-                    Done -> break
-                }
-            }
-            closeContour()
-        }
-
-        private fun flattenContour(contour: Contour, add: AppendSegment) {
-            for (loop in contour.loops) {
-                for (segment in loop) {
-                    when (segment) {
-                        is Line ->
-                            add(
-                                segment.start.x.toFloat(),
-                                segment.start.y.toFloat(),
-                                segment.end.x.toFloat(),
-                                segment.end.y.toFloat(),
-                            )
-                        is Circular -> flattenArc(segment, add)
-                        is Cubic ->
-                            flattenCubic(
-                                segment.start.x.toFloat(),
-                                segment.start.y.toFloat(),
-                                segment.control1.x.toFloat(),
-                                segment.control1.y.toFloat(),
-                                segment.control2.x.toFloat(),
-                                segment.control2.y.toFloat(),
-                                segment.end.x.toFloat(),
-                                segment.end.y.toFloat(),
-                                add,
-                            )
-                    }
-                }
-                val first = loop.first().start
-                val last = loop.last().end
-                add(last.x.toFloat(), last.y.toFloat(), first.x.toFloat(), first.y.toFloat())
-            }
-        }
-
-        private fun flattenQuadratic(
-            x0: Float,
-            y0: Float,
-            cx: Float,
-            cy: Float,
-            x1: Float,
-            y1: Float,
-            add: AppendSegment,
-        ) {
-            val stack = ArrayList<FloatArray>()
-            stack.add(floatArrayOf(x0, y0, cx, cy, x1, y1))
-            while (stack.isNotEmpty()) {
-                val c = stack.removeAt(stack.lastIndex)
-                if (distanceToLine(c[2], c[3], c[0], c[1], c[4], c[5]) <= HighlightFlatness) {
-                    add(c[0], c[1], c[4], c[5])
-                } else {
-                    val ax = (c[0] + c[2]) * 0.5f
-                    val ay = (c[1] + c[3]) * 0.5f
-                    val bx = (c[2] + c[4]) * 0.5f
-                    val by = (c[3] + c[5]) * 0.5f
-                    val mx = (ax + bx) * 0.5f
-                    val my = (ay + by) * 0.5f
-                    val left = floatArrayOf(c[0], c[1], ax, ay, mx, my)
-                    val right = floatArrayOf(mx, my, bx, by, c[4], c[5])
-                    if (left.contentEquals(c) || right.contentEquals(c)) {
-                        add(c[0], c[1], c[4], c[5])
-                    } else {
-                        stack.add(right)
-                        stack.add(left)
-                    }
-                }
-            }
-        }
-
-        private fun flattenCubic(
-            x0: Float,
-            y0: Float,
-            c1x: Float,
-            c1y: Float,
-            c2x: Float,
-            c2y: Float,
-            x1: Float,
-            y1: Float,
-            add: AppendSegment,
-        ) {
-            val stack = ArrayList<FloatArray>()
-            stack.add(floatArrayOf(x0, y0, c1x, c1y, c2x, c2y, x1, y1))
-            while (stack.isNotEmpty()) {
-                val c = stack.removeAt(stack.lastIndex)
-                if (
-                    maxOf(
-                        distanceToLine(c[2], c[3], c[0], c[1], c[6], c[7]),
-                        distanceToLine(c[4], c[5], c[0], c[1], c[6], c[7]),
-                    ) <= HighlightFlatness
-                ) {
-                    add(c[0], c[1], c[6], c[7])
-                } else {
-                    val aX = (c[0] + c[2]) * 0.5f
-                    val aY = (c[1] + c[3]) * 0.5f
-                    val bX = (c[2] + c[4]) * 0.5f
-                    val bY = (c[3] + c[5]) * 0.5f
-                    val dX = (c[4] + c[6]) * 0.5f
-                    val dY = (c[5] + c[7]) * 0.5f
-                    val eX = (aX + bX) * 0.5f
-                    val eY = (aY + bY) * 0.5f
-                    val fX = (bX + dX) * 0.5f
-                    val fY = (bY + dY) * 0.5f
-                    val mX = (eX + fX) * 0.5f
-                    val mY = (eY + fY) * 0.5f
-                    val left = floatArrayOf(c[0], c[1], aX, aY, eX, eY, mX, mY)
-                    val right = floatArrayOf(mX, mY, fX, fY, dX, dY, c[6], c[7])
-                    if (left.contentEquals(c) || right.contentEquals(c)) {
-                        add(c[0], c[1], c[6], c[7])
-                    } else {
-                        stack.add(right)
-                        stack.add(left)
-                    }
-                }
-            }
-        }
-
-        private fun flattenConic(
-            x0: Float,
-            y0: Float,
-            cx: Float,
-            cy: Float,
-            x1: Float,
-            y1: Float,
-            weight: Float,
-            add: AppendSegment,
-        ) {
-            require(weight.fastIsFinite() && weight > 0f) {
-                "Conic weight must be finite and positive"
-            }
-            val stack = ArrayList<FloatArray>()
-            stack.add(floatArrayOf(x0, y0, cx, cy, x1, y1, weight))
-            while (stack.isNotEmpty()) {
-                val c = stack.removeAt(stack.lastIndex)
-                if (distanceToLine(c[2], c[3], c[0], c[1], c[4], c[5]) <= HighlightFlatness) {
-                    add(c[0], c[1], c[4], c[5])
-                } else {
-                    val w = c[6]
-                    val midX = ((c[0] + 2f * w * c[2] + c[4]) / (2f + 2f * w))
-                    val midY = ((c[1] + 2f * w * c[3] + c[5]) / (2f + 2f * w))
-                    val leftControlX = (c[0] + w * c[2]) / (1f + w)
-                    val leftControlY = (c[1] + w * c[3]) / (1f + w)
-                    val rightControlX = (w * c[2] + c[4]) / (1f + w)
-                    val rightControlY = (w * c[3] + c[5]) / (1f + w)
-                    val childWeight = sqrt(((1.0 + w.toDouble()) * 0.5)).toFloat()
-                    val left =
-                        floatArrayOf(
-                            c[0],
-                            c[1],
-                            leftControlX,
-                            leftControlY,
-                            midX,
-                            midY,
-                            childWeight,
-                        )
-                    val right =
-                        floatArrayOf(
-                            midX,
-                            midY,
-                            rightControlX,
-                            rightControlY,
-                            c[4],
-                            c[5],
-                            childWeight,
-                        )
-                    if (left.contentEquals(c) || right.contentEquals(c)) {
-                        add(c[0], c[1], c[4], c[5])
-                    } else {
-                        stack.add(right)
-                        stack.add(left)
-                    }
-                }
-            }
-        }
-
-        private fun flattenArc(arc: PathSegment.Circular, add: AppendSegment) {
-            val radius = arc.radius
-            val radians = arc.sweepRadians
-            if (radius <= 0.0 || radians == 0.0) return
-            val maximumStep =
-                if (radius <= HighlightFlatness) {
-                    PI * .5
-                } else {
-                    2.0 *
-                        acos(
-                            (1.0 - HighlightFlatness.toDouble() / radius).fastCoerceIn(
-                                -1.0,
-                                1.0,
-                            ),
-                        )
-                }
-            val count = ceil(abs(radians) / maximumStep).toInt().fastCoerceAtLeast(1)
-            var previous = arc.start
-            for (index in 1..count) {
-                val next = arc.pointAt(index.toDouble() / count)
-                add(previous.x.toFloat(), previous.y.toFloat(), next.x.toFloat(), next.y.toFloat())
-                previous = next
-            }
-        }
-
-        private fun distanceToLine(
-            px: Float,
-            py: Float,
-            x0: Float,
-            y0: Float,
-            x1: Float,
-            y1: Float,
-        ): Float {
-            val dx = x1 - x0
-            val dy = y1 - y0
-            val denominator = dx * dx + dy * dy
-            if (denominator == 0f) return hypot(px - x0, py - y0)
-            val projection = (((px - x0) * dx + (py - y0) * dy) / denominator).fastCoerceIn(0f, 1f)
-            return hypot(px - (x0 + projection * dx), py - (y0 + projection * dy))
-        }
+            FlattenedBoundaryGeometry(
+                contour.conservativeBounds,
+                contour.toFlattenedContour(BoundaryFlatness)?.loops,
+            )
     }
 }
 

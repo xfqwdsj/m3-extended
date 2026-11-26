@@ -11,14 +11,11 @@ import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.ElevatedButton as MaterialElevatedButton
 import androidx.compose.material3.FilledTonalButton as MaterialFilledTonalButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton as MaterialOutlinedButton
 import androidx.compose.material3.TextButton as MaterialTextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import top.ltfan.m3x.material.theme.extended
 
 /** Expressive button shapes whose default full shape follows the M3X theme. */
 public object ButtonDefaults {
@@ -31,9 +28,8 @@ public object ButtonDefaults {
     @Composable
     public fun shapes(shape: Shape? = null, pressedShape: Shape? = null): ButtonShapes {
         val defaults = MaterialButtonDefaults.shapes()
-        val resolved = shape ?: MaterialTheme.extended.shapes.full
-        return remember(defaults, resolved, pressedShape) {
-            defaults.copy(shape = resolved, pressedShape = pressedShape)
+        return rememberThemedShapes(defaults, shape, pressedShape) { resolved, pressed ->
+            defaults.copy(shape = resolved, pressedShape = pressed)
         }
     }
 }

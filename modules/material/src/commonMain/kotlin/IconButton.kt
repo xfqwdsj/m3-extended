@@ -13,14 +13,12 @@ import androidx.compose.material3.IconButtonShapes
 import androidx.compose.material3.IconToggleButton as MaterialIconToggleButton
 import androidx.compose.material3.IconToggleButtonColors
 import androidx.compose.material3.IconToggleButtonShapes
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton as MaterialOutlinedIconButton
 import androidx.compose.material3.OutlinedIconToggleButton as MaterialOutlinedIconToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import top.ltfan.m3x.material.theme.extended
 
 /** Theme-aware factories and wrappers for expressive icon buttons. */
 public object IconButtonDefaults {
@@ -33,11 +31,8 @@ public object IconButtonDefaults {
      */
     @Composable
     public fun staticShapes(shape: Shape? = null): IconButtonShapes {
-        val defaults = MaterialIconButtonDefaults.shapes()
-        val resolved = shape ?: MaterialTheme.extended.shapes.full
-        return remember(defaults, resolved) {
-            defaults.copy(shape = resolved, pressedShape = resolved)
-        }
+        val themed = shapes(shape = shape)
+        return remember(themed) { themed.copy(pressedShape = themed.shape) }
     }
 
     /**
@@ -51,9 +46,8 @@ public object IconButtonDefaults {
     @Composable
     public fun shapes(shape: Shape? = null, pressedShape: Shape? = null): IconButtonShapes {
         val defaults = MaterialIconButtonDefaults.shapes()
-        val resolved = shape ?: MaterialTheme.extended.shapes.full
-        return remember(defaults, resolved, pressedShape) {
-            defaults.copy(shape = resolved, pressedShape = pressedShape)
+        return rememberThemedShapes(defaults, shape, pressedShape) { resolved, pressed ->
+            defaults.copy(shape = resolved, pressedShape = pressed)
         }
     }
 
@@ -73,7 +67,7 @@ public object IconButtonDefaults {
         checkedShape: Shape? = null,
     ): IconToggleButtonShapes {
         val defaults = MaterialIconButtonDefaults.toggleableShapes()
-        val resolved = shape ?: MaterialTheme.extended.shapes.full
+        val resolved = resolvedFullShape(shape)
         return remember(defaults, resolved, pressedShape, checkedShape) {
             defaults.copy(
                 shape = resolved,
