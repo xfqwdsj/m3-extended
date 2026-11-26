@@ -1,6 +1,5 @@
 package top.ltfan.m3x.material.backdrop.theme
 
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -8,7 +7,6 @@ import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import top.ltfan.m3x.backdrop.BackdropBlur
-import top.ltfan.m3x.backdrop.BackdropLens
 import top.ltfan.m3x.backdrop.BackdropStyle
 import top.ltfan.m3x.backdrop.LocalBackdropStyle
 import top.ltfan.m3x.backdrop.ProvideBackdropRenderStyle
@@ -71,12 +69,7 @@ public fun ProvideBackdropTheme(theme: M3xBackdropTheme, content: @Composable ()
     CompositionLocalProvider(LocalM3xBackdropTheme provides theme) {
         ProvideBackdropStyle(style) {
             ProvideBackdropRenderStyle(
-                render =
-                    material.render
-                        ?: {
-                            if (shape is CornerBasedShape) styledSurface()
-                            else styledSurface(BackdropStyle { lens = { BackdropLens.None } })
-                        },
+                render = material.render ?: { styledSurface() },
                 insets = style.insets!!,
                 content = content,
             )

@@ -5,7 +5,6 @@ import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.contentColorFor
@@ -402,7 +401,7 @@ internal fun rememberMaterialAppearance(
             effects
                 ?: {
                     vibrancy(receivingStyle.vibrancy!!.invoke())
-                    if (this.shape is CornerBasedShape) lens(receivingStyle.lens!!.invoke())
+                    lens(receivingStyle.lens!!.invoke())
                 }
     val style =
         if (!transparent)

@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -163,7 +162,7 @@ public object BackdropFloatingBottomBarRenderer : FloatingBottomBarRenderer {
                                             this,
                                             progress,
                                         )
-                                    else if (shape is CornerBasedShape)
+                                    else
                                         lens(
                                             10.dp.toPx() * progress,
                                             14.dp.toPx() * progress,

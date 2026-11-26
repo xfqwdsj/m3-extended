@@ -1,6 +1,5 @@
 package top.ltfan.m3x.backdrop.benchmark.scenarios
 
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -52,9 +51,7 @@ private fun BackdropEffectScope.scenarioOptics(
     val radius = (8f + phase().coerceIn(0f, 1f) * 20f) * density
     blur(radius)
     vibrancy()
-    if (shape is CornerBasedShape) {
-        lens(24f * density, 18f * density, depthEffect = true)
-    }
+    lens(24f * density, 18f * density, depthEffect = true)
 }
 
 private fun DrawScope.scenarioTint(room: BackdropRoom) {

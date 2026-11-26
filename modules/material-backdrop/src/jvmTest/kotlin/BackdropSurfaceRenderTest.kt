@@ -6,19 +6,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.test.Test
@@ -61,6 +66,56 @@ class BackdropSurfaceRenderTest {
         assertTrue(
             abs(red.green - red.blue) < .025f && abs(green.red - green.blue) < .025f,
             "The interior contribution must retain its grayscale optics: red=$red green=$green",
+        )
+    }
+
+    @Test
+    fun builtInLensUsesNonCornerSilhouettes() = runComposeUiTest {
+        val shape =
+            object : Shape {
+                override fun createOutline(
+                    size: Size,
+                    layoutDirection: LayoutDirection,
+                    density: Density,
+                ) = CutCornerShape(24.dp).createOutline(size, layoutDirection, density)
+            }
+        setContent {
+            MaterialTheme {
+                val source = rememberBackdropLayer()
+                BackdropHost(source) {
+                    Box(Modifier.size(64.dp)) {
+                        Box(Modifier.size(64.dp).captureBackdrop(source)) {
+                            Canvas(Modifier.fillMaxSize()) {
+                                drawRect(Color.Red)
+                                drawRect(
+                                    Color.Blue,
+                                    Offset(16f, 0f),
+                                    Size(size.width - 16f, size.height),
+                                )
+                            }
+                        }
+                        BackdropSurface(
+                            Modifier.size(64.dp).testTag("non-corner-lens"),
+                            shape,
+                            material =
+                                M3xBackdropMaterial(
+                                    style =
+                                        BackdropStyle.NoEffects {
+                                            lens = { BackdropLens(12.dp, 12.dp) }
+                                        },
+                                    tintAlpha = 0f,
+                                    interactiveLighting = false,
+                                ),
+                        )
+                    }
+                }
+            }
+        }
+
+        val refracted = onNodeWithTag("non-corner-lens").captureToImage().toPixelMap()[12, 13]
+        assertTrue(
+            refracted.blue > .75f,
+            "The built-in material lens must follow a non-corner silhouette: $refracted",
         )
     }
 

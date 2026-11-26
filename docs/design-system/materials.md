@@ -9,8 +9,8 @@ baseline behavior below belongs to that adapter.
 
 | Role | Purpose and baseline behavior |
 | --- | --- |
-| `Control` | Compact interactive glass; vibrancy, corner-based lens, and exterior shadow |
-| `Panel` | Larger containers; stronger blur and depth lens on corner-based shapes |
+| `Control` | Compact interactive glass; vibrancy, a lens along the silhouette, and exterior shadow |
+| `Panel` | Larger containers; stronger blur and a depth lens along the silhouette |
 | `Surface` | Explicit decorative content backing; vibrancy without its own highlight/shadow/inner shadow, leaving elevation to the consuming component |
 | `InversePanel` | Transient feedback using the inverse Material container/foreground pair and fixed supplied colors |
 | `ScrollEdge` | Progressive separation over scrolling content, with a shared blur/fill profile and interaction lighting disabled by default |
@@ -57,7 +57,8 @@ modifier. Low-level `Modifier.backdropSurface` inherits that declaration or the 
 complete custom `render`. Outside a render-style provider its default draws the unprocessed source;
 pass `render = { styledSurface() }` to select the styled phases explicitly. A nested control material
 override updates both defaults. Built-in declarations apply the transparency, blur and interaction
-light gates; a complete custom declaration owns its rendering policy.
+light gates; a complete custom declaration owns its rendering policy. Lens processing follows the
+resolved silhouette.
 
 Construct or derive a style with `BackdropStyle { ... }` or `baseStyle { ... }`. Omitted fields
 inherit at the receiver; assigning `null` clears an override, while neutral values such as
@@ -66,7 +67,7 @@ complete values. Native uniform, progressive, and layered progressive algorithms
 algorithm, edge and ramp. M3X's progressive mode selects an algorithm for a uniform scroll-edge
 radius; an explicit native progressive configuration selects its own algorithm and geometry.
 Use style fields for theme optics, a component's explicit `effects` for a complete optical-chain
-replacement, and `render` for a custom graph. Lens processing applies to corner-based shapes.
+replacement, and `render` for a custom graph.
 
 Source: [appearance resolution](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
 Regression: [receiving style inheritance](../../modules/material-bundle/src/jvmTest/kotlin/BackdropThemeRenderingTest.kt),

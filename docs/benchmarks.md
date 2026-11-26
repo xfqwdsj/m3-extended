@@ -34,10 +34,10 @@ replay their recorded drawing.
 The scenes use the public Backdrop DSL and Compose Foundation/Animation in the shared scenario
 module. SharedBounds and Sheet animate blur radius from 8 to 28 dp; other
 scenes keep optical parameters fixed to isolate their layout, transform, opacity or source changes.
-Materials include vibrancy, processed-color highlighting, and lens effects on supported
-corner-based shapes. Generic and rounded contours exercise distinct geometry paths. Stripe pitch,
-layout dimensions and filter radii use dp so backend density scales them together; the scrolling
-feed retains text and row boundaries.
+Materials include vibrancy, processed-color highlighting, and lens effects on supported shapes.
+Generic and rounded contours exercise distinct geometry paths. Stripe pitch, layout dimensions and
+filter radii use dp so backend density scales them together; the scrolling feed retains text and row
+boundaries.
 
 `Complete` opens and closes each scene; `Interrupted` reverses at frames 12 and 20 before the
 final close at frame 96. The shared reference clock advances at 16,666,667 ns per frame.

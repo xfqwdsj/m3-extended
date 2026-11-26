@@ -4,12 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
@@ -37,59 +40,70 @@ import top.ltfan.m3x.material.backdrop.theme.M3xBackdropMaterial
 import top.ltfan.m3x.material.backdrop.theme.ProvideBackdropMaterial
 import top.ltfan.m3x.material.bundle.ProvideM3xMaterialRendering
 import top.ltfan.m3x.material.item
+import top.ltfan.m3x.material.theme.LocalM3xThemeExtensions
+import top.ltfan.m3x.material.theme.M3xShapeExtensions
+import top.ltfan.m3x.material.theme.M3xThemeExtensions
 
 class FloatingBottomBarLensRenderingTest {
     @Test
-    fun lensPreservesTheBarAndPageBehindIt() = runComposeUiTest {
+    fun nonCornerThemeShapeLensPreservesTheBarAndPageBehindIt() = runComposeUiTest {
         mainClock.autoAdvance = false
         val highlightEnabled = mutableStateOf(true)
+        val shape = object : Shape by RoundedCornerShape(50) {}
         setContent {
-            ProvideM3xMaterialRendering {
-                MaterialTheme {
-                    val source = rememberBackdropLayer(Color.Magenta)
-                    BackdropHost(source) {
-                        Box(Modifier.size(320.dp, 160.dp).testTag("root"), Alignment.Center) {
-                            Box(
-                                Modifier.fillMaxSize()
-                                    .captureBackdrop(source)
-                                    .background(Color.Magenta),
-                            )
-                            ProvideBackdropMaterial(
-                                MaterialSurfaceRole.Control,
-                                M3xBackdropMaterial(
-                                    style =
-                                        BackdropStyle.Default {
-                                            interactionLighting = { InteractionLighting.Config() }
-                                            fill = { BackdropFill(Color.Unspecified) }
-                                            blur = { BackdropBlur.Uniform(0.dp) }
-                                            highlight = {
-                                                if (highlightEnabled.value)
-                                                    Highlight.Contour(
-                                                        width = 3.dp,
-                                                        blurRadius = 12.dp,
-                                                        colorGain = .35f,
-                                                        environmentGain = 1f,
-                                                        opacity = 1f,
-                                                        direction = HighlightDirection.Uniform,
-                                                        color = Color.White,
-                                                    )
-                                                else Highlight.None
-                                            }
-                                            shadow = { Shadow.None }
-                                        },
-                                    tint = Color.Gray,
-                                    tintAlpha = 1f,
-                                    adaptation = BackdropAdaptation.Fixed,
-                                    adaptiveContentColor = false,
-                                    interactiveLighting = false,
-                                ),
-                            ) {
-                                FloatingBottomBar(
-                                    0,
-                                    {},
-                                    Modifier.testTag("bar"),
+            CompositionLocalProvider(
+                LocalM3xThemeExtensions provides
+                    M3xThemeExtensions(shapes = M3xShapeExtensions(full = shape)),
+            ) {
+                ProvideM3xMaterialRendering {
+                    MaterialTheme {
+                        val source = rememberBackdropLayer(Color.Magenta)
+                        BackdropHost(source) {
+                            Box(Modifier.size(320.dp, 160.dp).testTag("root"), Alignment.Center) {
+                                Box(
+                                    Modifier.fillMaxSize()
+                                        .captureBackdrop(source)
+                                        .background(Color.Magenta),
+                                )
+                                ProvideBackdropMaterial(
+                                    MaterialSurfaceRole.Control,
+                                    M3xBackdropMaterial(
+                                        style =
+                                            BackdropStyle.Default {
+                                                interactionLighting = {
+                                                    InteractionLighting.Config()
+                                                }
+                                                fill = { BackdropFill(Color.Unspecified) }
+                                                blur = { BackdropBlur.Uniform(0.dp) }
+                                                highlight = {
+                                                    if (highlightEnabled.value)
+                                                        Highlight.Contour(
+                                                            width = 3.dp,
+                                                            blurRadius = 12.dp,
+                                                            colorGain = .35f,
+                                                            environmentGain = 1f,
+                                                            opacity = 1f,
+                                                            direction = HighlightDirection.Uniform,
+                                                            color = Color.White,
+                                                        )
+                                                    else Highlight.None
+                                                }
+                                                shadow = { Shadow.None }
+                                            },
+                                        tint = Color.Gray,
+                                        tintAlpha = 1f,
+                                        adaptation = BackdropAdaptation.Fixed,
+                                        adaptiveContentColor = false,
+                                        interactiveLighting = false,
+                                    ),
                                 ) {
-                                    repeat(3) { item { Box(Modifier.size(64.dp, 24.dp)) } }
+                                    FloatingBottomBar(
+                                        0,
+                                        {},
+                                        Modifier.testTag("bar"),
+                                    ) {
+                                        repeat(3) { item { Box(Modifier.size(64.dp, 24.dp)) } }
+                                    }
                                 }
                             }
                         }
