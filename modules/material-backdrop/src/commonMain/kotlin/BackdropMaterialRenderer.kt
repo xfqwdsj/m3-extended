@@ -1,7 +1,6 @@
 package top.ltfan.m3x.material.backdrop
 
 import androidx.compose.foundation.interaction.InteractionSource
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -21,8 +20,6 @@ import top.ltfan.m3x.material.MaterialSurfaceRole
 import top.ltfan.m3x.material.MaterialSurfaceStyle
 import top.ltfan.m3x.material.backdrop.theme.LocalM3xBackdropTheme
 import top.ltfan.m3x.material.backdrop.theme.M3xBackdropMaterial
-import top.ltfan.m3x.material.backdrop.theme.backdrop
-import top.ltfan.m3x.material.theme.extended
 
 /** Backdrop effects supplied to renderer-independent components. */
 public class BackdropSurfaceEffects(public val block: BackdropEffectScope.() -> Unit) :
@@ -43,10 +40,6 @@ private class BackdropMaterialLayer(val handle: BackdropLayerHandle) : MaterialS
 
 /** Uses M3X Backdrop roles for ordinary components without owning their layout or state. */
 public object BackdropMaterialRenderer : MaterialSurfaceRenderer {
-    @Composable
-    override fun style(role: MaterialSurfaceRole): MaterialSurfaceStyle =
-        MaterialTheme.extended.backdrop.material(role)
-
     @Composable
     override fun captureEnvironment(): @Composable (@Composable () -> Unit) -> Unit {
         val theme = LocalM3xBackdropTheme.current

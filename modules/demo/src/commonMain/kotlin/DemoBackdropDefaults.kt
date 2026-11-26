@@ -36,7 +36,6 @@ internal object DemoBackdropDefaults {
 
     val controlBlurRadius = BackdropPresets.GlassRegular.control.style.blur!!.invoke().radius.value
     val panelBlurRadius = BackdropPresets.GlassRegular.panel.style.blur!!.invoke().radius.value
-    val surfaceBlurRadius = BackdropPresets.GlassRegular.surface.style.blur!!.invoke().radius.value
     val scrollEdgeBlurRadius =
         BackdropPresets.GlassRegular.scrollEdge.style.blur!!.invoke().radius.value
     const val SCROLL_EDGE_PLATEAU = 24.0f

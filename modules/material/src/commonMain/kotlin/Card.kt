@@ -42,10 +42,10 @@ public val LocalCardShape: ProvidableCompositionLocal<Shape> = staticComposition
 }
 
 /**
- * A Material card whose backing uses the selected [MaterialSurfaceRenderer] when [backdrop] is
- * enabled. [backdropMaterial] overrides the renderer's [MaterialSurfaceRole.Surface] style. The
- * renderer determines the drawing and interaction effects; a Backdrop renderer can use captured
- * background pixels and interaction lighting.
+ * A Material card that uses its native Material surface by default. When [backdrop] is enabled, the
+ * backing uses the selected [MaterialSurfaceRenderer]; [surfaceStyle] overrides the renderer's
+ * [MaterialSurfaceRole.Surface] style. The renderer determines the drawing and interaction effects;
+ * a Backdrop renderer can use captured background pixels and interaction lighting.
  *
  * Cards follow the [Material 3 card guidelines](https://m3.material.io/components/cards/overview).
  *
@@ -55,10 +55,10 @@ public val LocalCardShape: ProvidableCompositionLocal<Shape> = staticComposition
  * @param colors the colors used for the card container and content
  * @param elevation the elevation of the card
  * @param border the optional border drawn around the card
- * @param backdrop whether the selected renderer draws the backing; otherwise Material draws
- *   [colors] directly
- * @param backdropMaterial the renderer-specific style used when [backdrop] is enabled, or `null` to
- *   use the renderer's surface style
+ * @param backdrop whether the selected renderer draws the backing; false uses Material's native
+ *   card surface
+ * @param surfaceStyle the style interpreted by the selected renderer when [backdrop] is enabled, or
+ *   `null` to use the renderer's surface style
  * @param content the content displayed inside the card
  */
 @Composable
@@ -69,18 +69,17 @@ public fun Card(
     colors: CardColors = CardColorsLowest,
     elevation: CardElevation = CardDefaults.cardElevation(),
     border: BorderStroke? = null,
-    backdrop: Boolean = true,
-    backdropMaterial: MaterialSurfaceStyle? = null,
+    backdrop: Boolean = false,
+    surfaceStyle: MaterialSurfaceStyle? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val appearance =
         if (backdrop) {
             rememberSurfaceAppearance(
-                MaterialSurfaceRole.Panel,
-                backdropMaterial
-                    ?: LocalMaterialSurfaceRenderer.current.style(MaterialSurfaceRole.Surface),
-                colors.containerColor,
-                colors.contentColor,
+                role = MaterialSurfaceRole.Surface,
+                style = surfaceStyle,
+                containerColor = colors.containerColor,
+                contentColor = colors.contentColor,
                 shape = shape,
             )
         } else null

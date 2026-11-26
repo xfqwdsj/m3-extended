@@ -14,19 +14,22 @@ baked into the capture. Alternatively, draw the background inside the captured s
 `captureBackdrop` before `background` in the modifier chain so that background is recorded.
 
 `BackdropHost` provides `LocalBackdrop`, an appearance readback batch, and a shared lighting scope.
-Built-in surfaces read the handle automatically. `Modifier.backdropSurface` exposes one Backdrop
-DSL for surface drawing and image composition. Effects, fill, highlights and shadows work at the
-root and inside nested images or explicit `layer` declarations. `surface { }` applies fixed
-appearance phases with inherited `BackdropStyle` values. An explicit layer retains its isolation;
-ordinary single-consumer drawing can share a recording with its destination.
+Selected built-in renderer surfaces read the handle automatically. `Modifier.backdropSurface`
+exposes one Backdrop DSL for surface drawing and image composition. Effects, fill, highlights and
+shadows work at the root and inside nested images or explicit `layer` declarations. `surface { }`
+applies fixed appearance phases with inherited `BackdropStyle` values. An explicit layer retains its
+isolation; ordinary single-consumer drawing can share a recording with its destination.
 
 Built-in material surfaces draw the contour behind their content. The contour environment
 combines the processed backdrop and interior light within the material with the original backdrop
 beyond its outline. [Styles and decorations](backdrop/styles-and-decorations.md)
 
-Both Material roles and custom callers choose their image dependencies, masks and export selection
-through the same declaration. Material roles add color and accessibility policy. A low-level caller
-without a source owns its fallback background.
+Select the surface API by ownership and behavior. A component that owns its surface exposes a
+renderer switch, style override or effects through component parameters. A caller-owned container
+uses `rememberSurfaceAppearance` with `Modifier.materialSurface`, or the Backdrop-specific
+`materialBackdropSurface` when it needs Backdrop controls directly. `drawBackdrop` is the shared
+declaration layer for custom image dependencies, masks, effects and export selection. Material roles
+add color and accessibility policy; a low-level caller without a source owns its fallback background.
 
 Source: [handle, capture, provider, and low-level drawing](../modules/backdrop/src/commonMain/kotlin/Backdrop.kt).
 Appearance policy: [material contracts](design-system/materials.md).

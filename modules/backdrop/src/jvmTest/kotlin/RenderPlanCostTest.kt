@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.GraphicsContext
 import androidx.compose.ui.graphics.Matrix
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import top.ltfan.m3x.backdrop.backdrops.emptyBackdrop
 import top.ltfan.m3x.backdrop.effects.blur
@@ -151,6 +153,90 @@ class RenderPlanCostTest {
         runOnIdle { mode.intValue = 0 }
         assertEquals(direct, node.captureToImage().toPixelMap()[24, 24])
         assertTrue(active.isEmpty())
+    }
+
+    @Test
+    fun sourceFreeGraphsSelectTheirFastPathFromCompleteDataflow() = runRenderTest {
+        val mode = mutableIntStateOf(0)
+        var sourceCalls = 0
+        var drawsDirectly = false
+        setContent {
+            val graphics = LocalGraphicsContext.current
+            val renderer = remember(graphics) { BackdropRenderer { graphics } }
+            DisposableEffect(renderer) { onDispose { renderer.close() } }
+            Canvas(Modifier.size(64.dp).testTag("source-free-graph")) {
+                val declaration =
+                    BackdropRenderScope(
+                            1f,
+                            1f,
+                            size,
+                            RectangleShape,
+                            LayoutDirection.Ltr,
+                        )
+                        .apply {
+                            when (mode.intValue) {
+                                0 ->
+                                    group {
+                                        paintSurface(CompositingStrategy.Auto) {
+                                            drawRect(
+                                                Brush.linearGradient(
+                                                    listOf(Color.Red, Color.Blue),
+                                                ),
+                                            )
+                                        }
+                                        clip()
+                                        transform(Matrix().apply { translate(1f, 1f) })
+                                    }
+                                1 ->
+                                    group {
+                                        val isolated = layer {
+                                            fill(Color.Green)
+                                        }
+                                        draw(isolated)
+                                    }
+                                2 ->
+                                    group {
+                                        val shared = image {
+                                            fill(Color.Green)
+                                        }
+                                        draw(shared)
+                                        draw(shared)
+                                    }
+                                else -> {
+                                    source()
+                                    clipSurface()
+                                }
+                            }
+                        }
+                renderer.resolve(declaration, Rect(Offset.Zero, size))
+                renderer.beginFrame()
+                val output = declaration.current.index
+                drawsDirectly = renderer.canDrawDirectly(output)
+                sourceCalls = 0
+                val source: DrawScope.(Rect) -> Unit = { bounds ->
+                    sourceCalls++
+                    drawRect(Color.Black, bounds.topLeft, bounds.size)
+                }
+                if (drawsDirectly) {
+                    renderer.drawDirectly(this, output)
+                } else {
+                    renderer.draw(this, source = source)
+                }
+            }
+        }
+        val node = onNodeWithTag("source-free-graph")
+
+        for (value in listOf(0, 1, 2)) {
+            runOnIdle { mode.intValue = value }
+            node.captureToImage()
+            assertEquals(value == 0, drawsDirectly)
+            assertEquals(0, sourceCalls)
+        }
+
+        runOnIdle { mode.intValue = 3 }
+        node.captureToImage()
+        assertFalse(drawsDirectly)
+        assertTrue(sourceCalls > 0)
     }
 
     @Test

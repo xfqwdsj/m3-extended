@@ -83,7 +83,6 @@ import top.ltfan.m3x.demo.generated.resources.demo_shape_family
 import top.ltfan.m3x.demo.generated.resources.demo_shared_interaction_light
 import top.ltfan.m3x.demo.generated.resources.demo_single_row
 import top.ltfan.m3x.demo.generated.resources.demo_surface_blur_override_description
-import top.ltfan.m3x.demo.generated.resources.demo_surface_blur_radius_dp
 import top.ltfan.m3x.demo.generated.resources.demo_system_expressive_default
 import top.ltfan.m3x.demo.generated.resources.demo_text_scale
 import top.ltfan.m3x.demo.generated.resources.demo_theme_color
@@ -165,9 +164,6 @@ data class DemoPreferences(
         @SettingsItem(PanelBlurRadiusLabel::class, dependsOn = ["customBlurRadii"])
         @FiniteFloat(Slider, 0.0f, 64.0f, 1.0f)
         val panelBlurRadiusDp: Float = DemoBackdropDefaults.panelBlurRadius,
-        @SettingsItem(SurfaceBlurRadiusLabel::class, dependsOn = ["customBlurRadii"])
-        @FiniteFloat(Slider, 0.0f, 64.0f, 1.0f)
-        val surfaceBlurRadiusDp: Float = DemoBackdropDefaults.surfaceBlurRadius,
         @SettingsItem(ScrollEdgeBlurRadiusLabel::class, dependsOn = ["customBlurRadii"])
         @FiniteFloat(Slider, 0.0f, 64.0f, 1.0f)
         val scrollEdgeBlurRadiusDp: Float = DemoBackdropDefaults.scrollEdgeBlurRadius,
@@ -415,10 +411,6 @@ object ControlBlurRadiusLabel : SettingsResources {
 
 object PanelBlurRadiusLabel : SettingsResources {
     override val label: Resource<String> = demoResource(MR.strings.demo_panel_blur_radius_dp)
-}
-
-object SurfaceBlurRadiusLabel : SettingsResources {
-    override val label: Resource<String> = demoResource(MR.strings.demo_surface_blur_radius_dp)
 }
 
 object ScrollEdgeBlurRadiusLabel : SettingsResources {

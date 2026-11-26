@@ -201,7 +201,6 @@
     <string name="demo_surface_blur_override_description">为各类表面指定模糊半径，替代所选材质预设。</string>
     <string name="demo_control_blur_radius_dp">控件模糊半径 (dp)</string>
     <string name="demo_panel_blur_radius_dp">面板模糊半径 (dp)</string>
-    <string name="demo_surface_blur_radius_dp">表面模糊半径 (dp)</string>
     <string name="demo_scroll_edge_blur_radius_dp">滚动边缘模糊半径 (dp)</string>
     <string name="demo_shared_interaction_light">共享交互光效</string>
     <string name="demo_hdr_output_android">HDR输出 (Android)</string>

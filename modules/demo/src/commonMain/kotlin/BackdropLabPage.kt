@@ -300,7 +300,6 @@ internal fun LabPreviewPanel(
         ProvidePlainMaterialRendering {
             Card(
                 modifier = modifier.testTag("lab-preview"),
-                backdrop = false,
             ) {
                 SecondaryTabRow(
                     selectedTabIndex = if (scrollEdges) 1 else 0,

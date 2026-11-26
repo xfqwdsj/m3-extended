@@ -52,6 +52,7 @@ class BackdropPresetTest {
         assertEquals(0f, BackdropPresets.GlassClear.panel.dimmingAlpha)
         assertFalse(BackdropPresets.GlassClear.control.adaptiveContentColor)
         assertFalse(BackdropPresets.GlassRegular.scrollEdge.interactiveLighting)
+        assertTrue(BackdropPresets.GlassRegular.surface.interactiveLighting)
         listOf(
                 BackdropPresets.GlassRegular,
                 BackdropPresets.GlassClear,

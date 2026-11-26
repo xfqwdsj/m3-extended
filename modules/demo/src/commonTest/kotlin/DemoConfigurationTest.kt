@@ -275,7 +275,7 @@ class DemoConfigurationTest {
         val adapted = prefs.copy(effects = prefs.effects.copy(adaptation = true)).themeBackdrop()
         assertEquals(BackdropAdaptation.Background, adapted.control.adaptation)
         assertEquals(BackdropAdaptation.Background, adapted.panel.adaptation)
-        assertEquals(BackdropAdaptation.Background, adapted.surface.adaptation)
+        assertEquals(BackdropAdaptation.Fixed, adapted.surface.adaptation)
         assertEquals(BackdropAdaptation.Fixed, adapted.inversePanel.adaptation)
         assertFalse(adapted.control.adaptiveContentColor)
         val adaptiveForeground =
@@ -284,7 +284,7 @@ class DemoConfigurationTest {
                 .themeBackdrop()
         assertTrue(adaptiveForeground.control.adaptiveContentColor)
         assertTrue(adaptiveForeground.panel.adaptiveContentColor)
-        assertTrue(adaptiveForeground.surface.adaptiveContentColor)
+        assertFalse(adaptiveForeground.surface.adaptiveContentColor)
         assertFalse(adaptiveForeground.inversePanel.adaptiveContentColor)
         val gated =
             prefs.copy(effects = prefs.effects.copy(adaptiveContentColor = true)).themeBackdrop()
@@ -329,14 +329,12 @@ class DemoConfigurationTest {
                             customBlurRadii = true,
                             controlBlurRadiusDp = 7f,
                             panelBlurRadiusDp = 21f,
-                            surfaceBlurRadiusDp = 3f,
                             scrollEdgeBlurRadiusDp = 11f,
                         ),
                 )
                 .themeBackdrop()
         assertEquals(7.dp, custom.control.style.blur!!.invoke().radius)
         assertEquals(21.dp, custom.panel.style.blur!!.invoke().radius)
-        assertEquals(3.dp, custom.surface.style.blur!!.invoke().radius)
         assertEquals(21.dp, custom.inversePanel.style.blur!!.invoke().radius)
         assertEquals(11.dp, custom.scrollEdge.style.blur!!.invoke().radius)
     }
@@ -367,16 +365,12 @@ class DemoConfigurationTest {
         val panelBlurRadius =
             category.children.first { it.id == "effects.panelBlurRadiusDp" }
                 as SettingsItem.Item.SingleNumber<*>
-        val surfaceBlurRadius =
-            category.children.first { it.id == "effects.surfaceBlurRadiusDp" }
-                as SettingsItem.Item.SingleNumber<*>
         val scrollEdgeBlurRadius =
             category.children.first { it.id == "effects.scrollEdgeBlurRadiusDp" }
                 as SettingsItem.Item.SingleNumber<*>
         assertFalse(adaptiveContentColor.enabled)
         assertFalse(controlBlurRadius.enabled)
         assertFalse(panelBlurRadius.enabled)
-        assertFalse(surfaceBlurRadius.enabled)
         assertFalse(scrollEdgeBlurRadius.enabled)
         SettingsCommit.tryCommit(adaptation, true)
         runCurrent()
@@ -386,11 +380,9 @@ class DemoConfigurationTest {
         runCurrent()
         assertTrue(controlBlurRadius.enabled)
         assertTrue(panelBlurRadius.enabled)
-        assertTrue(surfaceBlurRadius.enabled)
         assertTrue(scrollEdgeBlurRadius.enabled)
         SettingsCommit.tryCommitDraft(controlBlurRadius, 7f)
         SettingsCommit.tryCommitDraft(panelBlurRadius, 21f)
-        SettingsCommit.tryCommitDraft(surfaceBlurRadius, 3f)
         SettingsCommit.tryCommitDraft(scrollEdgeBlurRadius, 11f)
         runCurrent()
         val committedTheme = appearance.value.themeBackdrop()
@@ -398,7 +390,6 @@ class DemoConfigurationTest {
         assertTrue(committedTheme.control.adaptiveContentColor)
         assertEquals(7.dp, committedTheme.control.style.blur!!.invoke().radius)
         assertEquals(21.dp, committedTheme.panel.style.blur!!.invoke().radius)
-        assertEquals(3.dp, committedTheme.surface.style.blur!!.invoke().radius)
         assertEquals(21.dp, committedTheme.inversePanel.style.blur!!.invoke().radius)
         assertEquals(11.dp, committedTheme.scrollEdge.style.blur!!.invoke().radius)
         val interaction =
@@ -485,7 +476,6 @@ class DemoConfigurationTest {
         assertTrue(restoredTheme.control.adaptiveContentColor)
         assertEquals(7.dp, restoredTheme.control.style.blur!!.invoke().radius)
         assertEquals(21.dp, restoredTheme.panel.style.blur!!.invoke().radius)
-        assertEquals(3.dp, restoredTheme.surface.style.blur!!.invoke().radius)
         assertEquals(21.dp, restoredTheme.inversePanel.style.blur!!.invoke().radius)
         assertEquals(11.dp, restoredTheme.scrollEdge.style.blur!!.invoke().radius)
         assertEquals(32f, restoredLab.value.optics.blurRadius)

@@ -201,7 +201,6 @@
     <string name="demo_surface_blur_override_description">Use the following per-surface blur radii instead of the selected material preset.</string>
     <string name="demo_control_blur_radius_dp">Control blur radius (dp)</string>
     <string name="demo_panel_blur_radius_dp">Panel blur radius (dp)</string>
-    <string name="demo_surface_blur_radius_dp">Surface blur radius (dp)</string>
     <string name="demo_scroll_edge_blur_radius_dp">Scroll edge blur radius (dp)</string>
     <string name="demo_shared_interaction_light">Shared interaction light</string>
     <string name="demo_hdr_output_android">HDR output (Android)</string>

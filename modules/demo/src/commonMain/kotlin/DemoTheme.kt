@@ -90,20 +90,6 @@ internal fun DemoPreferences.themeBackdrop(
                             adaptiveContentColor =
                                 effects.adaptation && effects.adaptiveContentColor,
                         ),
-                surface =
-                    base.surface
-                        .configuredSurface(effects, appearance.preset)
-                        .withBlur(
-                            effects.customBlurRadii,
-                            effects.surfaceBlurRadiusDp.dp,
-                        )
-                        .copy(
-                            adaptation =
-                                if (effects.adaptation) BackdropAdaptation.Background
-                                else BackdropAdaptation.Fixed,
-                            adaptiveContentColor =
-                                effects.adaptation && effects.adaptiveContentColor,
-                        ),
                 inversePanel =
                     base.inversePanel
                         .configuredPanel(
@@ -180,22 +166,6 @@ private fun M3xBackdropMaterial.withBlur(
                 }
             },
     )
-
-private fun M3xBackdropMaterial.configuredSurface(
-    settings: DemoPreferences.Effects,
-    preset: MaterialPreset,
-): M3xBackdropMaterial =
-    configuredPanel(settings, preset, hdrHighlightAvailable = false).let { configured ->
-        configured.copy(
-            style =
-                configured.style {
-                    lens = { BackdropLens.None }
-                    highlight = { Highlight.None }
-                    shadow = { Shadow.None }
-                    innerShadow = { InnerShadow.None }
-                },
-        )
-    }
 
 private fun M3xBackdropMaterial.configuredPanel(
     settings: DemoPreferences.Effects,

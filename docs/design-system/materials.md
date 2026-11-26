@@ -2,22 +2,26 @@
 
 ## M1. Choose a role by surface purpose
 
-Components use the selected surface renderer. With Backdrop rendering, `M3xBackdropTheme` assigns
-a material to each role, `material(role)` resolves it, and `ProvideBackdropMaterial` overrides one
-role in a subtree. The baseline behavior below belongs to that adapter.
+Components choose native Material or a selected surface renderer according to their visual
+contract. With Backdrop rendering, `M3xBackdropTheme` assigns a material to each role,
+`material(role)` resolves it, and `ProvideBackdropMaterial` overrides one role in a subtree. The
+baseline behavior below belongs to that adapter.
 
 | Role | Purpose and baseline behavior |
 | --- | --- |
 | `Control` | Compact interactive glass; vibrancy, corner-based lens, and exterior shadow |
 | `Panel` | Larger containers; stronger blur and depth lens on corner-based shapes |
-| `Surface` | Card backing; vibrancy without its own highlight/shadow/inner shadow, because Material elevation supplies the card's elevation |
+| `Surface` | Explicit decorative content backing; vibrancy without its own highlight/shadow/inner shadow, leaving elevation to the consuming component |
 | `InversePanel` | Transient feedback using the inverse Material container/foreground pair and fixed supplied colors |
 | `ScrollEdge` | Progressive separation over scrolling content, with a shared blur/fill profile and interaction lighting disabled by default |
 
-A role chooses material behavior. Components determine geometry and placement; explicit progressive
-fills also determine the room used for their ramp.
-Cards select the theme's `surface` material as their default backing even though their shared
-appearance path is parameterized as a panel.
+A role chooses material behavior once selected. Components determine geometry, placement and whether
+their default appearance comes from native Material or the renderer; explicit progressive fills also
+determine the room used for their ramp. `Surface` is available in the default theme for an explicit
+ornate component surface. General content surfaces begin with native Material colors, elevation and
+border, then select the renderer when their design requires source processing, optical decorations,
+shared interaction light or a custom Backdrop graph. Selecting `Surface` enables its shared
+interaction-light capability while leaving elevation decoration to the consuming component.
 
 Source: [roles and baseline materials](../../modules/material-backdrop/src/commonMain/kotlin/theme/M3xBackdropTheme.kt).
 
@@ -25,12 +29,16 @@ Source: [roles and baseline materials](../../modules/material-backdrop/src/commo
 
 Appearance resolves in this order:
 
-1. A component material overrides the corresponding theme role.
+1. On a selected renderer surface, a component surface style overrides the corresponding theme role.
 2. Reduced transparency selects an empty optical chain and opaque tint.
 3. Otherwise, explicit component `effects` replaces the entire optical chain, including built-in
    adaptation color controls and the style's optical fields.
 4. Without explicit effects, optional background adaptation and style color controls precede blur,
    vibrancy, and lens. `BackdropBlurEnabled` gates the style blur.
+
+Component APIs expose renderer-neutral `MaterialSurfaceStyle` for a surface baseline and
+`MaterialSurfaceEffects` for an explicit replacement chain. `M3xBackdropMaterial` and
+`BackdropSurfaceEffects` provide their Backdrop implementations at the adapter boundary.
 
 `BackdropBlurEnabled` resolves the master switch and reduced transparency for built-in backgrounds.
 `BlurAnimationEnabled` separately resolves foreground motion. Disabling the master switch preserves

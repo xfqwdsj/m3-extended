@@ -142,8 +142,11 @@ transition prepares the active outputs and releases unused source-boundary resou
 The modifier can draw source-independent, single-consumer SrcOver operations and geometry commands
 into the enclosing layer without a graph recording. Direct drawing applies to the background at
 alpha one and to the foreground independently. A receiver with an export layer uses recorded
-outputs. For a tint independent of the source, start from a transparent `group { }` and call
-`fill` inside it.
+outputs. Source independence is derived from every reachable graph input, so fills, paints, clipping,
+transforms, composites, masks and other operations share one rule. A source-free output always skips
+source sampling; an isolated graph, shared image or unsupported compositing operation retains its
+own recording when that output requires it. A source-free surface begins with a transparent
+`group { }` or image and selects `CompositingStrategy.Auto` for paint that can join its consumer.
 
 Fractional background alpha applies once through a receiver-owned presentation layer. Returning to
 one releases that layer.

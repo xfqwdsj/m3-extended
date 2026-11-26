@@ -48,9 +48,6 @@ public interface MaterialSurfaceAppearance {
 
 /** Selects the rendering mechanism while components retain layout and interaction ownership. */
 public interface MaterialSurfaceRenderer {
-    /** Captures the selected role configuration for deferred component composition. */
-    @Composable public fun style(role: MaterialSurfaceRole): MaterialSurfaceStyle? = null
-
     /** Captures renderer values at an overlay caller while retaining host rendering ownership. */
     @Composable
     public fun captureEnvironment(): @Composable (@Composable () -> Unit) -> Unit = { it() }

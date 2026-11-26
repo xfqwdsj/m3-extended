@@ -17,16 +17,18 @@ Source: [extension values](../../modules/material-theme/src/commonMain/kotlin/M3
 ## T2. The optional theme establishes a complete root
 
 `M3xMaterialTheme` wraps `MaterialExpressiveTheme`. With no shape arguments at the root it
-selects adaptive Capsule shapes using `CornerRadiiPolicy.Auto`. Backdrop defaults are Glass Regular.
-`M3xBaseTheme` provides the independent rounded theme without selecting rendering adapters.
+selects adaptive Capsule shapes using `CornerRadiiPolicy.Auto`. Backdrop role defaults are Glass
+Regular; components select whether their appearance uses those renderer-backed roles. `M3xBaseTheme`
+provides the independent rounded theme without selecting rendering adapters.
 The base color scheme and typography use `MaterialExpressiveTheme` defaults at
 the root. The accessibility provider selects the effective contrast variant without replacing the
 motion scheme or changing the configured base palette. Root motion uses the upstream Expressive
 scheme; nested M3X themes inherit the current Material motion scheme unless an explicit replacement
 is supplied.
 
-The theme supplies the control material's default Backdrop style and joins the shared interaction
-lighting scope. Actual pixels still require a captured source supplied by `BackdropHost`.
+The theme supplies Backdrop role defaults and joins the shared interaction-lighting scope.
+Components choose renderer-backed appearance through their own defaults or parameters. Actual pixels
+for a selected Backdrop surface still require a captured source supplied by `BackdropHost`.
 
 Source: [M3xMaterialTheme](../../modules/material-bundle/src/commonMain/kotlin/M3xMaterialTheme.kt).
 Regression: [root and nested themes](../../modules/material-theming/src/composeTest/kotlin/M3xThemeExtensionsTest.kt).
@@ -58,8 +60,8 @@ and [preference inheritance](../../modules/material-theming/src/composeTest/kotl
 Use a complete `M3xShapes` preset for coordinated shape changes. Individual roles may still be
 supplied independently when constructing it. Use `ProvideBackdropMaterial(role, material)` to
 replace one role for a subtree while copying the rest of the extension theme. Use a component's
-`material`/`backdropMaterial` parameter for one surface. Explicit component effects replace that
-surface's complete optical chain; see [M2](materials.md#m2-effect-precedence).
+surface switch together with `surfaceStyle` or `effects` for one surface. Explicit component effects
+replace that surface's complete optical chain; see [M2](materials.md#m2-effect-precedence).
 
 Keep configured preference values in `MaterialTheme.extended.accessibilityPreferences`; read the
 effective behavior through the

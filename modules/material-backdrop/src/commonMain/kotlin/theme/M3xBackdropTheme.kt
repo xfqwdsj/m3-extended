@@ -93,9 +93,9 @@ public data class M3xBackdropTheme(
         ),
 
     /**
-     * A card's own surface: the panel's glass with the highlight, shadow and inner shadow it would
-     * draw for itself turned off, since a card's Material elevation already provides them. Its
-     * interactive lighting stays on, so a press or a hover lights a card like any other glass.
+     * An opt-in decorative surface: the panel's glass with the highlight, shadow and inner shadow
+     * it would draw for itself turned off, leaving Material elevation to the consuming component.
+     * Its interactive lighting stays on, so an explicit ornate surface opts into shared light.
      */
     public val surface: M3xBackdropMaterial =
         M3xBackdropMaterial(

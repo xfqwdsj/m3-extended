@@ -39,11 +39,14 @@ Source: [floating bar](../../modules/material/src/commonMain/kotlin/FloatingBott
 Regressions: [sizing](../../modules/material-backdrop/src/composeTest/kotlin/FloatingBottomBarSizingTest.kt) and
 [interaction/layout](../../modules/material-backdrop/src/jvmTest/kotlin/FloatingBottomBarTest.kt).
 
-## C3. Card appearance combines one backing with Material elevation
+## C3. Content surfaces preserve Material elevation
 
-M3X `Card` uses the Surface material by default, retaining Material card elevation and border.
-Set `backdrop = false` to use direct card colors; `backdropMaterial` replaces its backing material.
-The resolved `LocalCardShape` is available for descendants that need the card's clip shape.
+Content surfaces use native Material colors, elevation and border by default. A component whose
+visual contract needs an ornate renderer backing can provide an explicit opt-in and a renderer-neutral
+style override. The current card component uses `backdrop = true` to select `Surface` and
+`surfaceStyle` to override that backing; the selected decorative material can participate in shared
+interaction light when a source and the lighting policy enable it. The resolved `LocalCardShape` is
+available for descendants that need the card's clip shape.
 
 Source: [card](../../modules/material/src/commonMain/kotlin/Card.kt).
 

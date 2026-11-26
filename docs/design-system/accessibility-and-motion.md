@@ -118,16 +118,18 @@ Regression: [effective policy combinations](../../modules/animation/src/jvmTest/
 The theme and `BackdropHost` join an enclosing interaction-light scope with `isolate = false`.
 This lets physical input on one participating surface illuminate other receivers in that scope.
 `M3xBackdropLighting` sets global enablement, source color/radius, and interior/edge receiving
-opacity. Source ownership and receiver appearance are separate settings.
+opacity. The registry owns active light sources, while each participating surface resolves its
+source and receiver optics from the selected material.
 
 ### L2. Both the role and theme control participation
 
 With a captured source, a surface emits and receives when theme lighting is enabled and its material's
-`interactiveLighting` is true. Scroll edges opt out by default; card surface materials participate
-without adding their own elevation decorations. Physical pointer input is observed directly.
-A shared `InteractionSource` supplies synthetic press and focus lighting; absent one, the modifier
-chain observes focus and keyboard activation. Reducing motion shortens release rather than
-inventing a different material role.
+`interactiveLighting` is true. Scroll edges opt out by default, while the `Surface` role keeps
+participation enabled for explicit decorative content surfaces and leaves elevation to the consuming
+component. Native Material content stays outside the renderer path until it explicitly selects that
+surface. Physical pointer input is observed directly. A shared `InteractionSource` supplies synthetic
+press and focus lighting; its modifier chain observes focus and keyboard activation. Reducing motion
+shortens release rather than inventing a different material role.
 
 Source: [source and receiver wiring](../../modules/material-backdrop/src/commonMain/kotlin/BackdropSurface.kt).
 Regressions: [input lighting](../../modules/material/src/jvmTest/kotlin/InteractionLightTest.kt) and

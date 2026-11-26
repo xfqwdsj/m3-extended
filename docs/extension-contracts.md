@@ -55,12 +55,15 @@ anchor. Mutable host entry lists, retirement flags and gesture session counters 
 capture modifiers and content wrappers; it must retain host input and transition ownership.
 `BackdropOverlayDecoration` adapts Backdrop to this host contract.
 
-`MaterialSurfaceRenderer` supplies role configuration, a remembered renderer layer and resolved
-foreground/drawing behavior. Components keep shape, layout and their interaction source.
-`captureEnvironment` forwards renderer configuration from a caller into its hosted content without
-replacing host rendering scopes. `BackdropSurfaceEffects` and `BackdropIndicatorEffects` carry
-explicit replacement chains for the Backdrop adapter; ordinary components do not expose Backdrop
-types in their signatures.
+`MaterialSurfaceRenderer` resolves a role, optional renderer-neutral style, foreground and drawing
+behavior, and supplies a remembered renderer layer. Components keep shape, layout and their
+interaction source. Components with an opt-in surface switch use the native Material path by default
+and resolve the renderer when their appearance selects it. A caller-owned container uses
+`rememberSurfaceAppearance` with `Modifier.materialSurface`; a component that owns its drawing
+exposes the corresponding configuration through component parameters. `captureEnvironment` forwards
+renderer configuration from a caller into its hosted content without replacing host rendering
+scopes. `BackdropSurfaceEffects` and `BackdropIndicatorEffects` carry explicit replacement chains
+for the Backdrop adapter, while renderer-specific types remain at that integration boundary.
 
 `FloatingBottomBarRenderer` supplies optics and optional tab capture to the bar's single layout and
 gesture implementation. Renderers observe progress through callbacks so frame-level drawing reads
