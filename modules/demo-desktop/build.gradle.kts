@@ -33,6 +33,12 @@ dependencies {
     implementation(libs.compose.material3)
 }
 
+configurations.runtimeClasspath {
+    // The demo uses moko-resources for strings and plurals. Batik supplies its JVM SVG decoder.
+    exclude(group = "org.apache.xmlgraphics", module = "batik-rasterizer")
+    exclude(group = "org.apache.xmlgraphics", module = "batik-transcoder")
+}
+
 val demoVersion = version.toString()
 // macOS and Windows installer versions use the numeric core of the project version.
 // Artifact names retain pre-release and build metadata.
@@ -104,6 +110,7 @@ compose.desktop {
             }
         }
         buildTypes.release.proguard {
+            configurationFiles.from(project.file("proguard-rules.pro"))
             // ProGuard still removes unused classes. Bytecode optimization is disabled because it
             // rewrites Navigation 3's generic serialization call into unverifiable bytecode.
             optimize.set(false)
