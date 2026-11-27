@@ -1,5 +1,7 @@
 import groovy.json.JsonSlurper
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.publish.tasks.GenerateModuleMetadata
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
@@ -148,12 +150,13 @@ subprojects {
     }
     plugins.withId("com.vanniktech.maven.publish") {
         requireNotNull(publishedVersion) { "Assign $path to a publication group." }
-        rootProject.tasks.named("checkReleaseTree").configure {
-            mustRunAfter(moduleTasks.named("assemble"))
-        }
         if (selectedForRelease) {
+            val moduleMetadata = moduleTasks.withType<GenerateModuleMetadata>()
             rootProject.tasks.named("verifyRelease").configure {
-                dependsOn(moduleTasks.named("assemble"))
+                dependsOn(moduleMetadata, moduleTasks.withType<GenerateMavenPom>())
+            }
+            rootProject.tasks.named("checkReleaseTree").configure {
+                mustRunAfter(moduleMetadata)
             }
             if (path != bomPath) {
                 val bomUploads = project(bomPath).tasks.withType<PublishToMavenRepository>()

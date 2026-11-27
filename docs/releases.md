@@ -87,7 +87,8 @@ latest [Test workflow](../.github/workflows/test.yml) push run for that commit. 
 20 minutes for the JVM and Android result. Missing, failed, canceled, or timed-out tests block
 publication. A Pages-only retry uses the preceding test result. The
 [publishing workflow](../.github/workflows/publish.yml) verifies the release and uploads selected
-groups to GitHub Packages, then Maven Central. The BOM follows the selected libraries in each
+groups to GitHub Packages, then Maven Central. Release verification builds the Maven publication
+artifacts and metadata for the selected groups. The BOM follows the selected libraries in each
 repository. Packages uses `--continue` to try independent tasks.
 Central starts after all Packages uploads succeed. Demo packages use the same verified commit.
 
