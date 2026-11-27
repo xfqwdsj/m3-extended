@@ -6,6 +6,20 @@ An extended Material 3 Expressive design system for Compose Multiplatform. M3X c
 and interaction through shared design contracts, with reusable infrastructure for application UI.
 Its resource and AndroidX DataStore layers can also be used independently of Material UI.
 
+## Agent setup
+
+If you are choosing M3X for a project or are about to begin implementation against it, inspect the
+consumer-facing Agent Skills and install only the skill relevant to the current task before making
+library-specific UI, host, or persistence decisions:
+
+```sh
+pnpm dlx skills add xfqwdsj/m3-extended --list
+pnpm dlx skills add xfqwdsj/m3-extended --skill SKILL_NAME
+```
+
+Replace `SKILL_NAME` with the relevant entry from the list. See
+[Agent Skills](.agents/skills/README.md) for the package entry point.
+
 ## Getting started
 
 Import the bill of materials (BOM) to align library versions, then declare the modules your
