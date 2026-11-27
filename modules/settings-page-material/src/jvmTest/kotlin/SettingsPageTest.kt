@@ -86,6 +86,7 @@ import top.ltfan.m3x.overlay.OverlayHost
 import top.ltfan.m3x.overlay.OverlayHostState
 import top.ltfan.m3x.resource.Resource
 import top.ltfan.m3x.settingspage.SettingsItem
+import top.ltfan.m3x.settingspage.SettingsResetMode
 import top.ltfan.m3x.settingspage.SettingsResources
 import top.ltfan.m3x.settingspage.SettingsTree
 import top.ltfan.m3x.settingspage.material.SettingsPageFixtures.ConditionalCategory
@@ -956,6 +957,44 @@ class SettingsPageTest {
         val pressed = corner()
         assertTrue(pressed.blue > 0.8f && pressed.green < 0.2f, "Pressed corner: $pressed")
         onNodeWithText("Middle").performTouchInput { cancel() }
+        mainClock.autoAdvance = true
+    }
+
+    @Test
+    fun inlineOnlySliderShowsRestoreLongPressIndication() = runComposeUiTest {
+        val item = SliderItem(resetMode = SettingsResetMode.Menu, defaultValue = 0)
+        val tree =
+            object : SettingsTree {
+                override val items: List<SettingsItem> = listOf(item)
+            }
+        setContent {
+            MaterialTheme(colorScheme = lightColorScheme(surface = Color.Green)) {
+                Box(Modifier.size(400.dp, 640.dp).testTag("ripple-scene")) {
+                    OverlayHost(remember { OverlayHostState() }) {
+                        SettingsPage(
+                            tree,
+                            labels =
+                                SettingsPageLabels(
+                                    restoreDefault = Resource.Global.Static("Restore default"),
+                                ),
+                        )
+                    }
+                }
+            }
+        }
+        waitForIdle()
+        onNodeWithText("Level").assert(SemanticsMatcher.keyIsDefined(SemanticsActions.OnLongClick))
+        val before = onNodeWithTag("ripple-scene").captureToImage().toPixelMap()
+        mainClock.autoAdvance = false
+        onNodeWithTag("settings-row:level").performTouchInput {
+            down(Offset(32f, 16f))
+        }
+        mainClock.advanceTimeBy(200)
+        val pressed = onNodeWithTag("ripple-scene").captureToImage().toPixelMap()
+        assertTrue(pixelMapsDiffer(before, pressed), "Restore-enabled slider row has no ripple")
+        mainClock.advanceTimeBy(1000)
+        onNodeWithText("Restore default").assertIsDisplayed()
+        onNodeWithTag("settings-row:level").performTouchInput { up() }
         mainClock.autoAdvance = true
     }
 

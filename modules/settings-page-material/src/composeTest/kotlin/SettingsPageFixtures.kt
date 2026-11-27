@@ -55,6 +55,8 @@ internal object SettingsPageFixtures {
                 1,
                 false,
             ),
+        override val defaultValue: Int? = null,
+        override val resetMode: SettingsResetMode = SettingsResetMode.None,
     ) : SettingsItem.Item.SingleNumber<Int> {
         private val state = mutableIntStateOf(5)
         var writes: Int = 0

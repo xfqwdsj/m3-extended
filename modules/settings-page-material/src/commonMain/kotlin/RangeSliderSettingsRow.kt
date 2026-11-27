@@ -2,8 +2,7 @@ package top.ltfan.m3x.settingspage.material
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.RangeSliderState
 import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
@@ -18,9 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.unit.dp
 import dev.icerock.moko.resources.compose.stringResource
-import top.ltfan.m3x.compose.material3.ListItemColorsTransparent
 import top.ltfan.m3x.material.RangeSlider
 import top.ltfan.m3x.material.Slider
 import top.ltfan.m3x.resource.compose.resolve
@@ -48,6 +45,7 @@ internal fun RangeSliderSettingsRow(
     onError: (SettingsPresentationError) -> Unit,
     commitMode: SliderCommitMode,
     sharedText: SettingsSharedText?,
+    shapes: ListItemShapes?,
 ) {
     val startType = item.startType as? NumberType.Finite<*>
     val endType = item.endType as? NumberType.Finite<*>
@@ -119,118 +117,131 @@ internal fun RangeSliderSettingsRow(
         SettingsCommit.tryCommitDraft(item, a to b).reportFailure(item, onError)
     }
 
-    Column(modifier) {
-        ListItem(
-            onClick = onOpen,
-            enabled = interactive && item.enabled && canOpen,
-            supportingContent = {
-                Column {
-                    item.resources.description?.resolve()?.let {
-                        Text(it, Modifier.settingsSharedDescription(sharedText))
-                    }
-                    Text(preview)
+    val enabled = interactive && item.enabled
+    SliderListItem(
+        onClick = { if (canOpen) onOpen() },
+        shapes = shapes,
+        modifier = modifier,
+        enabled = enabled,
+        leadingContent = null,
+        supportingContent = {
+            Column {
+                item.resources.description?.resolve()?.let {
+                    Text(it, Modifier.settingsSharedDescription(sharedText))
                 }
-            },
-            colors = ListItemColorsTransparent,
-            content = {
-                Text(item.resources.label.resolve(), Modifier.settingsSharedLabel(sharedText))
-            },
-        )
-        if (validOrder && startMapping != null && endMapping != null && startType == endType) {
-            RangeSlider(
-                state =
-                    remember(startMapping.steps) {
-                            RangeSliderState(startPosition, endPosition, steps = startMapping.steps)
-                        }
-                        .apply {
-                            startValue = startPosition
-                            endValue = endPosition
+                Text(preview)
+                if (
+                    validOrder && startMapping != null && endMapping != null && startType == endType
+                ) {
+                    RangeSlider(
+                        state =
+                            remember(startMapping.steps) {
+                                    RangeSliderState(
+                                        startPosition,
+                                        endPosition,
+                                        steps = startMapping.steps,
+                                    )
+                                }
+                                .apply {
+                                    startValue = startPosition
+                                    endValue = endPosition
+                                },
+                        onValueChange = { next ->
+                            if (!currentlyInteractive) return@RangeSlider
+                            startDragging = true
+                            endDragging = true
+                            localStart = snapTwoStop(next.start, startMapping)
+                            localEnd = snapTwoStop(next.endInclusive, endMapping)
+                            if (commitMode == SliderCommitMode.WhileDragging)
+                                commit(
+                                    startMapping.valueAt(localStart),
+                                    endMapping.valueAt(localEnd),
+                                )
                         },
-                onValueChange = { next ->
-                    if (!currentlyInteractive) return@RangeSlider
-                    startDragging = true
-                    endDragging = true
-                    localStart = snapTwoStop(next.start, startMapping)
-                    localEnd = snapTwoStop(next.endInclusive, endMapping)
-                    if (commitMode == SliderCommitMode.WhileDragging)
-                        commit(startMapping.valueAt(localStart), endMapping.valueAt(localEnd))
-                },
-                onValueChangeFinished = {
-                    if (startDragging || endDragging) {
-                        commit(startMapping.valueAt(localStart), endMapping.valueAt(localEnd))
-                        startDragging = false
-                        endDragging = false
+                        onValueChangeFinished = {
+                            if (startDragging || endDragging) {
+                                commit(
+                                    startMapping.valueAt(localStart),
+                                    endMapping.valueAt(localEnd),
+                                )
+                                startDragging = false
+                                endDragging = false
+                            }
+                        },
+                        enabled = enabled && !startMapping.isFixed,
+                        modifier =
+                            Modifier.fillMaxWidth().semantics {
+                                stateDescription = preview
+                            },
+                    )
+                } else {
+                    if (startMapping != null) {
+                        Text(labels.from.resolve())
+                        Slider(
+                            state =
+                                remember(startMapping.steps) {
+                                        SliderState(startPosition, steps = startMapping.steps)
+                                    }
+                                    .apply {
+                                        value = startPosition
+                                    },
+                            onValueChange = {
+                                if (!currentlyInteractive) return@Slider
+                                startDragging = true
+                                localStart = snapTwoStop(it, startMapping)
+                                if (commitMode == WhileDragging)
+                                    commit(startMapping.valueAt(localStart), item.value.second)
+                            },
+                            onValueChangeFinished = {
+                                if (startDragging) {
+                                    commit(startMapping.valueAt(localStart), end)
+                                    startDragging = false
+                                }
+                            },
+                            enabled = enabled && !startMapping.isFixed,
+                            modifier =
+                                Modifier.fillMaxWidth().semantics {
+                                    stateDescription = previewStart.toString()
+                                },
+                        )
                     }
-                },
-                enabled = interactive && item.enabled && !startMapping.isFixed,
-                modifier =
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
-                        stateDescription = preview
-                    },
-            )
-        } else {
-            if (startMapping != null) {
-                Text(labels.from.resolve(), modifier = Modifier.padding(horizontal = 16.dp))
-                Slider(
-                    state =
-                        remember(startMapping.steps) {
-                                SliderState(startPosition, steps = startMapping.steps)
-                            }
-                            .apply {
-                                value = startPosition
+                    if (endMapping != null) {
+                        Text(labels.to.resolve())
+                        Slider(
+                            state =
+                                remember(endMapping.steps) {
+                                        SliderState(endPosition, steps = endMapping.steps)
+                                    }
+                                    .apply {
+                                        value = endPosition
+                                    },
+                            onValueChange = {
+                                if (!currentlyInteractive) return@Slider
+                                endDragging = true
+                                localEnd = snapTwoStop(it, endMapping)
+                                if (commitMode == SliderCommitMode.WhileDragging)
+                                    commit(item.value.first, endMapping.valueAt(localEnd))
                             },
-                    onValueChange = {
-                        if (!currentlyInteractive) return@Slider
-                        startDragging = true
-                        localStart = snapTwoStop(it, startMapping)
-                        if (commitMode == SliderCommitMode.WhileDragging)
-                            commit(startMapping.valueAt(localStart), item.value.second)
-                    },
-                    onValueChangeFinished = {
-                        if (startDragging) {
-                            commit(startMapping.valueAt(localStart), end)
-                            startDragging = false
-                        }
-                    },
-                    enabled = interactive && item.enabled && !startMapping.isFixed,
-                    modifier =
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
-                            stateDescription = previewStart.toString()
-                        },
-                )
-            }
-            if (endMapping != null) {
-                Text(labels.to.resolve(), modifier = Modifier.padding(horizontal = 16.dp))
-                Slider(
-                    state =
-                        remember(endMapping.steps) {
-                                SliderState(endPosition, steps = endMapping.steps)
-                            }
-                            .apply {
-                                value = endPosition
+                            onValueChangeFinished = {
+                                if (endDragging) {
+                                    commit(start, endMapping.valueAt(localEnd))
+                                    endDragging = false
+                                }
                             },
-                    onValueChange = {
-                        if (!currentlyInteractive) return@Slider
-                        endDragging = true
-                        localEnd = snapTwoStop(it, endMapping)
-                        if (commitMode == SliderCommitMode.WhileDragging)
-                            commit(item.value.first, endMapping.valueAt(localEnd))
-                    },
-                    onValueChangeFinished = {
-                        if (endDragging) {
-                            commit(start, endMapping.valueAt(localEnd))
-                            endDragging = false
-                        }
-                    },
-                    enabled = interactive && item.enabled && !endMapping.isFixed,
-                    modifier =
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp).semantics {
-                            stateDescription = previewEnd.toString()
-                        },
-                )
+                            enabled = enabled && !endMapping.isFixed,
+                            modifier =
+                                Modifier.fillMaxWidth().semantics {
+                                    stateDescription = previewEnd.toString()
+                                },
+                        )
+                    }
+                }
             }
-        }
-    }
+        },
+        content = {
+            Text(item.resources.label.resolve(), Modifier.settingsSharedLabel(sharedText))
+        },
+    )
 }
 
 private fun snapTwoStop(

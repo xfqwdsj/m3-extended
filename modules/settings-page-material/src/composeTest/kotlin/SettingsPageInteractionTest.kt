@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.test.SemanticsMatcher
@@ -34,6 +35,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTextReplacement
@@ -190,7 +192,7 @@ class SettingsPageInteractionTest {
             }
         }
         repeat(2) {
-            onNodeWithText("Level").performClick()
+            onNodeWithText("Level").performSemanticsAction(SemanticsActions.OnClick)
             val retiring = state.editSession
             onNodeWithText("Cancel").performClick()
             waitForIdle()
@@ -531,6 +533,64 @@ class SettingsPageInteractionTest {
                 setting.type.let { it as NumberType.Finite<*> }.type,
             )
             assertEquals(emptyList(), errors)
+        }
+    }
+
+    @Test
+    fun sliderControlsShareTheClickableListSurface() = runComposeUiTest {
+        val setting =
+            SliderItem(NumberType.finiteInt(RangeBasedNumberInfo.Type.Slider, 0, 10, 1, true))
+        val tree =
+            object : SettingsTree {
+                override val items: List<SettingsItem> = listOf(setting)
+            }
+        setContent {
+            ProvideM3xMaterialRendering {
+                OverlayHost(remember { OverlayHostState() }) { SettingsPage(tree) }
+            }
+        }
+        val rowBounds =
+            onNodeWithText("Level").assertHasClickAction().fetchSemanticsNode().boundsInRoot
+        val sliderBounds =
+            onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+                .fetchSemanticsNode()
+                .boundsInRoot
+        assertTrue(
+            sliderBounds.top >= rowBounds.top && sliderBounds.bottom <= rowBounds.bottom,
+            "Slider $sliderBounds should be laid out inside row $rowBounds",
+        )
+    }
+
+    @Test
+    fun inlineOnlySliderRemainsEnabledWithoutOpeningAnEditor() = runComposeUiTest {
+        val setting =
+            SliderItem(NumberType.finiteInt(RangeBasedNumberInfo.Type.Slider, 0, 10, 1, false))
+        val state = SettingsPageState()
+        val tree =
+            object : SettingsTree {
+                override val items: List<SettingsItem> = listOf(setting)
+            }
+        setContent {
+            ProvideM3xMaterialRendering {
+                OverlayHost(remember { OverlayHostState() }) {
+                    SettingsPage(tree, state = state)
+                }
+            }
+        }
+        onNodeWithText("Level")
+            .assertIsEnabled()
+            .assertHasClickAction()
+            .performSemanticsAction(SemanticsActions.OnClick)
+        runOnIdle { assertEquals(null, state.activeItem) }
+        onNode(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
+            .performTouchInput {
+                down(center)
+                moveTo(centerRight)
+                up()
+            }
+        runOnIdle {
+            assertEquals(null, state.activeItem)
+            assertEquals(1, setting.writes)
         }
     }
 

@@ -1402,12 +1402,6 @@ private fun SettingsRowContent(
     sharedText: SettingsSharedText?,
     shapes: ListItemShapes?,
 ) {
-    val sliderModifier =
-        if (shapes == null) modifier
-        else
-            modifier
-                .clip(shapes.shape)
-                .background(ListItemDefaults.segmentedColors().containerColor)
     val finite = (item as? SettingsItem.Item.SingleNumber<*>)?.type as? NumberType.Finite<*>
     val mapping = remember(finite) { finite?.sliderMappingOrNull() }
     if (finite != null && (mapping != null || finite.type == Slider)) {
@@ -1416,10 +1410,11 @@ private fun SettingsRowContent(
             finite,
             interactive,
             onOpen,
-            sliderModifier,
+            modifier,
             onError,
             sliderCommitMode,
             sharedText,
+            shapes,
         )
         return
     }
@@ -1429,10 +1424,11 @@ private fun SettingsRowContent(
             labels,
             interactive,
             onOpen,
-            sliderModifier,
+            modifier,
             onError,
             sliderCommitMode,
             sharedText,
+            shapes,
         )
         return
     }
