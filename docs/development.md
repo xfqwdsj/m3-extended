@@ -71,7 +71,9 @@ creates and tears down the managed device. Compose-enabled Android targets enabl
 `androidResources` so AGP registers the test asset output. CI runs `:verify` under Xvfb in the JVM
 job and packages Android test APKs before starting one KVM-accelerated emulator from the same
 profile. `connectedAndroidDeviceTest` runs each module's tests in turn on that emulator. Each job
-uploads its own reports. The shared benchmark scenarios have JVM correctness tests. JMH timing and
+uploads its own test reports. CI allows five minutes for the emulator to boot. If the Android job
+fails, look for the emulator log and device logcat in the `android-device-logs` artifact.
+The shared benchmark scenarios have JVM correctness tests. JMH timing and
 Android Macrobenchmark run through their dedicated [benchmark entry points](benchmarks.md).
 
 Browser tests use Kotlin's default headless Chrome runner and require a local Chrome installation.

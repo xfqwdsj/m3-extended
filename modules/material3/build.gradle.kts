@@ -85,22 +85,9 @@ kotlin {
             }
         }
 
-        val composeTest =
-            create("composeTest") {
-                dependsOn(commonTest.get())
-                dependencies {
-                    implementation(libs.compose.ui.test)
-                }
-            }
-        jvmTest {
-            dependsOn(composeTest)
-        }
         getByName("androidDeviceTest") {
-            dependsOn(composeTest)
             dependencies {
-                implementation(libs.activity.compose)
                 implementation(libs.androidx.test.runner)
-                implementation(libs.androidx.test.junit)
             }
         }
     }

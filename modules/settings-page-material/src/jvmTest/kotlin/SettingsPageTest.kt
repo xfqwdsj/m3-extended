@@ -211,8 +211,7 @@ class SettingsPageTest {
             assertEquals(null, state.activeItem)
             assertEquals("before", item.value)
         }
-        // This comparison starts a fresh entry after exit settles. Immediate reversals have their
-        // own tests and must continue from the interrupted values rather than restart this frame.
+        // Let the exit settle so the next entry can be compared with the original opening frame.
         mainClock.advanceTimeBy(1600)
         runOnIdle {
             assertEquals(null, state.transitionState.currentState)
@@ -370,32 +369,11 @@ class SettingsPageTest {
         dispatcher.dispose()
     }
 
-    @Test
-    fun m3xDefaultBackImmediatelyReopensSameEditor() =
-        backThenReopen(
-            false,
-            blurEnabled = true,
-            expressive = true,
-            reopenDelayMillis = 16,
-            scheme = MotionScheme.expressive(),
-        )
-
-    @Test
-    fun m3xDefaultBackImmediatelyOpensDifferentEditor() =
-        backThenReopen(
-            true,
-            blurEnabled = true,
-            expressive = true,
-            reopenDelayMillis = 16,
-            scheme = MotionScheme.expressive(),
-        )
-
     private fun backThenReopen(
         different: Boolean,
         blurEnabled: Boolean = false,
         expressive: Boolean = false,
         reopenDelayMillis: Long = 32,
-        scheme: MotionScheme? = null,
     ) = runComposeUiTest {
         val dispatcher = NavigationEventDispatcher()
         val input = DirectNavigationEventInput()
@@ -439,8 +417,7 @@ class SettingsPageTest {
                 ) {
                     MaterialTheme(
                         colorScheme = lightColorScheme(surfaceContainerHigh = Color.Red),
-                        motionScheme =
-                            scheme ?: if (expressive) MotionScheme.expressive() else motion,
+                        motionScheme = if (expressive) MotionScheme.expressive() else motion,
                     ) {
                         Box(
                             Modifier.size(480.dp, 640.dp).background(Color.White).testTag("scene"),

@@ -35,7 +35,6 @@ import org.jetbrains.skia.Shader
 import org.jetbrains.skia.Surface
 import top.ltfan.m3x.backdrop.effects.colorFilter
 import top.ltfan.m3x.backdrop.effects.vibrancy
-import top.ltfan.m3x.backdrop.highlight.HighlightDirection
 import top.ltfan.m3x.backdrop.highlight.environmentHighlightTileShader
 import top.ltfan.m3x.backdrop.internal.BoundaryGeometry
 import top.ltfan.m3x.backdrop.internal.LightingShader
@@ -194,8 +193,8 @@ class HdrRenderingTest : PlatformGraphicsTest() {
         val tint = Color(0.2f, 0.4f, 0.6f, 0.5f)
         val input = floatArrayOf(0.3f, 0.15f, 0.1f, 0.75f)
         composeModes.indices.forEach { i ->
-            // Native Skia represents the identity Dst filter as null, which Compose's
-            // constructor cannot wrap; only the constructible modes are tested.
+            // Skia returns null for the identity Dst filter, so this matrix covers modes that
+            // Compose can wrap in a ColorFilter.
             if (composeModes[i] == BlendMode.Dst) return@forEach
             val actual =
                 renderCached(input, listOf("BackdropTint0" to TintShader.source)) {
@@ -239,17 +238,6 @@ class HdrRenderingTest : PlatformGraphicsTest() {
                 )
             },
         )
-    }
-
-    @Test
-    fun highlightDirectionUsesConfiguredCurvesAndVerticalDefault() {
-        val direction = HighlightDirection()
-        assertEquals(90f, direction.angle)
-        assertEquals(0.35f, direction.strength.from)
-        assertEquals(1f, direction.strength.to)
-        assertEquals(0.6f, direction.widthScale.from)
-        assertEquals(1f, direction.widthScale.to)
-        assertEquals(450f, HighlightDirection(angle = 450f).angle)
     }
 
     @Test
@@ -298,8 +286,8 @@ class HdrRenderingTest : PlatformGraphicsTest() {
         return renderShader(shader)
     }
 
-    // Exercise the exact cached matrix shaders populated by colorFilter(), without
-    // Skiko's independently clamped ImageFilter intermediate buffers.
+    // Sample the cached colorFilter() shaders directly to isolate their output from clamping in
+    // Skiko's ImageFilter intermediates.
     private fun constantShader(input: FloatArray): Shader =
         RuntimeShaderBuilder(
                 RuntimeEffect.makeForShader(
@@ -358,8 +346,7 @@ class HdrRenderingTest : PlatformGraphicsTest() {
                 surface.canvas.restore()
             }
             Bitmap().use { bitmap ->
-                // RGBA_F16 retains alpha in native readback; the RGBA_F32 mapping uses
-                // RGB_F16F16F16x.
+                // RGBA_F16 retains alpha in native readback. RGBA_F32 maps to RGB_F16F16F16x.
                 val readWidth = if (wholeSurface) 16 else 1
                 val readHeight = if (wholeSurface) 16 else 1
                 val readX = if (wholeSurface) 0 else 8

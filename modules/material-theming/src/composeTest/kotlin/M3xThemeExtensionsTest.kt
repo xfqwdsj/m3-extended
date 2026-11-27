@@ -104,75 +104,31 @@ class M3xThemeExtensionsTest {
     }
 
     @Test
-    fun nestedThemesInheritTheWholePresetAndExplicitPresetOverridesIt() = runComposeUiTest {
-        val fixed = capsuleShapes(ExpressiveCornerRadii.copy(containerRadius = 41.dp))
-        val override = roundedShapes(ExpressiveCornerRadii.copy(containerRadius = 19.dp))
-        var root: M3xShapeExtensions? = null
-        var inherited: M3xShapeExtensions? = null
-        var overridden: M3xShapeExtensions? = null
-
-        setContent {
-            ProvideM3xMaterialRendering {
-                M3xMaterialTheme(shapes = fixed) {
-                    root = MaterialTheme.extended.shapes
-                    M3xMaterialTheme { inherited = MaterialTheme.extended.shapes }
-                    M3xMaterialTheme(shapes = override) {
-                        overridden = MaterialTheme.extended.shapes
-                    }
-                }
-            }
-        }
-        waitForIdle()
-        assertEquals(fixed.toShapeExtensions(), root)
-        assertEquals(fixed.toShapeExtensions(), inherited)
-        assertEquals(override.toShapeExtensions(), overridden)
-        assertEquals(41.dp, root?.cornerRadii?.containerRadius)
-    }
-
-    @Test
-    fun nestedFactoryUsesInheritedRadiiAndExplicitPresetTakesPrecedence() = runComposeUiTest {
+    fun nestedThemesResolveShapePresetsFactoriesAndBackdropOverrides() = runComposeUiTest {
         val fixed = capsuleShapes(ExpressiveCornerRadii.copy(containerRadius = 41.dp))
         val explicit = roundedShapes(ExpressiveCornerRadii.copy(containerRadius = 19.dp))
-        var configured: M3xShapeExtensions? = null
-        var presetWins: M3xShapeExtensions? = null
 
         setContent {
             ProvideM3xMaterialRendering {
                 M3xMaterialTheme(shapes = fixed) {
+                    assertEquals(fixed.toShapeExtensions(), MaterialTheme.extended.shapes)
+                    M3xMaterialTheme {
+                        assertEquals(fixed.toShapeExtensions(), MaterialTheme.extended.shapes)
+                    }
                     M3xMaterialTheme(shapeFactory = RoundedM3xShapeFactory) {
-                        configured = MaterialTheme.extended.shapes
+                        assertSame(RoundedM3xShapeFactory, MaterialTheme.extended.shapes.factory)
+                        assertEquals(fixed.cornerRadii, MaterialTheme.extended.shapes.cornerRadii)
                     }
                     M3xMaterialTheme(shapes = explicit, shapeFactory = CapsuleM3xShapeFactory) {
-                        presetWins = MaterialTheme.extended.shapes
+                        assertEquals(explicit.toShapeExtensions(), MaterialTheme.extended.shapes)
                     }
-                }
-            }
-        }
-        waitForIdle()
-
-        assertSame(RoundedM3xShapeFactory, configured?.factory)
-        assertEquals(fixed.cornerRadii, configured?.cornerRadii)
-        assertEquals(explicit.toShapeExtensions(), presetWins)
-    }
-
-    @Test
-    fun backdropOverrideKeepsInheritedShapePreset() = runComposeUiTest {
-        val fixed = capsuleShapes(ExpressiveCornerRadii.copy(containerRadius = 41.dp))
-        var observedShapes: M3xShapeExtensions? = null
-        var observedBackdrop: M3xBackdropTheme? = null
-        setContent {
-            ProvideM3xMaterialRendering {
-                M3xMaterialTheme(shapes = fixed) {
                     M3xMaterialTheme(backdrop = BackdropPresets.MaterialBlur) {
-                        observedShapes = MaterialTheme.extended.shapes
-                        observedBackdrop = MaterialTheme.extended.backdrop
+                        assertEquals(fixed.toShapeExtensions(), MaterialTheme.extended.shapes)
+                        assertEquals(BackdropPresets.MaterialBlur, MaterialTheme.extended.backdrop)
                     }
                 }
             }
         }
-        waitForIdle()
-        assertEquals(fixed.toShapeExtensions(), observedShapes)
-        assertEquals(BackdropPresets.MaterialBlur, observedBackdrop)
     }
 
     @Test

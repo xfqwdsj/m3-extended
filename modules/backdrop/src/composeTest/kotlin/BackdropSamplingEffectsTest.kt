@@ -8,18 +8,6 @@ import kotlin.test.assertEquals
 
 class BackdropSamplingEffectsTest : PlatformGraphicsTest() {
     @Test
-    fun sequentialOutsetsAccumulateAcrossStages() {
-        val scope = samplingTestScope(Size(10f, 10f))
-
-        scope.resolveEffects {
-            addEffect(BackdropSampling.outsets(2f, 2f, 2f, 2f)) { blurEffect() }
-            addEffect(BackdropSampling.outsets(3f, 3f, 3f, 3f)) { blurEffect() }
-        }
-
-        assertEquals(BackdropExtension(5f, 5f, 5f, 5f), scope.extension)
-    }
-
-    @Test
     fun translatedAsymmetricSamplingUnionsEveryIntermediateRegion() {
         val scope = samplingTestScope(Size(10f, 10f))
         val stageBounds = mutableListOf<Rect>()

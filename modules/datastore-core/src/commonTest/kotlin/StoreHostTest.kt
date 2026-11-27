@@ -23,32 +23,22 @@ import kotlinx.coroutines.test.runTest
 @OptIn(ExperimentalCoroutinesApi::class)
 class StoreHostTest {
     @Test
-    fun sameNameReturnsSameInstances() = runTest {
-        val host = StoreHost(backgroundScope, MemoryStoreFile(), ValueCellFactory.Plain)
-
-        assertSame(host.dataStore(StringDefinition), host.dataStore(StringDefinition))
-        assertSame(host.mutable(StringDefinition), host.mutable(StringDefinition))
-    }
-
-    @Test
-    fun freshStoreReadsTheDefinitionDefault() = runTest {
+    fun oneHostSharesBindingsAndReadsDefaultsBeforeWriting() = runTest {
         val file = MemoryStoreFile()
         val host = StoreHost(backgroundScope, file, ValueCellFactory.Plain)
+        val dataStore = host.dataStore(StringDefinition)
+        val mutable = host.mutable(StringDefinition)
 
-        assertEquals("default", host.dataStore(StringDefinition).data.first())
+        assertSame(dataStore, host.dataStore(StringDefinition))
+        assertSame(mutable, host.mutable(StringDefinition))
+        assertEquals("default", dataStore.data.first())
         assertEquals(StringDefinition.defaultValue, file.defaults["string"])
-    }
 
-    @Test
-    fun writesAndReadsThroughTheHost() = runTest {
-        val host = StoreHost(backgroundScope, MemoryStoreFile(), ValueCellFactory.Plain)
-        val store = host.mutable(StringDefinition)
-
-        store.write("value")
-        assertEquals("value", store.data.value)
-
+        mutable.write("value")
+        assertEquals("value", mutable.data.value)
         runCurrent()
-        assertEquals("value", host.dataStore(StringDefinition).data.first())
+        assertEquals("value", dataStore.data.first())
+        host.closeAndJoin()
     }
 
     @Test

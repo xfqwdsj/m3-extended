@@ -20,63 +20,9 @@ import kotlin.test.assertTrue
 
 class BackdropRenderStyleReadTrackingTest {
     @Test
-    fun explicitProducersDoNotRereadReplacedStyles() = runRenderTest {
-        val style = mutableStateOf(BackdropRenderStyle.Default)
-        var explicitEffectCalls = 0
-        var explicitInsetCalls = 0
-        val explicitEffects: BackdropRenderScope.() -> Unit = { explicitEffectCalls++ }
-        val explicitInsets: () -> BackdropInsets = {
-            explicitInsetCalls++
-            BackdropInsets.None
-        }
-        val modifier =
-            Modifier.size(40.dp)
-                .testTag("surface")
-                .drawBackdrop(
-                    TestBackdrop,
-                    { RectangleShape },
-                    render = explicitEffects,
-                    insets = explicitInsets,
-                )
-
-        setContent {
-            CompositionLocalProvider(LocalBackdropRenderStyle provides style.value) {
-                Box(modifier)
-            }
-        }
-        onNodeWithTag("surface").assertExists()
-        waitForIdle()
-        val initialEffectCalls = explicitEffectCalls
-        val initialInsetCalls = explicitInsetCalls
-        assertTrue(initialEffectCalls > 0)
-        assertTrue(initialInsetCalls > 0)
-
-        repeat(10) { index ->
-            runOnIdle {
-                style.value =
-                    BackdropRenderStyle(
-                        render = { effects { cover(BackdropInsets(top = (index + 1).dp)) } },
-                        insets = { BackdropInsets(top = (index + 1).dp) },
-                    )
-            }
-            waitForIdle()
-        }
-
-        assertEquals(
-            initialEffectCalls,
-            explicitEffectCalls,
-            "Explicit effects should not subscribe to replaced styles",
-        )
-        assertEquals(
-            initialInsetCalls,
-            explicitInsetCalls,
-            "Explicit insets should not subscribe to replaced styles",
-        )
-    }
-
-    @Test
     fun explicitProducersSkipStyleReadsAndNullRestoresInheritedProducers() = runRenderTest {
         val version = mutableIntStateOf(0)
+        val styleOverride = mutableStateOf<BackdropRenderStyle?>(null)
         val useExplicitProducers = mutableStateOf(true)
         var inheritedEffectCalls = 0
         var inheritedInsetCalls = 0
@@ -88,31 +34,33 @@ class BackdropRenderStyleReadTrackingTest {
             BackdropInsets.None
         }
 
+        val inheritedStyle =
+            BackdropRenderStyle(
+                render = {
+                    inheritedEffectCalls++
+                    version.intValue
+                },
+                insets = {
+                    inheritedInsetCalls++
+                    version.intValue
+                    BackdropInsets.None
+                },
+            )
+        val surface = Modifier.size(40.dp).testTag("surface")
+        val explicit =
+            surface.drawBackdrop(
+                TestBackdrop,
+                { RectangleShape },
+                render = explicitEffects,
+                insets = explicitInsets,
+            )
+        val inherited = surface.drawBackdrop(TestBackdrop, { RectangleShape })
+
         setContent {
             CompositionLocalProvider(
-                LocalBackdropRenderStyle provides
-                    BackdropRenderStyle(
-                        render = {
-                            inheritedEffectCalls++
-                            version.intValue
-                        },
-                        insets = {
-                            inheritedInsetCalls++
-                            version.intValue
-                            BackdropInsets.None
-                        },
-                    ),
+                LocalBackdropRenderStyle provides (styleOverride.value ?: inheritedStyle),
             ) {
-                val modifier =
-                    Modifier.size(40.dp)
-                        .testTag("surface")
-                        .drawBackdrop(
-                            TestBackdrop,
-                            { RectangleShape },
-                            render = explicitEffects.takeIf { useExplicitProducers.value },
-                            insets = explicitInsets.takeIf { useExplicitProducers.value },
-                        )
-                Box(modifier)
+                Box(if (useExplicitProducers.value) explicit else inherited)
             }
         }
         onNodeWithTag("surface").assertExists()
@@ -122,7 +70,18 @@ class BackdropRenderStyleReadTrackingTest {
         assertEquals(0, inheritedEffectCalls)
         assertEquals(0, inheritedInsetCalls)
 
-        runOnIdle { version.intValue++ }
+        runOnIdle {
+            styleOverride.value =
+                BackdropRenderStyle(
+                    render = { error("Explicit rendering must ignore the replacement style") },
+                    insets = { error("Explicit insets must ignore the replacement style") },
+                )
+        }
+        waitForIdle()
+        runOnIdle {
+            styleOverride.value = null
+            version.intValue++
+        }
         waitForIdle()
         assertEquals(1, explicitEffectCalls)
         assertEquals(1, explicitInsetCalls)

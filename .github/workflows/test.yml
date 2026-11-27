@@ -92,6 +92,17 @@ jobs:
           overwrite: true
           retention-days: 7
 
+      - name: Upload Android device logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-device-logs
+          path: |
+            ${{ runner.temp }}/android-emulator.log
+            ${{ runner.temp }}/android-logcat.log
+          overwrite: true
+          retention-days: 7
+
   test:
     name: Tests
     needs: [ jvm, android ]

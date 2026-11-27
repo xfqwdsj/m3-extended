@@ -51,7 +51,7 @@ import top.ltfan.m3x.overlay.OverlayHostState
 
 class OverlayDismissBehaviorTest {
     @Test
-    fun dialogButtonClickSurvivesTouchMovement() = runComposeUiTest {
+    fun dialogButtonClickSurvivesTouchAndMouseMovement() = runComposeUiTest {
         var clicks = 0
         setContent {
             ProvideM3xMaterialRendering {
@@ -78,51 +78,15 @@ class OverlayDismissBehaviorTest {
             }
         }
 
-        onNodeWithTag("dialog-action").performTouchInput { click() }
-        runOnIdle { assertEquals(1, clicks) }
-
-        onNodeWithTag("dialog-action").performTouchInput {
-            val center = center
+        val action = onNodeWithTag("dialog-action")
+        action.performTouchInput {
             down(center)
             moveTo(center + Offset(1f, 0f), delayMillis = 0)
             up()
         }
-        runOnIdle { assertEquals(2, clicks) }
-    }
-
-    @Test
-    fun dialogButtonClickSurvivesMouseMovement() = runComposeUiTest {
-        var clicks = 0
-        setContent {
-            ProvideM3xMaterialRendering {
-                MaterialTheme {
-                    OverlayHost(remember { OverlayHostState() }) {
-                        OverlayDialog(
-                            onDismissRequest = {},
-                            properties =
-                                OverlayDialogProperties(
-                                    usePlatformInsets = false,
-                                    usePlatformDefaultWidth = false,
-                                    animateTransition = false,
-                                ),
-                        ) {
-                            Button(
-                                onClick = { clicks++ },
-                                modifier = Modifier.testTag("dialog-action"),
-                            ) {
-                                Text("Action")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        onNodeWithTag("dialog-action").performMouseInput { click() }
         runOnIdle { assertEquals(1, clicks) }
 
-        onNodeWithTag("dialog-action").performMouseInput {
-            val center = center
+        action.performMouseInput {
             moveTo(center)
             press()
             moveTo(center + Offset(1f, 0f), delayMillis = 0)
